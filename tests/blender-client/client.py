@@ -1,23 +1,28 @@
-import sys, socket
+import sys, socket, time
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.connect(('localhost', 15555))
+from clientsocket import ClientSocket
+
+
+s1 = ClientSocket("localhost", 5000, single_use=False)
 request = None
 
 try:
     while request != 'quit':
         request = input('>> ')
         if request:
-            server.send(request.encode('utf8'))
+            s1.send(request)
 
-            response = server.recv(255).decode('utf8')
-            print(response)
+            response = s1.recv()
+            output = ''
+            while "endcmd" not in output:
+                if(response != ''): 
+                    output = response.decode('utf8')
+                    print(output + "\n")
+                time.sleep(0.05)
+                response = s1.recv()
+                
 
-            if(request == 'info'):
-                while response != 'endline' and len(response) > 0:
-                    response = server.recv(255).decode('utf8')
-                    print(response)
-            print('--- response complete ---')
+            print('--- request complete ---')
 
 except KeyboardInterrupt:
     server.close()
