@@ -54,6 +54,10 @@ class StartDefoldServer(bpy.types.Operator):
         # Handle commands - may break this out into a module 
         def run_command(ip, client, data):  
             cmd = data.decode("utf-8")          
+            if(cmd == 'shutdown'):
+                server.stop()
+                server.join()
+                return
             defoldCmds.runCommand( context, client, cmd )
 
         def run_server():
