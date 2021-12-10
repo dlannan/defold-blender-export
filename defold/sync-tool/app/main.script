@@ -1,0 +1,202 @@
+-- ---------------------------------------------------------------------------
+
+
+
+-- ---------------------------------------------------------------------------
+
+local flags = imgui.WINDOWFLAGS_NOTITLEBAR
+--	flags = bit.bor(flags, imgui.WINDOWFLAGS_NOBACKGROUND)
+flags = bit.bor(flags, imgui.WINDOWFLAGS_NORESIZE)
+flags = bit.bor(flags, imgui.WINDOWFLAGS_NOMOVE)
+flags = bit.bor(flags, imgui.WINDOWFLAGS_NOSCROLLBAR)
+
+-- ---------------------------------------------------------------------------
+
+local buttonwidth 		= 400
+local buttonheight 		= 80
+local buttontextsize 	= 0.65
+
+local generaltextsize 	= 0.65
+local smalltextsize 	= 0.55
+local mediumtextsize	= 0.75
+local largetextsize		= 1.0
+
+local fontsizebase 		= 20.0
+local spacing 			= 2.0 
+
+-- ---------------------------------------------------------------------------
+local function set_style(self)
+	imgui.set_style_window_rounding(0)
+	imgui.set_style_frame_rounding(0)
+	imgui.set_style_scrollbar_rounding(0)
+-- 	imgui.set_style_color(imgui.ImGuiCol_Text, 1.0, 0.29, 0.70, 0.90)
+-- 	imgui.set_style_color(imgui.ImGuiCol_TextDisabled, 0.60, 0.60, 0.60, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_WindowBg, 1.0, 0.96, 0.86, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_PopupBg, 0.05, 0.05, 0.10, 0.85)
+-- 	imgui.set_style_color(imgui.ImGuiCol_Border, 0.70, 0.70, 0.70, 0.65)
+-- 	imgui.set_style_color(imgui.ImGuiCol_BorderShadow, 0.00, 0.00, 0.00, 0.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_FrameBg, 0.93, 0.89, 0.79, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_FrameBgHovered, 0.90, 0.80, 0.80, 0.40)
+-- 	imgui.set_style_color(imgui.ImGuiCol_FrameBgActive, 0.90, 0.65, 0.65, 0.45)
+-- 	imgui.set_style_color(imgui.ImGuiCol_TitleBg, 0.00, 0.00, 0.00, 0.83)
+-- 	imgui.set_style_color(imgui.ImGuiCol_TitleBgCollapsed, 0.40, 0.40, 0.80, 0.20)
+-- 	imgui.set_style_color(imgui.ImGuiCol_TitleBgActive, 0.00, 0.00, 0.00, 0.87)
+-- 	imgui.set_style_color(imgui.ImGuiCol_MenuBarBg, 0.01, 0.01, 0.02, 0.80)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ScrollbarBg, 0.93, 0.89, 0.79, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ScrollbarGrab, 0.55, 0.53, 0.55, 0.51)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ScrollbarGrabHovered, 0.56, 0.56, 0.56, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ScrollbarGrabActive, 0.56, 0.56, 0.56, 0.91)
+-- 	imgui.set_style_color(imgui.ImGuiCol_CheckMark, 0.90, 0.90, 0.90, 0.83)
+-- 	imgui.set_style_color(imgui.ImGuiCol_SliderGrab, 0.70, 0.70, 0.70, 0.62)
+-- 	imgui.set_style_color(imgui.ImGuiCol_SliderGrabActive, 0.30, 0.30, 0.30, 0.84)
+-- 	imgui.set_style_color(imgui.ImGuiCol_Button, 0.48, 0.72, 0.89, 0.0)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ButtonHovered, 0.50, 0.69, 0.99, 0.0)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ButtonActive, 0.80, 0.50, 0.50, 0.0)
+-- 	imgui.set_style_color(imgui.ImGuiCol_Header, 0.30, 0.69, 1.00, 0.53)
+-- 	imgui.set_style_color(imgui.ImGuiCol_HeaderHovered, 0.44, 0.61, 0.86, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_HeaderActive, 0.38, 0.62, 0.83, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ResizeGrip, 1.00, 1.00, 1.00, 0.85)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ResizeGripHovered, 1.00, 1.00, 1.00, 0.60)
+-- 	imgui.set_style_color(imgui.ImGuiCol_ResizeGripActive, 1.00, 1.00, 1.00, 0.90)
+-- 	imgui.set_style_color(imgui.ImGuiCol_PlotLines, 1.00, 1.00, 1.00, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_PlotLinesHovered, 0.90, 0.70, 0.00, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_PlotHistogram, 0.90, 0.70, 0.00, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_PlotHistogramHovered, 1.00, 0.60, 0.00, 1.00)
+-- 	imgui.set_style_color(imgui.ImGuiCol_TextSelectedBg, 0.00, 0.00, 1.00, 0.35)
+-- 
+	local fontsize 		= 1
+	self.fonts 	= {}
+	local regular_data, error = sys.load_resource("/app/fonts/Overpass-ExtraBold.ttf")
+	self.fonts["Regular"] = imgui.font_add_ttf_data(regular_data, #regular_data, fontsize, fontsizebase)
+	-- local bold_data, error = sys.load_resource("/app/fonts/Overpass-ExtraBold.ttf")
+	-- self.fonts["Bold"] = imgui.font_add_ttf_data(bold_data, #bold_data, fontsize, fontsizebase)
+	-- local italic_data, error = sys.load_resource("/app/fonts/Overpass-SemiBoldItalic.ttf")
+	-- self.fonts["Italic"] = imgui.font_add_ttf_data(italic_data, #italic_data, fontsize, fontsizebase)
+	-- local bolditalic_data, error = sys.load_resource("/app/fonts/Overpass-ExtraBoldItalic.ttf")
+	-- self.fonts["BoldItalic"] = imgui.font_add_ttf_data(bolditalic_data, #bolditalic_data, fontsize, fontsizebase)
+end
+
+------------------------------------------------------------------------------------------------------------
+
+local function connect(self) 
+
+	if(self.client == nil) then 
+		self.client = socket.tcp()
+		self.client:connect("localhost", 5000)
+		self.client:settimeout(0.0)
+	end 
+	
+	self.client:send("info")
+end 
+
+------------------------------------------------------------------------------------------------------------
+
+local function checkserver(self)
+
+	if(self.client) then 
+
+		local response = self.client:receive("*l")
+		print(response)
+		if(response) then pprint(response) end
+	end 
+end 
+
+------------------------------------------------------------------------------------------------------------
+
+function init(self)
+
+    self.width, self.height = window.get_size()
+	self.scale = self.height / 1136 --self.width / 640.0 
+	self.hwidth = self.width * 0.5
+	self.hheight = self.height * 0.5
+
+	self.clicked = nil 
+	self.swipe = {
+		left 	= false,
+		right 	= false,
+		up 		= false,
+		down 	= false,
+	}
+
+	imgui.set_ini_filename()
+	set_style(self)
+
+	self.outtext = ""
+
+end
+
+------------------------------------------------------------------------------------------------------------
+
+function update(self, dt)
+
+	imgui.set_next_window_pos(0, 0)
+	imgui.set_next_window_size(self.width, self.height)
+	
+	imgui.begin_window("Soul Survivor", false, flags)
+	imgui.set_window_font_scale(1.0)
+
+	imgui.set_cursor_pos(20, 20)
+	imgui.font_scale(self.fonts["Regular"], 1.0)
+	imgui.font_push(self.fonts["Regular"])
+	imgui.text("Hello")
+
+	if( imgui.button("Connect") ) then 
+		connect(self)
+	end
+	
+	local changed, text = imgui.input_text("Data", self.outtext)
+	if(changed) then 
+		print(text) 
+		self.outtext = text
+	end
+
+	imgui.begin_child("Log", 200, 200)
+
+	for i=1, 100 do 
+		imgui.text("Line: "..i)
+	end
+
+	imgui.end_child()
+
+	imgui.font_pop()
+	
+	imgui.end_window()
+
+	checkserver(self)
+end 
+
+------------------------------------------------------------------------------------------------------------
+
+function on_message(self, message_id, message, sender)
+
+	if message_id == hash("on_gesture") then
+
+		self.swipe.left = message.swipe_left
+		self.swipe.right = message.swipe_right
+		self.swipe.up = message.swipe_up
+		self.swipe.down = message.swipe_down
+		self.swipe.info = nil 
+
+		if(message.swipe) then 
+			self.swipe.info = {
+				from 	= message.swipe.from,
+				to 		= message.swipe.to,
+				time 	= message.swipe.time,
+			}
+		end		
+	end
+end
+
+------------------------------------------------------------------------------------------------------------
+
+function on_input(self, action_id, action)
+
+end
+
+------------------------------------------------------------------------------------------------------------
+
+function final(self)
+
+end 
+
+------------------------------------------------------------------------------------------------------------

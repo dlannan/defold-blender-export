@@ -1,5 +1,5 @@
 import json
-import time, threading
+import time, threading, queue
 
 TAG_END   = "!!!ENDCMD!!!"
 
@@ -87,16 +87,16 @@ def sceneMeshes(context):
 #
 #    Unmodified data will not be sent, unless a RESEND command is sent
 
-def runCommand(context, client, cmd):
+def runCommand(context, sock, client, cmd):
     
     # If this is a new client
 
-    if( client not in gclients):
-      gclients[client] = { 
-        "client": client,
+    if( sock not in gclients):
+      gclients[sock] = { 
+        "client": sock,
         "cmds"  : []
       }
-    clientobj = gclients[client] 
+    clientobj = gclients[sock] 
 
     strcmd = str(cmd)
     cmds = clientobj["cmds"]
@@ -109,48 +109,40 @@ def runCommand(context, client, cmd):
     print("Command: " + strcmd + "   State: " + strstate)
 
     client.put(str('\n\n'+ TAG_END).encode('utf8'))
-
-    # Start the sendData pump for the client (each client gets one)
-    if("update" not in clientobj):
-      clientobj["update"] = threading.Thread(target=sendData, args=(context, client,))
-      clientobj["update"].start()
     return 
 
 # ------------------------------------------------------------------------
 
-def sendData( context, client ):
-
-  valid = 1
-  while valid==1:
-
-      # Dont do this too much
-      time.sleep(0.1) 
+def sendData( context, sock, client ):
       
-      # Check to see what commands are enabled. And collect data if they changed
-      if(client not in gclients):
-        # Kill this timer if this isnt a valid object 
-        valid = 0
+    # Dont do this too much
+    time.sleep(0.1) 
+    
+    # Check to see what commands are enabled. And collect data if they changed
+    if(sock not in gclients):
+      return
 
-      clientobj = gclients[client]
+    clientobj = gclients[sock]
+    
+    if("cmds" in clientobj):
+
+      clientcmds = clientobj["cmds"]
+      for cmd in clientcmds:
+
+        # Basic info of the scene
+        if(cmd == 'info'):
+            results = sceneInfo(context)
+            client.put(results.encode('utf8'))
+
+        # Object level info of the scene
+        if(cmd == 'scene'):
+            results = sceneMeshes(context)
+            client.put(results.encode('utf8'))
       
-      if("cmds" in clientobj):
+      # Check queue - if its empty do nothing
+      #print("Client Size:" + str(client.qsize()))
+      if(client.qsize() > 0):
+        # Complete each command (separate) with an end tag. 
+        client.put(str('\n\n'+ TAG_END).encode('utf8'))
 
-        clientcmds = clientobj["cmds"]
-        for cmd in clientcmds:
-
-          # Basic info of the scene
-          if(cmd == 'info'):
-
-              results = sceneInfo(context)
-              client.put(results.encode('utf8'))
-
-          # Object level info of the scene
-          if(cmd == 'scene'):
-
-              results = sceneMeshes(context)
-              client.put(results.encode('utf8'))
-
-          # Complete each command (separate) with an end tag. 
-          client.put(str('\n\n'+ TAG_END).encode('utf8'))
-      
 # ------------------------------------------------------------------------

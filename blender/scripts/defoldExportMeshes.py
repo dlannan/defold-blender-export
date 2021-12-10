@@ -49,25 +49,27 @@ class StartDefoldServer(bpy.types.Operator):
     def execute(self, context):        # execute() is called when running the operator.
 
         exit_server = 0
-        server = None
+        server_thread = None
 
         # Handle commands - may break this out into a module 
-        def run_command(ip, client, data):  
+        def run_command(ip, sock, client, data):  
             cmd = data.decode("utf-8")          
             if(cmd == 'shutdown'):
-                server.stop()
-                server.join()
+                exit_server = 1
                 return
-            defoldCmds.runCommand( context, client, cmd )
+            defoldCmds.runCommand( context, sock, client, cmd )
+
+        def run_queue( sock, client ):
+            defoldCmds.sendData( context, sock, client )
 
         def run_server():
-            server = TCPServer("localhost", 5000, run_command)
-            server.run()
+            server = TCPServer("localhost", 5000, run_command, run_queue, 4)
+            while exit_server == 0:
+                server.run_frame()
 
-        # Submit the coroutine to a given loop
-        server_thread = threading.Thread(target=run_server)
+        server_thread = threading.Thread( target=run_server)
         server_thread.start()
-
+    
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 
 def menu_func(self, context):

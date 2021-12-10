@@ -6,7 +6,7 @@ import sys
 
 class ServerSocket:
 
-    def __init__(self, mode, port, read_callback, max_connections, recv_bytes):
+    def __init__(self, mode, port, read_callback, queue_callback, max_connections, recv_bytes):
         # Handle the socket's mode.
         # The socket's mode determines the IP address it binds to.
         # mode can be one of two special values:
@@ -33,6 +33,7 @@ class ServerSocket:
         self._socket.bind((self.ip, self.port))
         # Save the callback
         self.callback = read_callback
+        self.callbackQ = queue_callback
         # Save the number of maximum connections.
         self._max_connections = max_connections
         if type(self._max_connections) != int:
@@ -42,23 +43,44 @@ class ServerSocket:
         # a socket
         self.recv_bytes = recv_bytes
 
-    def run(self):
         # Start listening
         self._socket.listen(self._max_connections)
         # Create a list of readers (sockets that will be read from) and a list
         # of writers (sockets that will be written to).
-        readers = [self._socket]
-        writers = []
+        self.readers = [self._socket]
+        self.writers = []
         # Create a dictionary of queue.Queues for data to be sent.
         # This dictionary maps sockets to queue.Queue objects
-        queues = dict()
+        self.queues = dict()
         # Create a similar dictionary that stores IP addresses.
         # This dictionary maps sockets to IP addresses
-        IPs = dict()
+        self.IPs = dict()
         # Now, the main loop.
-        while readers:
+        
+        
+    def run_frame(self):
+
+        # Update queues if callback assigned to queue
+        for sock in self.writers:
+            if sock:
+                tqueue = queue.Queue()
+                if self.callbackQ:
+                    self.callbackQ( sock, tqueue )
+
+                try:
+                    # Get the next chunk of data in the queue, but don't wait.
+                    data = tqueue.get_nowait()
+                except queue.Empty:
+                    continue
+                else:
+                    sock.send(data)
+
+        if self.readers:
             # Block until a socket is ready for processing.
-            read, write, err = select.select(readers, writers, readers)
+            print("BLOCKING")
+            read, write, err = select.select(self.readers, self.writers, self.readers)
+            print("STARTING...")
+            
             # Deal with sockets that need to be read from.
             for sock in read:
                 if sock is self._socket:
@@ -67,11 +89,11 @@ class ServerSocket:
                     # Make it a non-blocking connection.
                     client_socket.setblocking(0)
                     # Add it to our readers.
-                    readers.append(client_socket)
+                    self.readers.append(client_socket)
                     # Make a queue for it.
-                    queues[client_socket] = queue.Queue()
+                    self.queues[client_socket] = queue.Queue()
                     # Store its IP address.
-                    IPs[client_socket] = client_ip
+                    self.IPs[client_socket] = client_ip
                 else:
                     # Someone sent us something! Let's receive it.
                     try:
@@ -85,41 +107,45 @@ class ServerSocket:
                             raise e
                     if data:
                         # Call the callback
-                        self.callback(IPs[sock], queues[sock], data)
+                        self.callback(self.IPs[sock], sock, self.queues[sock], data)
                         # Put the client socket in writers so we can write to it
                         # later.
-                        if sock not in writers:
-                            writers.append(sock)
+                        if sock not in self.writers:
+                            self.writers.append(sock)
                     else:
                         # We received zero bytes, so we should close the stream
                         # Stop writing to it.
-                        if sock in writers:
-                            writers.remove(sock)
+                        print("REMOVING SOCKET")
+                        if sock in self.writers:
+                            self.writers.remove(sock)
                         # Stop reading from it.
-                        readers.remove(sock)
+                        self.readers.remove(sock)
                         # Close the connection.
                         sock.close()
                         # Destroy is queue
-                        del queues[sock]
+                        del self.queues[sock]
+
             # Deal with sockets that need to be written to.
             for sock in write:
-                try:
-                    # Get the next chunk of data in the queue, but don't wait.
-                    data = queues[sock].get_nowait()
-                except queue.Empty:
-                    # The queue is empty -> nothing needs to be written.
-                    writers.remove(sock)
-                else:
-                    # The queue wasn't empty; we did, in fact, get something.
-                    # So send it.
-                    sock.send(data)
+                if sock:
+                    try:
+                        # Get the next chunk of data in the queue, but don't wait.
+                        data = self.queues[sock].get_nowait()
+                    except queue.Empty:
+                        # Dont delete writers - server writes back. Live..
+                        self.writers.remove(sock)
+                    else:
+                        # The queue wasn't empty; we did, in fact, get something.
+                        # So send it.
+                        sock.send(data)
             # Deal with erroring sockets.
             for sock in err:
                 # Remove the socket from every list.
-                readers.remove(sock)
-                if sock in writers:
-                    writers.remove(sock)
+                print("REMOVING SOCKET - ERROR")
+                self.readers.remove(sock)
+                if sock in self.writers:
+                    self.writers.remove(sock)
                 # Close the connection.
                 sock.close()
                 # Destroy its queue.
-                del queues[sock]
+                del self.queues[sock]
