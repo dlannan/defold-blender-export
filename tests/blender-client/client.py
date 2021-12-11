@@ -15,11 +15,17 @@ def CheckServer():
     while exiting == 0:
         response = s1.recv()
         output = ''
-        if(response != ''): 
-            output = response.decode('utf8')
 
-        if TAG_END in output:
-            print(output + "\n")
+        ## Consume everything in the recv buffer
+        while(response != ''): 
+            output = response.decode('utf8')
+            print(output)
+
+            if TAG_END in output:
+                print(output + "\n")
+                break
+                
+            response = s1.recv()
 
         time.sleep(0.05)
         

@@ -112,21 +112,23 @@ class ServerSocket:
             # Deal with sockets that need to be written to.
             for sock in self.writers:
                 if sock:
-                    try:
-                        if self.callbackQ:
-                            self.callbackQ( sock, self.queues[sock] )
+                    if self.callbackQ:
+                        self.callbackQ( sock, self.queues[sock] )
+                    if self.queues[sock].qsize() > 0:
 
-                        # Get the next chunk of data in the queue, but don't wait.
-                        data = self.queues[sock].get_nowait()
+                        try:
+                            # Get the next chunk of data in the queue, but don't wait.
+                            data = self.queues[sock].get_nowait()
+                            self.queues[sock].queue.clear()
 
-                    except queue.Empty:
-                        # Dont delete writers - server writes back. Live..
-                        #self.writers.remove(sock)
-                        print("Write empty")
-                    else:
-                        # The queue wasn't empty; we did, in fact, get something.
-                        # So send it.
-                        sock.send(data)
+                        except queue.Empty:
+                            # Dont delete writers - server writes back. Live..
+                            #self.writers.remove(sock)
+                            print("Write empty")
+                        else:
+                            # The queue wasn't empty; we did, in fact, get something.
+                            # So send it.
+                            sock.send(data)
 
             # Deal with erroring sockets.
             for sock in err:

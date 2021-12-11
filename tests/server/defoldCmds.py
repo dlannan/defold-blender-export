@@ -87,6 +87,12 @@ def sceneMeshes(context):
 #
 #    Unmodified data will not be sent, unless a RESEND command is sent
 
+# Valid accepted commands
+validcmds = [
+  "info",
+  "scene"
+]
+
 def runCommand(context, sock, client, cmd):
     
     # If this is a new client
@@ -99,16 +105,17 @@ def runCommand(context, sock, client, cmd):
     clientobj = gclients[sock] 
 
     strcmd = str(cmd)
-    cmds = clientobj["cmds"]
-    strstate = "Active"
-    if( strcmd in cmds ):
-      strstate = "In-Active"
-      cmds.remove(strcmd)
-    else:
-      cmds.append(strcmd)
-    print("Command: " + strcmd + "   State: " + strstate)
+    if cmd in validcmds:
+      cmds = clientobj["cmds"]
+      strstate = "Active"
+      if( strcmd in cmds ):
+        strstate = "In-Active"
+        cmds.remove(strcmd)
+      else:
+        cmds.append(strcmd)
+      print("Command: " + strcmd + "   State: " + strstate)
 
-    client.put(str('\n\n'+ TAG_END).encode('utf8'))
+      client.put(str('\n\n'+ TAG_END).encode('utf8'))
     return 
 
 # ------------------------------------------------------------------------
@@ -117,7 +124,7 @@ def sendData( context, sock, client ):
       
     # Dont do this too much
     time.sleep(0.1) 
-
+    
     # Check to see what commands are enabled. And collect data if they changed
     if(sock not in gclients):
       return
