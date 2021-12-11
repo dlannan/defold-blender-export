@@ -1,5 +1,6 @@
 import sys, socket, time, threading
 
+sys.path.append('/dev/repos/defold-blender-export/tests/blender-client')
 from clientsocket import ClientSocket
 
 TAG_END = "\n\n!!!ENDCMD!!!"
