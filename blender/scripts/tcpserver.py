@@ -18,8 +18,9 @@ class TCPServer:
     # that the server received.
     def __init__(self, mode, port, read_callback, queue_callback,
                  maximum_connections=5, recv_bytes=2048):
+        self._data_changed   = False
         self.serversocket = ServerSocket(
-            mode, port, read_callback, queue_callback, maximum_connections, recv_bytes
+            self, mode, port, read_callback, queue_callback, maximum_connections, recv_bytes
         )
 
     def run_frame(self):
@@ -32,3 +33,11 @@ class TCPServer:
     @property
     def port(self):
         return self.serversocket.port
+
+    @property
+    def data_changed(self):
+        return self._data_changed
+
+    @data_changed.setter
+    def data_changed(self, value):
+        self._data_changed = value

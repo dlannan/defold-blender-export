@@ -3,7 +3,7 @@ import sys, socket, time, threading
 sys.path.append('/dev/repos/defold-blender-export/tests/blender-client')
 from clientsocket import ClientSocket
 
-TAG_END = "\n\n!!!ENDCMD!!!"
+TAG_END = "\n\n!!ECMD!!\n\n"
 
 s1 = ClientSocket("localhost", 5000, single_use=False)
 request     = None
@@ -24,7 +24,7 @@ def CheckServer():
             if TAG_END in output:
                 print(output + "\n")
                 break
-                
+
             response = s1.recv()
 
         time.sleep(0.05)

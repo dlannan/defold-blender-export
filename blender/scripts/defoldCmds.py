@@ -1,7 +1,11 @@
 import json
 import time, threading, queue
 
-TAG_END   = "!!!ENDCMD!!!"
+# These are used to start/end a data stream block. 
+TAG_START = "\n\n!!BCMD"
+TAG_END   = "\n\n!!ECMD"
+
+TAG_TAIL  = "!!\n\n"
 
 # Kinda evil.. meh
 gclients    = {}
@@ -115,7 +119,7 @@ def runCommand(context, sock, client, cmd):
         cmds.append(strcmd)
       print("Command: " + strcmd + "   State: " + strstate)
 
-      client.put(str('\n\n'+ TAG_END).encode('utf8'))
+      ## client.put(str(TAG_END).encode('utf8'))
     return 
 
 # ------------------------------------------------------------------------
@@ -134,22 +138,22 @@ def sendData( context, sock, client ):
     if("cmds" in clientobj):
 
       clientcmds = clientobj["cmds"]
+
+      # TODO: Optimise this into mapped methods
       for cmd in clientcmds:
 
         # Basic info of the scene
         if(cmd == 'info'):
             results = sceneInfo(context)
+            client.put(str(TAG_START + "01" + TAG_TAIL).encode('utf8'))
             client.put(results.encode('utf8'))
+            client.put(str(TAG_END + "01" + TAG_TAIL).encode('utf8'))
 
         # Object level info of the scene
         if(cmd == 'scene'):
             results = sceneMeshes(context)
+            client.put(str(TAG_START + "02" + TAG_TAIL).encode('utf8'))
             client.put(results.encode('utf8'))
-      
-      # Check queue - if its empty do nothing
-      #print("Client Size:" + str(client.qsize()))
-      if(client.qsize() > 0):
-        # Complete each command (separate) with an end tag. 
-        client.put(str('\n\n'+ TAG_END).encode('utf8'))
+            client.put(str(TAG_END + "02" + TAG_TAIL).encode('utf8'))
 
 # ------------------------------------------------------------------------

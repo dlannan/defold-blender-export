@@ -6,7 +6,9 @@ import sys
 
 class ServerSocket:
 
-    def __init__(self, mode, port, read_callback, queue_callback, max_connections, recv_bytes):
+    def __init__(self, server, mode, port, read_callback, queue_callback, max_connections, recv_bytes):
+        
+        self.server = server
         # Handle the socket's mode.
         # The socket's mode determines the IP address it binds to.
         # mode can be one of two special values:
@@ -57,29 +59,13 @@ class ServerSocket:
         self.IPs = dict()
         # Now, the main loop.
         
-        
     def run_frame(self):
-
-        # Update queues if callback assigned to queue
-        for sock in self.writers:
-            if sock:
-                tqueue = queue.Queue()
-                if self.callbackQ:
-                    self.callbackQ( sock, tqueue )
-
-                try:
-                    # Get the next chunk of data in the queue, but don't wait.
-                    data = tqueue.get_nowait()
-                except queue.Empty:
-                    continue
-                else:
-                    sock.send(data)
 
         if self.readers:
             # Block until a socket is ready for processing.
-            print("BLOCKING")
-            read, write, err = select.select(self.readers, self.writers, self.readers)
-            print("STARTING...")
+            # print("BLOCKING")
+            read, write, err = select.select(self.readers, self.writers, self.readers, 0.05)
+            # print("STARTING...")
             
             # Deal with sockets that need to be read from.
             for sock in read:
@@ -107,7 +93,7 @@ class ServerSocket:
                             raise e
                     if data:
                         # Call the callback
-                        self.callback(self.IPs[sock], sock, self.queues[sock], data)
+                        self.callback(self.server, self.IPs[sock], sock, self.queues[sock], data)
                         # Put the client socket in writers so we can write to it
                         # later.
                         if sock not in self.writers:
@@ -126,18 +112,24 @@ class ServerSocket:
                         del self.queues[sock]
 
             # Deal with sockets that need to be written to.
-            for sock in write:
+            for sock in self.writers:
                 if sock:
-                    try:
-                        # Get the next chunk of data in the queue, but don't wait.
-                        data = self.queues[sock].get_nowait()
-                    except queue.Empty:
-                        # Dont delete writers - server writes back. Live..
-                        self.writers.remove(sock)
-                    else:
-                        # The queue wasn't empty; we did, in fact, get something.
-                        # So send it.
-                        sock.send(data)
+                    if self.callbackQ:
+                        self.callbackQ( self.server, sock, self.queues[sock] )
+
+                    while not self.queues[sock].empty():
+                        try:
+                            # Get the next chunk of data in the queue, but don't wait.
+                            data = self.queues[sock].get_nowait()
+                        except queue.Empty:
+                            # Dont delete writers - server writes back. Live..
+                            #self.writers.remove(sock)
+                            print("Write empty")
+                        else:
+                            # The queue wasn't empty; we did, in fact, get something.
+                            # So send it.
+                            sock.send(data)
+
             # Deal with erroring sockets.
             for sock in err:
                 # Remove the socket from every list.

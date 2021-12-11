@@ -23,6 +23,9 @@ if not dir in sys.path:
 import defoldCmds
 from tcpserver import TCPServer
 
+owner = object()
+data_changed = False
+
 # ------------------------------------------------------------------------
 # Defold export tool
 #    What is this?  This is a tool for the Defold game engine to export information/data from 
@@ -48,28 +51,42 @@ class StartDefoldServer(bpy.types.Operator):
 
     def execute(self, context):        # execute() is called when running the operator.
 
+        server = None
         exit_server = 0
         server_thread = None
 
         # Handle commands - may break this out into a module 
-        def run_command(ip, sock, client, data):  
+        def run_command(server, ip, sock, client, data):  
             cmd = data.decode("utf-8")          
             if(cmd == 'shutdown'):
                 exit_server = 1
                 return
             defoldCmds.runCommand( context, sock, client, cmd )
+            server.data_changed = True
 
-        def run_queue( sock, client ):
-            defoldCmds.sendData( context, sock, client )
+        def run_queue( server, sock, client ):
+            if(server.data_changed == True):
+                defoldCmds.sendData( context, sock, client )
+                server.data_changed = False
 
-        def run_server():
-            server = TCPServer("localhost", 5000, run_command, run_queue, 4)
+        def update_handler(scene):
+            # This will print:
+            # Something changed! (1, 2, 3)
+            print("Something changed!", server.data_changed)
+            server.data_changed = True
+
+        def run_server(server):
             while exit_server == 0:
                 server.run_frame()
 
-        server_thread = threading.Thread( target=run_server)
+        server = TCPServer("localhost", 5000, run_command, run_queue, 4)
+        server.data_changed = False
+
+        bpy.app.handlers.depsgraph_update_post.append(update_handler)
+
+        server_thread = threading.Thread( target=run_server, args=(server,))
         server_thread.start()
-    
+
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 
 def menu_func(self, context):

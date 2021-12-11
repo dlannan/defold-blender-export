@@ -83,10 +83,8 @@ local function connect(self)
 	if(self.client == nil) then 
 		self.client = socket.tcp()
 		self.client:connect("localhost", 5000)
-		self.client:settimeout(0.0)
+		self.client:settimeout(0.05)
 	end 
-	
-	self.client:send("info")
 end 
 
 ------------------------------------------------------------------------------------------------------------
@@ -95,9 +93,36 @@ local function checkserver(self)
 
 	if(self.client) then 
 
-		local response = self.client:receive("*l")
-		print(response)
-		if(response) then pprint(response) end
+		local data, err, partial = self.client:receive("*l")
+		-- print(data, err, partial)
+		--if(data) then pprint(data) end
+		if(data and err == nil) then 
+
+			local beginCMD = string.match(data, "!!BCMD(..)!!")
+			local endCMD = string.match(data, "!!ECMD(..)!!")
+
+			-- Use cmdid to store the data after a begin
+			if(beginCMD) then 
+				self.databuffer[beginCMD] = {}
+				self.databuffercurr = beginCMD
+			end
+
+			if(endCMD) then 
+				self.datastore[endCMD] = self.databuffer[endCMD]
+			end
+
+			if( beginCMD == nil and endCMD == nil ) then 
+				if(data and string.len(data) > 0) then
+					table.insert(self.logtext, { text = tostring(data), timestamp = self.timestamp } )
+
+					local tbl = json.decode(data)
+					self.databuffer[self.databuffercurr] = tbl 
+				end
+			end
+		elseif(err) then
+			print("Server Read Error: ", err)
+			print("Partial Recv: ", partial)
+		end 
 	end 
 end 
 
@@ -121,9 +146,122 @@ function init(self)
 	imgui.set_ini_filename()
 	set_style(self)
 
-	self.outtext = ""
+	self.logtext 	= {}
+	self.outtext   	= ""
+	self.timestamp  = 0.0
+
+	self.stream_info	= false
+	self.stream_scene	= false
+
+	self.btn_connect 	= "Connect Localhost"
+	self.btn_log 		= true 
+
+	-- Temp data storage while collecting incoming data
+	self.databuffer		= {}
+	self.databuffercurr = nil
+	-- Permanent data set for "assessment and usage"
+	self.datastore 		= {}
+
+	timer.delay(0.01, true, function(self)
+		checkserver(self)
+	end)
+end
+
+------------------------------------------------------------------------------------------------------------
+
+local function update_tab_config(self)
+
+	if( imgui.button(self.btn_connect) ) then 
+		if(self.btn_connect == "Connect Localhost") then
+			connect(self)
+			self.btn_connect 	= "Disconnect Localhost"
+		else 
+			if(self.client) then 
+				self.client:send("quit")
+				self.btn_connect 	= "Connect Localhost"
+			end
+		end
+	end
+
+	imgui.separator()
+	imgui.text("Active Streams")
+	local changed, checked = imgui.checkbox("Info", self.stream_info)
+	if changed then
+		if(self.client) then
+			self.stream_info = checked
+			self.client:send("info")
+		end
+	end
+	local changed, checked = imgui.checkbox("Scene", self.stream_scene)
+	if changed then
+		if(self.client) then
+			self.stream_scene = checked
+			self.client:send("scene")
+		end 
+	end
+	
+-- 	local changed, text = imgui.input_text("Active Streams", self.outtext)
+-- 	if(changed) then 
+-- 		print(text) 
+-- 		self.outtext = text
+-- 	end
+
+	imgui.separator()
+	local changed, checked = imgui.checkbox("Log", self.btn_log)
+	if changed then
+		self.btn_log = checked
+	end
+
+	imgui.begin_child("Log", -1, -1)
+	if(self.btn_log) then 
+		for k,v in ipairs(self.logtext) do 
+			imgui.text(string.format("%04f %s", v.timestamp, v.text))
+		end
+	end
+	imgui.end_child()
 
 end
+
+------------------------------------------------------------------------------------------------------------
+
+local function draw_tree_nodes(key, tn)
+
+	local selected = imgui.tree_node(tostring(key))
+	if(selected) then 
+		local propcnt = 0
+		for k,v in pairs(tn) do
+
+			if(type(v) == "table") then 
+				draw_tree_nodes(k, v)
+			else
+				imgui.bullet()
+				imgui.selectable(tostring(k)..":"..tostring(v), false)
+				propcnt = propcnt + 1
+			end 
+		end	
+		imgui.tree_pop()
+	end
+end
+
+local function update_tab_blender(self)
+
+	-- Do top level here, then iterate nodes
+	for k,v in pairs(self.datastore) do
+
+		if(type(v) == "table") then 
+			draw_tree_nodes(k, v)
+		else
+			imgui.bullet()
+			imgui.selectable(tostring(k)..":"..tostring(v), false)
+		end 
+	end	
+end 
+
+------------------------------------------------------------------------------------------------------------
+
+local function update_tab_preview(self)
+
+end 
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -136,33 +274,37 @@ function update(self, dt)
 	imgui.set_window_font_scale(1.0)
 
 	imgui.set_cursor_pos(20, 20)
+
 	imgui.font_scale(self.fonts["Regular"], 1.0)
 	imgui.font_push(self.fonts["Regular"])
-	imgui.text("Hello")
 
-	if( imgui.button("Connect") ) then 
-		connect(self)
-	end
-	
-	local changed, text = imgui.input_text("Data", self.outtext)
-	if(changed) then 
-		print(text) 
-		self.outtext = text
+	imgui.begin_tab_bar("tabs")
+
+	local tab1_open = imgui.begin_tab_item("Config")
+	if tab1_open then
+		update_tab_config(self)
+		imgui.end_tab_item()
 	end
 
-	imgui.begin_child("Log", 200, 200)
-
-	for i=1, 100 do 
-		imgui.text("Line: "..i)
+	local tab2_open = imgui.begin_tab_item("Blender Data")
+	if tab2_open then
+		update_tab_blender(self)
+		imgui.end_tab_item()
 	end
 
-	imgui.end_child()
+	local tab3_open = imgui.begin_tab_item("3D Preview")
+	if tab3_open then
+		update_tab_preview(self)
+		imgui.end_tab_item()
+	end
+
+	imgui.end_tab_bar()
 
 	imgui.font_pop()
 	
 	imgui.end_window()
 
-	checkserver(self)
+	self.timestamp = self.timestamp + dt
 end 
 
 ------------------------------------------------------------------------------------------------------------
@@ -196,7 +338,9 @@ end
 ------------------------------------------------------------------------------------------------------------
 
 function final(self)
-
+	if(self.client) then 
+		self.client:send("quit")
+	end
 end 
 
 ------------------------------------------------------------------------------------------------------------
