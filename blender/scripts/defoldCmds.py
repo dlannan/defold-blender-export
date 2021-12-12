@@ -59,12 +59,13 @@ def sceneObjects(context):
           "z": obj.location.z 
         }
 
+        quat = obj.rotation_euler.to_quaternion()
         thisobj["rotation"] = { 
           "quat": { 
-            "x": obj.rotation_quaternion.x,
-            "y": obj.rotation_quaternion.y,
-            "z": obj.rotation_quaternion.z,
-            "w": obj.rotation_quaternion.w
+            "x": quat.x,
+            "y": quat.y,
+            "z": quat.z,
+            "w": quat.w
           },
           "euler": {
             "x": obj.rotation_euler.x,

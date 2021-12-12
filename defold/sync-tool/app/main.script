@@ -1,6 +1,6 @@
 -- ---------------------------------------------------------------------------
 
-
+local gen 		= require("app.generator")
 
 -- ---------------------------------------------------------------------------
 
@@ -23,6 +23,21 @@ local largetextsize		= 1.0
 
 local fontsizebase 		= 20.0
 local spacing 			= 2.0 
+
+-- ---------------------------------------------------------------------------
+
+local function is_valid_path( path )
+
+	if type( path ) ~= "string" then return false end
+	local fh = io.popen( "dir " .. path )
+	if(fh) then 
+		local results = fh:read("*a")
+		pprint("RESULTS["..results.."]")
+		if(#results > 0) then return true end
+		fh:close()
+	end
+	return false
+end
 
 -- ---------------------------------------------------------------------------
 local function set_style(self)
@@ -89,6 +104,15 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
+local STREAM_TYPES = {
+
+	["01"] 	= "INFO",
+	["02"]	= "OBJECTS",
+	["03"]	= "MESHES",
+}
+
+------------------------------------------------------------------------------------------------------------
+
 local function checkserver(self)
 
 	if(self.client) then 
@@ -102,13 +126,13 @@ local function checkserver(self)
 			local endCMD = string.match(data, "!!ECMD(..)!!")
 
 			-- Use cmdid to store the data after a begin
-			if(beginCMD) then 
+			if(beginCMD and STREAM_TYPES[beginCMD]) then 
 				self.databuffer[beginCMD] = {}
-				self.databuffercurr = beginCMD
+				self.databuffercurr = STREAM_TYPES[beginCMD]
 			end
 
-			if(endCMD) then 
-				self.datastore[endCMD] = self.databuffer[endCMD]
+			if(endCMD and STREAM_TYPES[endCMD]) then 
+				self.datastore[STREAM_TYPES[endCMD]] = self.databuffer[STREAM_TYPES[endCMD]]
 			end
 
 			if( beginCMD == nil and endCMD == nil ) then 
@@ -120,8 +144,10 @@ local function checkserver(self)
 				end
 			end
 		elseif(err) then
-			print("Server Read Error: ", err)
-			print("Partial Recv: ", partial)
+			if(err ~= "timeout") then 
+				print("Server Read Error: ", err)
+				print("Partial Recv: ", partial)
+			end
 		end 
 	end 
 end 
@@ -147,12 +173,19 @@ function init(self)
 	set_style(self)
 
 	self.logtext 		= {}
-	self.project_path  	= ""
+	
+	-- How many seconds to attempt to sync files.
+	self.sync_rate 		= 5
+	
+	self.collection_name= "sample"
+	self.project_path  	= "/mnt/store1/Development/defold/repos/empty"
+	self.project_path_ok= false
 	self.timestamp  	= 0.0
 
 	self.stream_info	= false
 	self.stream_scene	= false
 	self.stream_meshes	= false
+	self.sync_files		= false
 
 	self.btn_connect 	= "Connect Localhost"
 	self.btn_log 		= true 
@@ -163,8 +196,16 @@ function init(self)
 	-- Permanent data set for "assessment and usage"
 	self.datastore 		= {}
 
-	timer.delay(0.01, true, function(self)
+	self.tmr_server = timer.delay(0.01, true, function(self)
 		checkserver(self)
+	end)
+
+	self.tmr_sync = timer.delay(self.sync_rate, true, function(self)
+		if(self.sync_files == true) then
+			print("Here...")
+			gen.makefolders(self.collection_name, self.project_path)
+			gen.makecollection(self.collection_name, self.datastore["OBJECTS"])
+		end  
 	end)
 end
 
@@ -211,13 +252,33 @@ local function update_tab_config(self)
 	end
 
 	imgui.separator()
+	imgui.text("Project Information")
+	if( self.project_path_ok == false ) then 
+		imgui.set_style_color(imgui.ImGuiCol_Text, 0.90, 0.0, 0.0, 0.90) 
+	end
+	 
 	local changed, text = imgui.input_text("Project Path", self.project_path)
 	if(changed) then 
-		print(text) 
 		self.project_path = text
+		self.project_path_ok = is_valid_path(self.project_path)
 		-- Add a litttle "red" text if we cant fine the path (do a ls or dir)
 	end
+	imgui.set_style_color(imgui.ImGuiCol_Text, 0.90, 0.90, 0.90, 0.90)
 
+	local changed, text = imgui.input_text("Collection Name", self.collection_name)
+	if(changed) then 
+		self.collection_name = text
+	end
+
+	local changed, int = imgui.input_int("Sync Rate (secs)", self.sync_rate or 0)
+	if changed then
+		self.sync_rate = math.max(int, 1)
+	end
+	local changed, checked = imgui.checkbox("Sync Files", self.sync_files)
+	if changed then
+		self.sync_files = checked
+	end
+	
 	imgui.separator()
 	local changed, checked = imgui.checkbox("Log", self.btn_log)
 	if changed then
