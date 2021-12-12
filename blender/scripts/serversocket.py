@@ -64,7 +64,7 @@ class ServerSocket:
         if self.readers:
             # Block until a socket is ready for processing.
             # print("BLOCKING")
-            read, write, err = select.select(self.readers, self.writers, self.readers, 0.05)
+            read, write, err = select.select(self.readers, self.writers, self.readers, 0.1)
             # print("STARTING...")
             
             # Deal with sockets that need to be read from.

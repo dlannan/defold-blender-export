@@ -5,7 +5,7 @@ bl_info = {
 }
 
 import bpy, sys, os
-import asyncio, socket, threading
+import asyncio, socket, threading, queue
 
 # When bpy is already in local, we know this is not the initial import...
 if "bpy" in locals():
@@ -25,6 +25,7 @@ from tcpserver import TCPServer
 
 owner = object()
 data_changed = False
+
 
 # ------------------------------------------------------------------------
 # Defold export tool
@@ -54,6 +55,7 @@ class StartDefoldServer(bpy.types.Operator):
         server = None
         exit_server = 0
         server_thread = None
+        execution_queue = queue.Queue()
 
         # Handle commands - may break this out into a module 
         def run_command(server, ip, sock, client, data):  
@@ -65,14 +67,17 @@ class StartDefoldServer(bpy.types.Operator):
             server.data_changed = True
 
         def run_queue( server, sock, client ):
+            execution_queue.put(send_data)
+            execution_queue.put(sock)
+            execution_queue.put(client)
+    
+        def send_data( sock, client ):
             if(server.data_changed == True):
                 defoldCmds.sendData( context, sock, client )
                 server.data_changed = False
 
         def update_handler(scene):
-            # This will print:
-            # Something changed! (1, 2, 3)
-            print("Something changed!", server.data_changed)
+            #print("Something changed!", server.data_changed)
             server.data_changed = True
 
         def run_server(server):
@@ -82,7 +87,16 @@ class StartDefoldServer(bpy.types.Operator):
         server = TCPServer("localhost", 5000, run_command, run_queue, 4)
         server.data_changed = False
 
-        bpy.app.handlers.depsgraph_update_post.append(update_handler)
+        def execute_queued_functions():
+            while not execution_queue.empty():
+                function = execution_queue.get()
+                sock = execution_queue.get()
+                client = execution_queue.get()
+                function(sock, client)
+            return 0.2
+
+        bpy.app.timers.register(execute_queued_functions)
+        bpy.app.handlers.depsgraph_update_pre.append(update_handler)
 
         server_thread = threading.Thread( target=run_server, args=(server,))
         server_thread.start()

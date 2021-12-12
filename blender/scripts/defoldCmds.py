@@ -117,7 +117,7 @@ def runCommand(context, sock, client, cmd):
         cmds.remove(strcmd)
       else:
         cmds.append(strcmd)
-      print("Command: " + strcmd + "   State: " + strstate)
+      #print("Command: " + strcmd + "   State: " + strstate)
 
       ## client.put(str(TAG_END).encode('utf8'))
     return 

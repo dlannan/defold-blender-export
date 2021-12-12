@@ -112,8 +112,6 @@ class ServerSocket:
             # Deal with sockets that need to be written to.
             for sock in self.writers:
                 if sock:
-                    if self.callbackQ:
-                        self.callbackQ( sock, self.queues[sock] )
 
                     while not self.queues[sock].empty():
                         try:
