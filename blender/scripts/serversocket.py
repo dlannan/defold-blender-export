@@ -64,7 +64,7 @@ class ServerSocket:
         if self.readers:
             # Block until a socket is ready for processing.
             # print("BLOCKING")
-            read, write, err = select.select(self.readers, self.writers, self.readers, 0.1)
+            read, write, err = select.select(self.readers, self.writers, self.readers, 0.05)
             # print("STARTING...")
             
             # Deal with sockets that need to be read from.
@@ -117,7 +117,7 @@ class ServerSocket:
                     if self.callbackQ:
                         self.callbackQ( self.server, sock, self.queues[sock] )
 
-                    while not self.queues[sock].empty():
+                    if not self.queues[sock].empty():
                         try:
                             # Get the next chunk of data in the queue, but don't wait.
                             data = self.queues[sock].get_nowait()

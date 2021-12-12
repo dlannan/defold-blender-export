@@ -146,12 +146,13 @@ function init(self)
 	imgui.set_ini_filename()
 	set_style(self)
 
-	self.logtext 	= {}
-	self.outtext   	= ""
-	self.timestamp  = 0.0
+	self.logtext 		= {}
+	self.project_path  	= ""
+	self.timestamp  	= 0.0
 
 	self.stream_info	= false
 	self.stream_scene	= false
+	self.stream_meshes	= false
 
 	self.btn_connect 	= "Connect Localhost"
 	self.btn_log 		= true 
@@ -192,6 +193,7 @@ local function update_tab_config(self)
 			self.client:send("info")
 		end
 	end
+	imgui.same_line(0)
 	local changed, checked = imgui.checkbox("Scene", self.stream_scene)
 	if changed then
 		if(self.client) then
@@ -199,12 +201,22 @@ local function update_tab_config(self)
 			self.client:send("scene")
 		end 
 	end
-	
--- 	local changed, text = imgui.input_text("Active Streams", self.outtext)
--- 	if(changed) then 
--- 		print(text) 
--- 		self.outtext = text
--- 	end
+	imgui.same_line(0)
+	local changed, checked = imgui.checkbox("Meshes", self.stream_meshes)
+	if changed then
+		if(self.client) then
+			self.stream_meshes = checked
+			self.client:send("meshes")
+		end 
+	end
+
+	imgui.separator()
+	local changed, text = imgui.input_text("Project Path", self.project_path)
+	if(changed) then 
+		print(text) 
+		self.project_path = text
+		-- Add a litttle "red" text if we cant fine the path (do a ls or dir)
+	end
 
 	imgui.separator()
 	local changed, checked = imgui.checkbox("Log", self.btn_log)

@@ -6,7 +6,9 @@ import sys
 
 class ServerSocket:
 
-    def __init__(self, mode, port, read_callback, queue_callback, max_connections, recv_bytes):
+    def __init__(self, server, mode, port, read_callback, queue_callback, max_connections, recv_bytes):
+        
+        self.server = server
         # Handle the socket's mode.
         # The socket's mode determines the IP address it binds to.
         # mode can be one of two special values:
@@ -91,7 +93,7 @@ class ServerSocket:
                             raise e
                     if data:
                         # Call the callback
-                        self.callback(self.IPs[sock], sock, self.queues[sock], data)
+                        self.callback(self.server, self.IPs[sock], sock, self.queues[sock], data)
                         # Put the client socket in writers so we can write to it
                         # later.
                         if sock not in self.writers:
@@ -112,8 +114,10 @@ class ServerSocket:
             # Deal with sockets that need to be written to.
             for sock in self.writers:
                 if sock:
+                    if self.callbackQ:
+                        self.callbackQ( self.server, sock, self.queues[sock] )
 
-                    while not self.queues[sock].empty():
+                    if not self.queues[sock].empty():
                         try:
                             # Get the next chunk of data in the queue, but don't wait.
                             data = self.queues[sock].get_nowait()

@@ -1,3 +1,5 @@
+
+import threading
 from serversocket import ServerSocket
 
 class TCPServer:
@@ -18,9 +20,11 @@ class TCPServer:
     # that the server received.
     def __init__(self, mode, port, read_callback, queue_callback,
                  maximum_connections=5, recv_bytes=2048):
+        self._data_changed   = False
         self.serversocket = ServerSocket(
-            mode, port, read_callback, queue_callback, maximum_connections, recv_bytes
+            self, mode, port, read_callback, queue_callback, maximum_connections, recv_bytes
         )
+        self._mutex = threading.Lock()
 
     def run_frame(self):
         self.serversocket.run_frame()
@@ -32,3 +36,13 @@ class TCPServer:
     @property
     def port(self):
         return self.serversocket.port
+
+    @property
+    def data_changed(self):
+        return self._data_changed
+
+    @data_changed.setter
+    def data_changed(self, value):
+        self._mutex.acquire()
+        self._data_changed = value
+        self._mutex.release()

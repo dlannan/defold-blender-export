@@ -88,11 +88,12 @@ class StartDefoldServer(bpy.types.Operator):
         server.data_changed = False
 
         def execute_queued_functions():
-            while not execution_queue.empty():
+            if( execution_queue.qsize() > 2):
                 function = execution_queue.get()
                 sock = execution_queue.get()
                 client = execution_queue.get()
                 function(sock, client)
+            execution_queue.queue.clear()
             return 0.2
 
         bpy.app.timers.register(execute_queued_functions)
