@@ -17,7 +17,7 @@ To use the tool follow the guide below.
 Blender is now setup and serving data streams. 
 Now the Sync Tool needs to be run. 
 
-Open the Defold project in the defold/sync-tool folder.
+Open and then run the Defold project in the defold/sync-tool folder.
 You should be viewing the config tab for the sync-tool
 1. Fill out the project path for where you want the Blender sync to write to. Make sure this is a Defold folder project path (where a project file exists).
 2. Set the collection name you want to use.
