@@ -219,8 +219,9 @@ local function makebufferfile(name, filepath, mesh )
 
     local bufferdata = bufferfiledata
     local bufferfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".buffer"
-    print(bufferfilepath)
-    pprint(name, gendata.meshes[name] )
+    --print(bufferfilepath)
+    --pprint(name, gendata.meshes[name] )
+
     local mesh = gendata.meshes[name] 
     if(mesh == nil) then return "" end
 
@@ -252,13 +253,34 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
+local function maketexturefile( name, filepath, mesh )
+
+    local texturefile = "/main/temp.png"
+    if(mesh.textures and mesh.textures[1]) then 
+        local texturefilename = string.match(mesh.textures[1], "([^"..PATH_SEPARATOR.."]+)$")
+        -- copy to local folder first 
+        local targetfile = filepath..gendata.folders.images..PATH_SEPARATOR..texturefilename
+        os.execute("cp "..mesh.textures[1].." "..targetfile)
+        texturefile = localpathname(filepath)..gendata.folders.images..PATH_SEPARATOR..texturefilename
+        print(texturefile)
+    end 
+    return texturefile
+end 
+
+------------------------------------------------------------------------------------------------------------
+
 local function makemeshfile(name, filepath, mesh )
 
+    if(mesh == nil) then return "" end 
+    
     local meshdata = meshfiledata
     local meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".mesh"
 
     meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", "/builtins/materials/model.material")
-    meshdata = string.gsub(meshdata, "IMAGE_FILE_PATH", "/main/temp.png")
+
+    -- If a texture file is found, copy it, then assign it
+    local texturefilepath = maketexturefile( name, filepath, mesh )
+    meshdata = string.gsub(meshdata, "IMAGE_FILE_PATH", texturefilepath)
 
     local bufferfilepath = makebufferfile( name, filepath, mesh )
     meshdata = string.gsub(meshdata, "BUFFER_FILE_PATH", localpathname(bufferfilepath))
@@ -276,8 +298,9 @@ local function makegofile( name, filepath, go )
     godata = string.gsub(godata, "MESH_GO_NAME", go.name.."_mesh")
 
     if(go.type == "MESH") then 
-    local meshfilepath = makemeshfile(name, filepath, go.mesh)
-    godata = string.gsub(godata, "MESH_FILE_PATH", localpathname(meshfilepath))
+        local mesh = gendata.meshes[name] 
+        local meshfilepath = makemeshfile(name, filepath, mesh)
+        godata = string.gsub(godata, "MESH_FILE_PATH", localpathname(meshfilepath))
     end 
 
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")

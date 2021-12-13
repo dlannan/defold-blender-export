@@ -175,7 +175,7 @@ local function checkserver(self)
 
 					local tbl = json.decode(data)
 					self.databuffer[self.databuffercurr] = tbl 
-					pprint(self.databuffercurr)
+					-- pprint(self.databuffercurr)
 				end
 			end
 		elseif(err) then
@@ -240,7 +240,6 @@ function init(self)
 
 	self.tmr_sync = timer.delay(self.sync_rate, true, function(self)
 		if(self.sync_files == true) then
-			print("Here...")
 			gen.makefolders(self.collection_name, self.project_path)
 			gen.makecollection(self.collection_name, self.datastore["OBJECTS"], self.datastore["MESHES"])
 		end  

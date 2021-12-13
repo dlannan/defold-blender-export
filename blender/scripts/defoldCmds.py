@@ -53,7 +53,7 @@ def sceneObjects(context):
               "type": str(obj.parent_type)
             }
 
-        local_coord = obj.location
+        local_coord = obj.matrix_local.translation #obj.location
         thisobj["location"] = { 
           "x": local_coord.x, 
           "y": local_coord.y, 
@@ -111,28 +111,47 @@ def sceneMeshes(context):
 
             # Get the vert data
             verts = []
-            for v in me.vertices:
-              verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+            verts_local = [v.co for v in obj.data.vertices.values()]
+            verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
+
+            for v in verts_local:
+              verts.append( { "x": v.x, "y": v.y, "z": v.z } )
             thisobj["vertices"] = verts
 
-            tris = []
+            textures = []
+            for f in obj.data.polygons:
+              mat = obj.material_slots[f.material_index].material
+              for n in mat.node_tree.nodes:
+                  if n.type=='TEX_IMAGE':
+                    img=n.image.filepath_from_user()
+                    # If this is an image texture, with an active image append its name to the list
+                    if( img not in textures):
+                      textures.append( img )
+
+            if(len(textures) > 0):
+              thisobj["textures"] = textures
+
             uv_layer = me.uv_layers.active.data
-            for tri in me.loop_triangles:
+            tris = []
+
+            for i, face in enumerate(me.loop_triangles):
+              verts_indices = face.vertices[:]
 
               triobj = {}
               thistri = []
+              normal = face.normal
               triobj["normal"] = {
-                "x": tri.normal.x, 
-                "y": tri.normal.y,
-                "z": tri.normal.z
+                "x": normal.x, 
+                "y": normal.y,
+                "z": normal.z
               }
 
-              for tri_index in range(0, 3):
-                v = tri.vertices[tri_index]
-                uv = uv_layer[tri_index].uv
+              for i in range(0, 3):
+                idx = verts_indices[i]
+                uv = uv_layer[face.loops[i]].uv
 
                 thistri.append( { 
-                  "vertex": v,
+                  "vertex": idx,
                   "uv": { "x": uv.x, "y": uv.y }
                 } )
               triobj["tri"] = thistri
