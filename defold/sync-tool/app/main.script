@@ -2,6 +2,15 @@
 
 local gen 		= require("app.generator")
 
+------------------------------------------------------------------------------------------------------------
+
+local STREAM_TYPES = {
+
+	["01"] 	= "INFO",
+	["02"]	= "OBJECTS",
+	["03"]	= "MESHES",
+}
+
 -- ---------------------------------------------------------------------------
 
 local flags = imgui.WINDOWFLAGS_NOTITLEBAR
@@ -102,14 +111,38 @@ local function connect(self)
 	end 
 end 
 
+
 ------------------------------------------------------------------------------------------------------------
+-- Notes: All incoming objects are in global coords (pos and rot)
 
-local STREAM_TYPES = {
+local function processDataStore(self)
 
-	["01"] 	= "INFO",
-	["02"]	= "OBJECTS",
-	["03"]	= "MESHES",
-}
+	-- pprint(self.datastore)
+	-- Process objects
+	if(self.datastore["OBJECTS"]) then
+
+		self.objects = {}
+		-- Add to object list 
+		for k,v in pairs(self.datastore["OBJECTS"]) do 
+			if k then 
+				self.objects[k] = v 
+			end 
+		end
+		-- Regen children using parent information 
+		for k,v in pairs(self.objects) do 
+			if(v.parent and v.parent.name) then 
+				local parent = self.objects[v.parent.name]
+				if(parent) then
+					parent.children = parent.children or {} 
+					table.insert(parent.children, v.name)
+				end
+			end 
+		end
+
+		self.datastore["OBJECTS"] = self.objects
+	end 
+end
+
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -133,6 +166,7 @@ local function checkserver(self)
 
 			if(endCMD and STREAM_TYPES[endCMD]) then 
 				self.datastore[STREAM_TYPES[endCMD]] = self.databuffer[STREAM_TYPES[endCMD]]
+				processDataStore(self)
 			end
 
 			if( beginCMD == nil and endCMD == nil ) then 
@@ -141,6 +175,7 @@ local function checkserver(self)
 
 					local tbl = json.decode(data)
 					self.databuffer[self.databuffercurr] = tbl 
+					pprint(self.databuffercurr)
 				end
 			end
 		elseif(err) then
@@ -175,7 +210,7 @@ function init(self)
 	self.logtext 		= {}
 	
 	-- How many seconds to attempt to sync files.
-	self.sync_rate 		= 5
+	self.sync_rate 		= 1
 	
 	self.collection_name= "sample"
 	self.project_path  	= "/mnt/store1/Development/defold/repos/empty"
@@ -196,6 +231,9 @@ function init(self)
 	-- Permanent data set for "assessment and usage"
 	self.datastore 		= {}
 
+	-- Mapped list of objects from the data store
+	self.objects 		= {}
+
 	self.tmr_server = timer.delay(0.01, true, function(self)
 		checkserver(self)
 	end)
@@ -204,7 +242,7 @@ function init(self)
 		if(self.sync_files == true) then
 			print("Here...")
 			gen.makefolders(self.collection_name, self.project_path)
-			gen.makecollection(self.collection_name, self.datastore["OBJECTS"])
+			gen.makecollection(self.collection_name, self.datastore["OBJECTS"], self.datastore["MESHES"])
 		end  
 	end)
 end

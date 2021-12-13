@@ -53,13 +53,15 @@ def sceneObjects(context):
               "type": str(obj.parent_type)
             }
 
+        local_coord = obj.location
         thisobj["location"] = { 
-          "x": obj.location.x, 
-          "y": obj.location.y, 
-          "z": obj.location.z 
+          "x": local_coord.x, 
+          "y": local_coord.y, 
+          "z": local_coord.z 
         }
 
-        quat = obj.rotation_euler.to_quaternion()
+        rot = obj.rotation_euler.copy()
+        quat = rot.to_quaternion()
         thisobj["rotation"] = { 
           "quat": { 
             "x": quat.x,
@@ -68,9 +70,9 @@ def sceneObjects(context):
             "w": quat.w
           },
           "euler": {
-            "x": obj.rotation_euler.x,
-            "y": obj.rotation_euler.y,
-            "z": obj.rotation_euler.z
+            "x": rot.x,
+            "y": rot.y,
+            "z": rot.z
           }
         }
 
@@ -103,31 +105,39 @@ def sceneMeshes(context):
           if(obj.data):
 
             me = obj.data
+            # Build the mesh into triangles
+            # bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+            me.calc_loop_triangles()
+
             # Get the vert data
             verts = []
             for v in me.vertices:
               verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
             thisobj["vertices"] = verts
 
-            # Polygons with vert data and uv data
-            polys = []
+            tris = []
             uv_layer = me.uv_layers.active.data
-            for poly in me.polygons:
-                # print("Polygon index: %d, length: %d" % (poly.index, poly.loop_total))
-                thispoly = []
-                # range is used here to show how the polygons reference loops,
-                # for convenience 'poly.loop_indices' can be used instead.
-                for loop_index in range(poly.loop_start, poly.loop_start + poly.loop_total):
-                    #print("    Vertex: %d" % me.loops[loop_index].vertex_index)
-                    #print("    UV: %r" % uv_layer[loop_index].uv)
-                    uv = uv_layer[loop_index].uv
+            for tri in me.loop_triangles:
 
-                    thispoly.append( { 
-                      "vertex": me.loops[loop_index].vertex_index,
-                      "uv": { "x": uv.x, "y": uv.y }
-                    } )
-                polys.append(thispoly)
-            thisobj["polys"] = polys
+              triobj = {}
+              thistri = []
+              triobj["normal"] = {
+                "x": tri.normal.x, 
+                "y": tri.normal.y,
+                "z": tri.normal.z
+              }
+
+              for tri_index in range(0, 3):
+                v = tri.vertices[tri_index]
+                uv = uv_layer[tri_index].uv
+
+                thistri.append( { 
+                  "vertex": v,
+                  "uv": { "x": uv.x, "y": uv.y }
+                } )
+              triobj["tri"] = thistri
+              tris.append(triobj)
+            thisobj["tris"] = tris
           
           dataobjs[ thisobj["name"] ] = thisobj 
 
