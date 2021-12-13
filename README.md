@@ -31,7 +31,7 @@ Now select the Sync tickbox. Data will now be getting written into the folder yo
 Depending on the type of object you have in Blender, will depend on what data will exist the project folder. 
 
 At a minimum you should see a collection file and some gameobjects (in the gameobjects folder). You can open this project and open the collection. 
-While the "Sync" tickbox is enabled, data will be written to the collection file - do not save new objects into it why Sync is on - they will be overwritten. 
+While the "Sync" tickbox is enabled, data will be written to the collection file - do not save new objects into it while Sync is on - they will be overwritten. 
 Sync can be unticked at any time and the data will stop pushing to the collection.
 
 Once this is setup you can add/edit the blender scene as you need and any Sync's you do, will update the meshes, textures and object positions in Defold.
