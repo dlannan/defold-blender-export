@@ -2,10 +2,14 @@
 ------------------------------------------------------------------------------------------------------------
 
 local PATH_SEPARATOR        = "/"
+local CMD_COPY              = "cp"
+local CMD_MKDIR             = "mkdir -p"
 local info = sys.get_sys_info()
 -- The system OS name: "Darwin", "Linux", "Windows", "HTML5", "Android" or "iPhone OS"
 if info.system_name == "Windows" then
     PATH_SEPARATOR  = "\\"
+    CMD_COPY        = "copy"
+    CMD_MKDIR       = "mkdir"
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -184,6 +188,8 @@ local function localpathname( path )
 
     -- Subtract project path from pathname     
     local newpath = string.match(path, gendata.base.."(.*)")
+    -- Local path should always use / 
+    if(newpath) then newpath = string.gsub(newpath, "\\", "/") end
     return newpath or path 
 end
 
@@ -206,10 +212,10 @@ local function makefolders( collectionname, base )
     gendata.base = base
 
     -- Make the base path
-    os.execute("mkdir -p "..base..PATH_SEPARATOR..collectionname)
+    os.execute(CMD_MKDIR.." "..base..PATH_SEPARATOR..collectionname)
     -- Make the folders that files will be generated in 
     for k,v in pairs(gendata.folders) do 
-        os.execute("mkdir -p "..base..PATH_SEPARATOR..collectionname..PATH_SEPARATOR..v)
+        os.execute(CMD_MKDIR.." "..base..PATH_SEPARATOR..collectionname..PATH_SEPARATOR..v)
     end
 end
 
@@ -255,14 +261,13 @@ end
 
 local function maketexturefile( name, filepath, mesh )
 
-    local texturefile = "/main/temp.png"
+    local texturefile = ""
     if(mesh.textures and mesh.textures[1]) then 
         local texturefilename = string.match(mesh.textures[1], "([^"..PATH_SEPARATOR.."]+)$")
         -- copy to local folder first 
         local targetfile = filepath..gendata.folders.images..PATH_SEPARATOR..texturefilename
-        os.execute("cp "..mesh.textures[1].." "..targetfile)
-        texturefile = localpathname(filepath)..gendata.folders.images..PATH_SEPARATOR..texturefilename
-        print(texturefile)
+        os.execute(CMD_COPY.." "..mesh.textures[1].." "..targetfile)
+        texturefile = localpathname(filepath)..gendata.folders.images.."/"..texturefilename
     end 
     return texturefile
 end 
