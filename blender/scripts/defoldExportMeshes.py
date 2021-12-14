@@ -4,7 +4,7 @@ bl_info = {
     "category": "Object",
 }
 
-import bpy, sys, os
+import bpy, sys, os, atexit
 import asyncio, socket, threading, queue
 
 # When bpy is already in local, we know this is not the initial import...
@@ -96,11 +96,16 @@ class StartDefoldServer(bpy.types.Operator):
             execution_queue.queue.clear()
             return 0.2
 
+        def goodbye(name, adjective):
+            exit_server = 1
+
         bpy.app.timers.register(execute_queued_functions)
         bpy.app.handlers.depsgraph_update_pre.append(update_handler)
 
         server_thread = threading.Thread( target=run_server, args=(server,))
         server_thread.start()
+ 
+        atexit.register(goodbye, "Defold Server", "exit")
 
         return {'FINISHED'}            # Lets Blender know the operator finished successfully.
 
