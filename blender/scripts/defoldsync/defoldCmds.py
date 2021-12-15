@@ -1,4 +1,4 @@
-import json
+import json, bpy
 import time, threading, queue
 
 # These are used to start/end a data stream block. 
@@ -163,27 +163,46 @@ def sceneMeshes(context):
 # ------------------------------------------------------------------------
 
 def sceneAnimations(context):
-  sce = context.scene
-  ob = context.object
 
   animobjs = {}
 
-  for f in range(sce.frame_start, sce.frame_end+1):
-    sce.frame_set(f)
-    print("Frame %i" % f)
+  scene = context.scene
+  for action in bpy.data.actions:
+    curves = {}
+    for fcu in action.fcurves:
 
-    thisframe = None
-    if ob.name:
-      thisframe = {}
-      if ob.pose:
-        thisbones = {}
-        for pbone in ob.pose.bones:
-          print(pbone.name, pbone.matrix) # bone in object space
-          thisbones[pbone.name] = pbone.matrix
-        thisframe[obj.name] = thisbones
+      channelname = str(fcu.data_path)
+      if channelname not in curves:
+        curves[channelname] = {}
 
-    if thisframe:
-      animobjs[ f ] = thisframe
+      thisframe = []
+      for keyframe in fcu.keyframe_points:
+          print(keyframe.co) #coordinates x,y
+          coord = keyframe.co
+
+          thisframe.append({
+            "x": coord.x,
+            "y": coord.y,
+            "handle_left": { "x":keyframe.handle_left.x, "y":keyframe.handle_left.y },
+            "handle_right": { "x":keyframe.handle_right.x, "y":keyframe.handle_right.y },
+            "easing": str(keyframe.easing),
+            "interp": str(keyframe.interpolation)
+          })
+
+      samples = []
+      for sample in fcu.sampled_points:
+        samples.append({
+          "x": sample.co.x, "y": sample.co.y
+        })
+
+      index = str(fcu.array_index)
+      curves[channelname][index] = {
+        "frames": thisframe,
+        "samples": samples,
+        "index": fcu.array_index
+      }
+
+    animobjs[action.name] = curves
 
   return json.dumps(animobjs)
       
