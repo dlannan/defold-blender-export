@@ -9,6 +9,7 @@ local STREAM_TYPES = {
 	["01"] 	= "INFO",
 	["02"]	= "OBJECTS",
 	["03"]	= "MESHES",
+	["04"]  = "ANIMS",
 }
 
 -- ---------------------------------------------------------------------------
@@ -220,6 +221,8 @@ function init(self)
 	self.stream_info	= false
 	self.stream_scene	= false
 	self.stream_meshes	= false
+	self.stream_anims 	= false 
+	
 	self.sync_files		= false
 
 	self.btn_connect 	= "Connect Localhost"
@@ -285,6 +288,14 @@ local function update_tab_config(self)
 		if(self.client) then
 			self.stream_meshes = checked
 			self.client:send("meshes")
+		end 
+	end
+	imgui.same_line(0)
+	local changed, checked = imgui.checkbox("Anims", self.stream_anims)
+	if changed then
+		if(self.client) then
+			self.stream_anims = checked
+			self.client:send("anims")
 		end 
 	end
 

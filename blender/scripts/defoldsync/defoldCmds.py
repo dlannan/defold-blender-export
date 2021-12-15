@@ -53,31 +53,32 @@ def sceneObjects(context):
               "type": str(obj.parent_type)
             }
 
+        local_coord = obj.matrix_local.translation #obj.location
         thisobj["location"] = { 
-          "x": obj.location.x, 
-          "y": obj.location.y, 
-          "z": obj.location.z 
+          "x": local_coord.x, 
+          "y": local_coord.y, 
+          "z": local_coord.z 
         }
 
+        rot = obj.rotation_euler.copy()
+        quat = rot.to_quaternion()
         thisobj["rotation"] = { 
           "quat": { 
-            "x": obj.rotation_quaternion.x,
-            "y": obj.rotation_quaternion.y,
-            "z": obj.rotation_quaternion.z,
-            "w": obj.rotation_quaternion.w
+            "x": quat.x,
+            "y": quat.y,
+            "z": quat.z,
+            "w": quat.w
           },
           "euler": {
-            "x": obj.rotation_euler.x,
-            "y": obj.rotation_euler.y,
-            "z": obj.rotation_euler.z
+            "x": rot.x,
+            "y": rot.y,
+            "z": rot.z
           }
         }
 
         dataobjs[ thisobj["name"] ] = thisobj 
 
     return json.dumps(dataobjs)
-
-
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
@@ -102,36 +103,90 @@ def sceneMeshes(context):
           if(obj.data):
 
             me = obj.data
+            # Build the mesh into triangles
+            # bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+            me.calc_loop_triangles()
+
             # Get the vert data
             verts = []
-            for v in me.vertices:
-              verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+            verts_local = [v.co for v in obj.data.vertices.values()]
+            verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
+
+            for v in verts_local:
+              verts.append( { "x": v.x, "y": v.y, "z": v.z } )
             thisobj["vertices"] = verts
 
-            # Polygons with vert data and uv data
-            polys = []
-            uv_layer = me.uv_layers.active.data
-            for poly in me.polygons:
-                # print("Polygon index: %d, length: %d" % (poly.index, poly.loop_total))
-                thispoly = []
-                # range is used here to show how the polygons reference loops,
-                # for convenience 'poly.loop_indices' can be used instead.
-                for loop_index in range(poly.loop_start, poly.loop_start + poly.loop_total):
-                    #print("    Vertex: %d" % me.loops[loop_index].vertex_index)
-                    #print("    UV: %r" % uv_layer[loop_index].uv)
-                    uv = uv_layer[loop_index].uv
+            textures = []
+            for f in obj.data.polygons:
+              mat = obj.material_slots[f.material_index].material
+              for n in mat.node_tree.nodes:
+                  if n.type=='TEX_IMAGE':
+                    img=n.image.filepath_from_user()
+                    # If this is an image texture, with an active image append its name to the list
+                    if( img not in textures):
+                      textures.append( img )
 
-                    thispoly.append( { 
-                      "vertex": me.loops[loop_index].vertex_index,
-                      "uv": { "x": uv.x, "y": uv.y }
-                    } )
-                polys.append(thispoly)
-            thisobj["polys"] = polys
+            if(len(textures) > 0):
+              thisobj["textures"] = textures
+
+            uv_layer = me.uv_layers.active.data
+            tris = []
+
+            for i, face in enumerate(me.loop_triangles):
+              verts_indices = face.vertices[:]
+
+              triobj = {}
+              thistri = []
+              normal = face.normal
+              triobj["normal"] = {
+                "x": normal.x, 
+                "y": normal.y,
+                "z": normal.z
+              }
+
+              for i in range(0, 3):
+                idx = verts_indices[i]
+                uv = uv_layer[face.loops[i]].uv
+
+                thistri.append( { 
+                  "vertex": idx,
+                  "uv": { "x": uv.x, "y": uv.y }
+                } )
+              triobj["tri"] = thistri
+              tris.append(triobj)
+            thisobj["tris"] = tris
           
           dataobjs[ thisobj["name"] ] = thisobj 
 
     return json.dumps(dataobjs)
 
+# ------------------------------------------------------------------------
+
+def sceneAnimations(context):
+  sce = context.scene
+  ob = context.object
+
+  animobjs = {}
+
+  for f in range(sce.frame_start, sce.frame_end+1):
+    sce.frame_set(f)
+    print("Frame %i" % f)
+
+    thisframe = None
+    if ob.name:
+      thisframe = {}
+      if ob.pose:
+        thisbones = {}
+        for pbone in ob.pose.bones:
+          print(pbone.name, pbone.matrix) # bone in object space
+          thisbones[pbone.name] = pbone.matrix
+        thisframe[obj.name] = thisbones
+
+    if thisframe:
+      animobjs[ f ] = thisframe
+
+  return json.dumps(animobjs)
+      
 
 # ------------------------------------------------------------------------
 # Commands:
@@ -150,7 +205,8 @@ def sceneMeshes(context):
 validcmds = [
   "info",
   "scene", 
-  "meshes"
+  "meshes",
+  "anims"
 ]
 
 def runCommand(context, sock, client, cmd):
@@ -215,5 +271,13 @@ def sendData( context, sock, client ):
             client.put(str(TAG_START + "03" + TAG_TAIL).encode('utf8'))
             client.put(results.encode('utf8'))
             client.put(str(TAG_END + "03" + TAG_TAIL).encode('utf8'))
+
+        # All bone animations in the scene
+        if(cmd == 'anims'):
+            results = sceneAnimations(context)
+            client.put(str(TAG_START + "04" + TAG_TAIL).encode('utf8'))
+            client.put(results.encode('utf8'))
+            client.put(str(TAG_END + "04" + TAG_TAIL).encode('utf8'))
+
 
 # ------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 import threading
-from serversocket import ServerSocket
+from defoldsync.serversocket import ServerSocket
 
 class TCPServer:
     # Mode specifies the IP address the server socket binds to.

@@ -1,3 +1,6 @@
+
+# ------------------------------------------------------------------------
+
 bl_info = {
     "name": "Defold Export Meshes",
     "blender": (2, 80, 0),
@@ -7,6 +10,7 @@ bl_info = {
 import bpy, sys, os, atexit
 import asyncio, socket, threading, queue
 
+# ------------------------------------------------------------------------
 # When bpy is already in local, we know this is not the initial import...
 if "bpy" in locals():
     # ...so we need to reload our submodule(s) using importlib
@@ -16,12 +20,16 @@ if "bpy" in locals():
     if "tcpserver" in locals():
         importlib.reload(tcpserver)
 
+# ------------------------------------------------------------------------
+
 dir = os.path.dirname(bpy.data.filepath)
 if not dir in sys.path:
     sys.path.append(dir )
 
-import defoldCmds
-from tcpserver import TCPServer
+# ------------------------------------------------------------------------
+
+from defoldsync import defoldCmds
+from defoldsync.tcpserver import TCPServer
 
 owner = object()
 data_changed = False
