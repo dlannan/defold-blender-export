@@ -211,9 +211,9 @@ function init(self)
 	self.logtext 		= {}
 	
 	-- How many seconds to attempt to sync files.
-	self.sync_rate 		= 1
+	self.sync_rate 		= 5
 	
-	self.collection_name= "sample"
+	self.collection_name= "sf-map"
 	self.project_path  	= "/mnt/store1/Development/defold/repos/empty"
 	self.project_path_ok= false
 	self.timestamp  	= 0.0

@@ -158,6 +158,30 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
+local gcollectionroot = [[
+embedded_instances {
+    id: "root"
+ROOT_CHILDREN
+    data: ""
+    position {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+    }
+    rotation {
+        x: -0.70710677
+        y: 0.0
+        z: 0.0
+        w: 0.70710677
+    }
+    scale3 {
+        x: 1.0
+        y: 1.0
+        z: 1.0
+    }
+}
+]]
+
 local gocollectionheader = [[
 name: "COLLECTION_NAME"
 scale_along_z: 0
@@ -181,6 +205,65 @@ GO_CHILDREN
     }
 }
 ]]
+
+local gocollectiongeneric = [[
+embedded_instances {
+    id: "GO_NAME"
+    data: ""
+    GO_CHILDREN
+    position {
+        GO_POSITION
+    }
+    rotation {
+        GO_ROTATION_QUATERNION
+    }
+    scale3 {
+        x: 1.0
+        y: 1.0
+        z: 1.0
+    }
+}
+]]
+
+local gcollectioncamera = [[
+embedded_instances {
+    id: "GO_NAME"
+    data: "embedded_components {\n"
+    "  id: \"camera\"\n"
+    "  type: \"camera\"\n"
+    "  data: \"aspect_ratio: 1.0\\n"
+    "fov: 0.7854\\n"
+    "near_z: 0.1\\n"
+    "far_z: 1000.0\\n"
+    "auto_aspect_ratio: 0\\n"
+    "\"\n"
+    "  position {\n"
+    "    x: 0.0\n"
+    "    y: 0.0\n"
+    "    z: 0.0\n"
+    "  }\n"
+    "  rotation {\n"
+    "    x: 0.0\n"
+    "    y: 0.0\n"
+    "    z: 0.0\n"
+    "    w: 1.0\n"
+    "  }\n"
+    "}\n"
+    GO_CHILDREN
+    position {
+        GO_POSITION
+    }
+    rotation {
+        GO_ROTATION_QUATERNION
+    }
+    scale3 {
+        x: 1.0
+        y: 1.0
+        z: 1.0
+    }
+}
+]]
+
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -327,12 +410,27 @@ local function makecollection( collectionname, objects, meshes )
     gendata.project_path = project_path
     local colldata = gocollectionheader
     -- Objects need to be in flat table - straight from blender.
+
+    local rootchildren = ""
     for k,v in pairs(objects) do 
 
         local name = v.name or ("Dummy"..k)
-        local objdata = gocollectiondata
+        local objdata = gocollectiongeneric
+        if(v.type == "MESH") then 
+            objdata = gocollectiondata
+        elseif(v.type == "CAMERA") then 
+            objdata = gcollectioncamera
+        elseif(v.type == "LIGHT") then 
+            objdata = gocollectiongeneric
+        end 
+        
         objdata = string.gsub(objdata, "GO_NAME", name)
 
+        -- Check if this object is a root level obj.
+        if( v.parent == nil) then 
+            rootchildren = rootchildren.."\tchildren: \""..name.."\"\n"
+        end
+        
         local gofilepath = makegofile( name, project_path..PATH_SEPARATOR, v )
         objdata = string.gsub(objdata, "GO_FILE_PATH", localpathname(gofilepath))
         
@@ -356,10 +454,14 @@ local function makecollection( collectionname, objects, meshes )
             rotation = rotation.."\n\tz:"..v.rotation.quat.z.."\n\tw:"..v.rotation.quat.w
         end 
         objdata = string.gsub(objdata, "GO_ROTATION_QUATERNION", rotation)
-        
+
         colldata = colldata.."\n"..objdata
     end 
 
+    -- Add the root instance 
+    gcollectionroot = string.gsub(gcollectionroot, "ROOT_CHILDREN", rootchildren)
+    colldata = colldata.."\n"..gcollectionroot
+    
     -- Write the file
     makefile( project_path..PATH_SEPARATOR..collectionname..".collection", colldata )
 end
