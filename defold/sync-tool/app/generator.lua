@@ -418,6 +418,10 @@ local function makecollection( collectionname, objects, meshes )
         local objdata = gocollectiongeneric
         if(v.type == "MESH") then 
             objdata = gocollectiondata
+
+            local gofilepath = makegofile( name, project_path..PATH_SEPARATOR, v )
+            objdata = string.gsub(objdata, "GO_FILE_PATH", localpathname(gofilepath))
+
         elseif(v.type == "CAMERA") then 
             objdata = gcollectioncamera
         elseif(v.type == "LIGHT") then 
@@ -430,10 +434,7 @@ local function makecollection( collectionname, objects, meshes )
         if( v.parent == nil) then 
             rootchildren = rootchildren.."\tchildren: \""..name.."\"\n"
         end
-        
-        local gofilepath = makegofile( name, project_path..PATH_SEPARATOR, v )
-        objdata = string.gsub(objdata, "GO_FILE_PATH", localpathname(gofilepath))
-        
+                
         local children = ""
         if(v.children) then 
             for k,v in pairs(v.children) do
