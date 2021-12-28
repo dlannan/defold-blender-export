@@ -1,5 +1,4 @@
-import json, bpy
-import time, threading, queue
+import bpy, time, queue
 
 # These are used to start/end a data stream block. 
 TAG_START = "\n\n!!BCMD"
@@ -8,7 +7,27 @@ TAG_END   = "\n\n!!ECMD"
 TAG_TAIL  = "!!\n\n"
 
 # Kinda evil.. meh
-gclients    = {}
+gclients  = {}
+
+# ------------------------------------------------------------------------
+def dump_lua(data):
+    if type(data) is str:
+        return f'"{re.escape(data)}"'
+    if type(data) in (int, float):
+        return f'{data}'
+    if type(data) is bool:
+        return data and "true" or "false"
+    if type(data) is list:
+        l = "{"
+        l += ", ".join([dump_lua(item) for item in data])
+        l += "}"
+        return l
+    if type(data) is dict:
+        t = "{"
+        t += ", ".join([f'[\"{re.escape(k)}\"]={dump_lua(v)}'for k,v in data.items()])
+        t += "}"
+        return t
+    logging.error(f"Unknown type {type(data)}")
 
 # ------------------------------------------------------------------------
 # Get scene information - objects, names and parent names
@@ -31,7 +50,7 @@ def sceneInfo(context):
         
         dataobjs[thisobj["name"]] = thisobj
 
-    return json.dumps(dataobjs)
+    return dump_lua(dataobjs)
 
 # ------------------------------------------------------------------------
 # Get all available obejcts in the scene (including transforms)
@@ -78,7 +97,7 @@ def sceneObjects(context):
 
         dataobjs[ thisobj["name"] ] = thisobj 
 
-    return json.dumps(dataobjs)
+    return dump_lua(dataobjs)
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
@@ -158,7 +177,7 @@ def sceneMeshes(context):
           
           dataobjs[ thisobj["name"] ] = thisobj 
 
-    return json.dumps(dataobjs)
+    return dump_lua(dataobjs)
 
 # ------------------------------------------------------------------------
 
@@ -204,7 +223,7 @@ def sceneAnimations(context):
 
     animobjs[action.name] = curves
 
-  return json.dumps(animobjs)
+  return dump_lua(animobjs)
       
 
 # ------------------------------------------------------------------------
@@ -255,48 +274,43 @@ def runCommand(context, sock, client, cmd):
 
 # ------------------------------------------------------------------------
 
-def sendData( context, sock, client ):
+def getData( context, clientcmds):
       
-    # Check to see what commands are enabled. And collect data if they changed
-    if(sock not in gclients):
-      return
+    data = ""
 
-    clientobj = gclients[sock]
-    
-    if("cmds" in clientobj):
+    # Check to see what commands are enabled. And collect data if they changed    
 
-      clientcmds = clientobj["cmds"]
+    # TODO: Optimise this into mapped methods
+    for cmd in clientcmds:
 
-      # TODO: Optimise this into mapped methods
-      for cmd in clientcmds:
+      # Basic info of the scene
+      if(cmd == 'info'):
+          results = sceneInfo(context)
+          data = data + (str(TAG_START + "01" + TAG_TAIL).encode('utf8'))
+          data = data + (results.encode('utf8'))
+          data = data + (str(TAG_END + "01" + TAG_TAIL).encode('utf8'))
 
-        # Basic info of the scene
-        if(cmd == 'info'):
-            results = sceneInfo(context)
-            client.put(str(TAG_START + "01" + TAG_TAIL).encode('utf8'))
-            client.put(results.encode('utf8'))
-            client.put(str(TAG_END + "01" + TAG_TAIL).encode('utf8'))
+      # Object level info of the scene
+      if(cmd == 'scene'):
+          results = sceneObjects(context)
+          data = data + (str(TAG_START + "02" + TAG_TAIL).encode('utf8'))
+          data = data + (results.encode('utf8'))
+          data = data + (str(TAG_END + "02" + TAG_TAIL).encode('utf8'))
 
-        # Object level info of the scene
-        if(cmd == 'scene'):
-            results = sceneObjects(context)
-            client.put(str(TAG_START + "02" + TAG_TAIL).encode('utf8'))
-            client.put(results.encode('utf8'))
-            client.put(str(TAG_END + "02" + TAG_TAIL).encode('utf8'))
+      # Object level info of the scene
+      if(cmd == 'meshes'):
+          results = sceneMeshes(context)
+          data = data + (str(TAG_START + "03" + TAG_TAIL).encode('utf8'))
+          data = data + (results.encode('utf8'))
+          data = data + (str(TAG_END + "03" + TAG_TAIL).encode('utf8'))
 
-        # Object level info of the scene
-        if(cmd == 'meshes'):
-            results = sceneMeshes(context)
-            client.put(str(TAG_START + "03" + TAG_TAIL).encode('utf8'))
-            client.put(results.encode('utf8'))
-            client.put(str(TAG_END + "03" + TAG_TAIL).encode('utf8'))
-
-        # All bone animations in the scene
-        if(cmd == 'anims'):
-            results = sceneAnimations(context)
-            client.put(str(TAG_START + "04" + TAG_TAIL).encode('utf8'))
-            client.put(results.encode('utf8'))
-            client.put(str(TAG_END + "04" + TAG_TAIL).encode('utf8'))
-
+      # All bone animations in the scene
+      if(cmd == 'anims'):
+          results = sceneAnimations(context)
+          data = data + (str(TAG_START + "04" + TAG_TAIL).encode('utf8'))
+          data = data + (results.encode('utf8'))
+          data = data + (str(TAG_END + "04" + TAG_TAIL).encode('utf8'))
+        
+      return data
 
 # ------------------------------------------------------------------------

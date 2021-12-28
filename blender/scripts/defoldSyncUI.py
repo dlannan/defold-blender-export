@@ -1,3 +1,22 @@
+
+
+# ------------------------------------------------------------------------
+# Defold export tool
+#    What is this?  This is a tool for the Defold game engine to export information/data from 
+#    Blender to a Defold project tool. 
+#    Allows users to create complex 3D scenes in Blender, and instantly be able to use those 3D
+#    scenes in Defold - this may even be possible live (TODO)
+#
+#   General Structure
+#     This server script that takes commands from a client and sends requested data 
+#     An intermediary tool (Make in Defold) that requests the data and creates Defold components
+#     The Defold project is assigned to the intermediary tool which allows direct export to the project
+#
+# Initial Tests:
+#  - Some simple commands - Get Object, Get Mesh, Get Texture/UVs
+#  - Display in intermediary tool
+#  - Write a collection file, go files, mesh files and texture/image files
+
 # Based on:
 #  https://gist.github.com/p2or/2947b1aa89141caae182526a8fc2bc5as
 
@@ -15,7 +34,7 @@ bl_info = {
 }
 
 
-import bpy, subprocess
+import bpy, subprocess, os, sys, socket
 
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -31,12 +50,34 @@ from bpy.types import (Panel,
                        PropertyGroup,
                        )
 
+# ------------------------------------------------------------------------
+# When bpy is already in local, we know this is not the initial import...
+if "bpy" in locals():
+    # ...so we need to reload our submodule(s) using importlib
+    import importlib
+    if "defoldCmds" in locals():
+        importlib.reload(defoldCmds)
+    if "tcpserver" in locals():
+        importlib.reload(tcpserver)
+
+# ------------------------------------------------------------------------
+
+dir = os.path.dirname(bpy.data.filepath)
+if not dir in sys.path:
+    sys.path.append(dir )
+
+# ------------------------------------------------------------------------
+
+from defoldsync import defoldCmds
+
+owner = object()
+data_changed = False
 
 # ------------------------------------------------------------------------
 #    Scene Properties
 # ------------------------------------------------------------------------
 
-class MyProperties(PropertyGroup):
+class SyncProperties(PropertyGroup):
 
     stream_info: BoolProperty(
         name="Stream Info",
@@ -105,7 +146,8 @@ class MyProperties(PropertyGroup):
 #    Operators
 # ------------------------------------------------------------------------
 
-class WM_OT_HelloWorld(Operator):
+class WM_OT_SyncTool(Operator):
+
     bl_label = "Sync Scene"
     bl_idname = "wm.sync_scene"
 
@@ -113,40 +155,46 @@ class WM_OT_HelloWorld(Operator):
         scene = context.scene
         mytool = scene.sync_tool
 
+        dirpath     = dir + '\\defoldsync\\main.lua'
+
+        # Write all the sync tool properties to a config file
+        with open(dir + '\\defoldsync\\config.lua', 'w') as f:
+            f.write('-- Lua generated config - do not edit.\n')
+            f.write('return {\n')
+            f.write('   sync_proj        = "' + mytool.sync_proj + '",\n')
+            f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
+            f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
+            f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
+            f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
+            f.write('   stream_anim      = ' + str(mytool.stream_anim).lower() + ',\n')
+            f.write('}\n')
+
         # Run with library demo
         # result = subprocess.check_output(['luajit', '-l', 'demo', '-e', 'test("a", "b")'])
-        
-        result = subprocess.check_output(['luajit', '-e', 'for i=0,10 do print("hello "..i) end'])
+        commands    = [ "scene", "meshes" ]
+
+        # get the data from the objects in blender
+        data = defoldCmds.getData(context, commands)
+        print(data)
+
+        result      = subprocess.check_output(['luajit.exe', dirpath, dir, command])
+
+        # Data is returned for each stream. 
         print(result)
 
         # print the values to the console
-        print("Sync Tool\n---------")
-        print("Stream Info:", mytool.stream_info)
-        print("Stream Objects:", mytool.stream_object)
-        print("Stream Meshes:", mytool.stream_mesh)
-        print("Stream Anims:", mytool.stream_anim)
-        print("Host:", mytool.sync_host)
-        print("Project Folder:", mytool.sync_proj)
-        print("Scene Name:", mytool.sync_scene)
-        print("Scene Pos:", mytool.root_position)
+        if( str(mytool.sync_mode) == 'Debug' ):
+            print("Sync Tool\n---------")
+            print("Stream Info:", mytool.stream_info)
+            print("Stream Objects:", mytool.stream_object)
+            print("Stream Meshes:", mytool.stream_mesh)
+            print("Stream Anims:", mytool.stream_anim)
+            print("Host:", mytool.sync_host)
+            print("Project Folder:", mytool.sync_proj)
+            print("Scene Name:", mytool.sync_scene)
+            print("Scene Pos:", mytool.root_position)
 
         return {'FINISHED'}
-
-# ------------------------------------------------------------------------
-#    Menus
-# ------------------------------------------------------------------------
-
-class OBJECT_MT_CustomMenu(bpy.types.Menu):
-    bl_label = "Select"
-    bl_idname = "OBJECT_MT_custom_menu"
-
-    def draw(self, context):
-        layout = self.layout
-
-        # Built-in operators
-        layout.operator("object.select_all", text="Select/Deselect All").action = 'TOGGLE'
-        layout.operator("object.select_all", text="Inverse").action = 'INVERT'
-        layout.operator("object.select_random", text="Random")
 
 # ------------------------------------------------------------------------
 #    Panel in Object Mode
@@ -187,9 +235,8 @@ class OBJECT_PT_CustomPanel(Panel):
 # ------------------------------------------------------------------------
 
 classes = (
-    MyProperties,
-    WM_OT_HelloWorld,
-    OBJECT_MT_CustomMenu,
+    SyncProperties,
+    WM_OT_SyncTool,
     OBJECT_PT_CustomPanel
 )
 
@@ -198,7 +245,7 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    bpy.types.Scene.sync_tool = PointerProperty(type=MyProperties)
+    bpy.types.Scene.sync_tool = PointerProperty(type=SyncProperties)
 
 def unregister():
     from bpy.utils import unregister_class
