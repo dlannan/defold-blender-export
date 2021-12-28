@@ -15,7 +15,7 @@ bl_info = {
 }
 
 
-import bpy
+import bpy, subprocess
 
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -112,6 +112,12 @@ class WM_OT_HelloWorld(Operator):
     def execute(self, context):
         scene = context.scene
         mytool = scene.sync_tool
+
+        # Run with library demo
+        # result = subprocess.check_output(['luajit', '-l', 'demo', '-e', 'test("a", "b")'])
+        
+        result = subprocess.check_output(['luajit', '-e', 'for i=0,10 do print("hello "..i) end'])
+        print(result)
 
         # print the values to the console
         print("Sync Tool\n---------")
