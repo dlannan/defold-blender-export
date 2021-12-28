@@ -86,13 +86,13 @@ class SyncProperties(PropertyGroup):
     stream_mesh: BoolProperty(
         name="Stream Meshes",
         description="Enable Mesh Stream",
-        default = False
+        default = True
         )
 
     stream_object: BoolProperty(
         name="Stream Objects",
         description="Enable Object Stream",
-        default = False
+        default = True
         )
 
     stream_anim: BoolProperty(
@@ -219,9 +219,9 @@ class OBJECT_PT_CustomPanel(Panel):
         mytool = scene.sync_tool
 
         layout.prop(mytool, "sync_mode", text="") 
-        layout.prop(mytool, "stream_info")
-        layout.prop(mytool, "stream_object")
-        layout.prop(mytool, "stream_mesh")
+        #layout.prop(mytool, "stream_info")
+        #layout.prop(mytool, "stream_object")
+        #layout.prop(mytool, "stream_mesh")
         layout.prop(mytool, "stream_anim")
         #layout.prop(mytool, "sync_host")
         layout.prop(mytool, "sync_proj")

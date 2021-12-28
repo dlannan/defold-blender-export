@@ -8,3 +8,5 @@ Thumbs.db
 .project
 .cproject
 builtins
+/blender/scripts/defoldsync/config.lua
+/blender/scripts/defoldsync/syncdata.lua
