@@ -1,4 +1,4 @@
-import bpy, time, queue
+import bpy, time, queue, re
 
 # These are used to start/end a data stream block. 
 TAG_START = "\n\n!!BCMD"
@@ -12,7 +12,7 @@ gclients  = {}
 # ------------------------------------------------------------------------
 def dump_lua(data):
     if type(data) is str:
-        return f'"{re.escape(data)}"'
+        return f'"{data}"'
     if type(data) in (int, float):
         return f'{data}'
     if type(data) is bool:
@@ -24,7 +24,7 @@ def dump_lua(data):
         return l
     if type(data) is dict:
         t = "{"
-        t += ", ".join([f'[\"{re.escape(k)}\"]={dump_lua(v)}'for k,v in data.items()])
+        t += ", ".join([f'[\"{k}\"]={dump_lua(v)}'for k,v in data.items()])
         t += "}"
         return t
     logging.error(f"Unknown type {type(data)}")
@@ -269,48 +269,42 @@ def runCommand(context, sock, client, cmd):
         cmds.append(strcmd)
       #print("Command: " + strcmd + "   State: " + strstate)
 
-      ## client.put(str(TAG_END).encode('utf8'))
+      ## client.put(str(TAG_END))
     return 
 
 # ------------------------------------------------------------------------
 
 def getData( context, clientcmds):
       
-    data = ""
+  data = "return {\n"
 
-    # Check to see what commands are enabled. And collect data if they changed    
+  # Check to see what commands are enabled. And collect data if they changed    
 
-    # TODO: Optimise this into mapped methods
-    for cmd in clientcmds:
+  # TODO: Optimise this into mapped methods
+  for cmd in clientcmds:
 
-      # Basic info of the scene
-      if(cmd == 'info'):
-          results = sceneInfo(context)
-          data = data + (str(TAG_START + "01" + TAG_TAIL).encode('utf8'))
-          data = data + (results.encode('utf8'))
-          data = data + (str(TAG_END + "01" + TAG_TAIL).encode('utf8'))
+    # Basic info of the scene
+    if(cmd == 'info'):
+        results = sceneInfo(context)
+        data = data + 'INFO = ' + str(results) + ', \n'
 
-      # Object level info of the scene
-      if(cmd == 'scene'):
-          results = sceneObjects(context)
-          data = data + (str(TAG_START + "02" + TAG_TAIL).encode('utf8'))
-          data = data + (results.encode('utf8'))
-          data = data + (str(TAG_END + "02" + TAG_TAIL).encode('utf8'))
+    # Object level info of the scene
+    if(cmd == 'scene'):
+        results = sceneObjects(context)
+        data = data + 'OBJECTS = ' + str(results) + ', \n'
 
-      # Object level info of the scene
-      if(cmd == 'meshes'):
-          results = sceneMeshes(context)
-          data = data + (str(TAG_START + "03" + TAG_TAIL).encode('utf8'))
-          data = data + (results.encode('utf8'))
-          data = data + (str(TAG_END + "03" + TAG_TAIL).encode('utf8'))
+    # Object level info of the scene
+    if(cmd == 'meshes'):
+        results = sceneMeshes(context)
+        print(results)
+        data = data + 'MESHES = ' + str(results) + ', \n'
 
-      # All bone animations in the scene
-      if(cmd == 'anims'):
-          results = sceneAnimations(context)
-          data = data + (str(TAG_START + "04" + TAG_TAIL).encode('utf8'))
-          data = data + (results.encode('utf8'))
-          data = data + (str(TAG_END + "04" + TAG_TAIL).encode('utf8'))
-        
-      return data
+    # All bone animations in the scene
+    if(cmd == 'anims'):
+        results = sceneAnimations(context)
+        data = data + 'ANIMS = ' + str(results) + ', \n'
+  
+  data = data + "}"
+  return data
 
 # ------------------------------------------------------------------------

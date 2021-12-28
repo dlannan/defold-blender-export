@@ -57,8 +57,6 @@ if "bpy" in locals():
     import importlib
     if "defoldCmds" in locals():
         importlib.reload(defoldCmds)
-    if "tcpserver" in locals():
-        importlib.reload(tcpserver)
 
 # ------------------------------------------------------------------------
 
@@ -136,9 +134,9 @@ class SyncProperties(PropertyGroup):
     sync_mode: EnumProperty(
         name="Dropdown:",
         description="Sync Tool Operation Mode",
-        items=[ ('OP1', "Sync Check", ""),
-                ('OP2', "Sync Build", ""),
-                ('OP3', "Debug", ""),
+        items=[ ('Sync Check', "Sync Check", ""),
+                ('Sync Build', "Sync Build", ""),
+                ('Debug', "Debug", ""),
                ]
         )
 
@@ -155,13 +153,14 @@ class WM_OT_SyncTool(Operator):
         scene = context.scene
         mytool = scene.sync_tool
 
-        dirpath     = dir + '\\defoldsync\\main.lua'
+        dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
 
         # Write all the sync tool properties to a config file
-        with open(dir + '\\defoldsync\\config.lua', 'w') as f:
+        with open(  os.path.abspath(dir + '/defoldsync/config.lua'), 'w') as f:
             f.write('-- Lua generated config - do not edit.\n')
             f.write('return {\n')
-            f.write('   sync_proj        = "' + mytool.sync_proj + '",\n')
+            f.write('   sync_mode        = "' + str(mytool.sync_mode) + '",\n')
+            f.write('   sync_proj        = "' + os.path.realpath(bpy.path.abspath(mytool.sync_proj)) + '",\n')
             f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
@@ -175,12 +174,13 @@ class WM_OT_SyncTool(Operator):
 
         # get the data from the objects in blender
         data = defoldCmds.getData(context, commands)
-        print(data)
+        
+        # Write data to temp data file for use by lua
+        with open(os.path.abspath(dir + '/defoldsync/syncdata.lua'), 'w') as f:
+            f.write(data)
 
-        result      = subprocess.check_output(['luajit.exe', dirpath, dir, command])
-
-        # Data is returned for each stream. 
-        print(result)
+        # Data is written for each stream. 
+        subprocess.check_output(['luajit', dirpath, os.path.abspath(dir)])
 
         # print the values to the console
         if( str(mytool.sync_mode) == 'Debug' ):

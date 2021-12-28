@@ -400,11 +400,37 @@ local function makegofile( name, filepath, go )
 end
 
 ------------------------------------------------------------------------------------------------------------
+-- Process children (take parents and work out their children)
+
+local function processChildren(objs)
+
+    local objects = {}
+    -- Add to object list 
+    for k,v in pairs(objs) do 
+        if k then 
+            objects[k] = v 
+        end 
+    end
+    -- Regen children using parent information 
+    for k,v in pairs(objects) do 
+        if(v.parent and v.parent.name) then 
+            local parent = objects[v.parent.name]
+            if(parent) then
+                parent.children = parent.children or {} 
+                table.insert(parent.children, v.name)
+            end
+        end 
+    end
+    return objects
+end
+
+------------------------------------------------------------------------------------------------------------
 
 local function makecollection( collectionname, objects, meshes )
 
     if(objects == nil) then return end 
 
+    objects = processChildren(objects)
     gendata.meshes = meshes
     
     local project_path = gendata.base..PATH_SEPARATOR..collectionname
