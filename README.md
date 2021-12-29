@@ -15,7 +15,7 @@ To use the tool follow the guide below.
 5. Run this file. You should see "bpy.ops.text.run_script()" in the Info Window in blender.
 6. Open the 3D layout window in blender and ensure you are in "Object Mode". 
 7. Examine the Tools menu on the right side of the Layout 3D View (see below)
-![alt text](https://github.com/dlannan/defold-blender-export/images/sync-tool-2021-12-29_15-22.png)
+![alt text](https://raw.githubusercontent.com/dlannan/defold-blender-export/main/images/sync-tool-2021-12-29_15-22.png)
 8. Enter the appropriate properties for Scene Name and Directory (project directory to save into).
 9. Select "Sync Build" for the scene mode and press the "Sync Scene" button when ready.
 
