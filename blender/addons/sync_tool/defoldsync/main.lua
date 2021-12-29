@@ -11,7 +11,7 @@ local config = require("defoldsync.config")
 local gen = require("defoldsync.generator")
 
 -- Generate data based on incoming data set.
-local data = require("defoldsync.syncdata")
+local data = require("defoldsync.temp.syncdata")
 
 local collection_name = config.sync_scene or "Sample Scene"
 if(string.len(collection_name) == 0) then collection_name = "Sample Scene" end 

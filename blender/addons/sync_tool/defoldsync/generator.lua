@@ -2,6 +2,7 @@
 ------------------------------------------------------------------------------------------------------------
 
 local ffi                   = require("ffi")
+local json                  = require("defoldsync.json")
 
 local PATH_SEPARATOR        = "/"
 local CMD_COPY              = "cp"
@@ -267,7 +268,6 @@ embedded_instances {
 }
 ]]
 
-
 ------------------------------------------------------------------------------------------------------------
 
 local function localpathname( path )
@@ -314,7 +314,10 @@ local function makebufferfile(name, filepath, mesh )
     --print(bufferfilepath)
     --pprint(name, gendata.meshes[name] )
 
-    local mesh = gendata.meshes[name] 
+    local fh = io.open( gendata.meshes[name], "rb" )
+    if(fh == nil) then return "" end
+    local fdata = fh:read("*all")
+    local mesh = json.decode(fdata)
     if(mesh == nil) then return "" end
 
     local verts = mesh.vertices 

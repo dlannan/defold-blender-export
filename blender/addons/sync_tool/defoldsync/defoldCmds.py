@@ -1,13 +1,10 @@
-import bpy, time, queue, re
+import bpy, time, queue, re, os, json
 
 # These are used to start/end a data stream block. 
 TAG_START = "\n\n!!BCMD"
 TAG_END   = "\n\n!!ECMD"
 
 TAG_TAIL  = "!!\n\n"
-
-# Kinda evil.. meh
-gclients  = {}
 
 # ------------------------------------------------------------------------
 def dump_lua(data):
@@ -96,16 +93,17 @@ def sceneObjects(context, f):
       }
 
 
-      f.write('"'..thisobj["name"]..'" = '..dump_lua(thisobj)..', \n')
+      f.write('["' + thisobj["name"] + '"] = ' + dump_lua(thisobj) + ', \n')
       #thisobj["name"] ] = thisobj 
 
   f.write('} \n')
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
-def sceneMeshes(context, f):
+def sceneMeshes(context, fhandle, temppath):
 
-  f.write('{ \n')
+  fhandle.write('{ \n')
+  UVObj = type('UVObj', (object,), {})
 
   scene = context.scene
   for obj in scene.objects:
@@ -150,8 +148,8 @@ def sceneMeshes(context, f):
           if(len(textures) > 0):
             thisobj["textures"] = textures
 
-          uv_layer = NoneType
-          if(me.uv_layers.active != NoneType):
+          uv_layer = None
+          if(me.uv_layers.active != None):
             uv_layer = me.uv_layers.active.data
           tris = []
 
@@ -170,7 +168,10 @@ def sceneMeshes(context, f):
             for i in range(0, 3):
               idx = verts_indices[i]
 
-              uv = { "x": 0.0, "y": 0.0 }
+              uv = UVObj()
+              uv.x = 0.0
+              uv.y = 0.0
+
               if(uv_layer):
                 uv = uv_layer[face.loops[i]].uv
 
@@ -182,10 +183,18 @@ def sceneMeshes(context, f):
             tris.append(triobj)
           thisobj["tris"] = tris
         
-        f.write('"'..thisobj["name"]..'" = '..dump_lua(thisobj)..', \n')
+        meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
+        with open( meshfile, 'w') as f:
+          f.write(json.dumps(thisobj))
+        # with open(meshfile, 'w') as fh:
+        #   fh.write('return {\n')
+        #   fh.write( '   mesh = ' + dump_lua(thisobj) + '\n' )
+        #   fh.write('}\n')
+
+        fhandle.write('["' + thisobj["name"] + '"] = "' + meshfile + '", \n')
         #dataobjs[ thisobj["name"] ] = thisobj 
 
-  f.write('} \n')
+  fhandle.write('} \n')
 
 # ------------------------------------------------------------------------
 
@@ -221,7 +230,6 @@ def sceneAnimations(context, f):
         samples.append({
           "x": sample.co.x, "y": sample.co.y
         })
-
       index = str(fcu.array_index)
       curves[channelname][index] = {
         "frames": thisframe,
@@ -229,7 +237,7 @@ def sceneAnimations(context, f):
         "index": fcu.array_index
       }
 
-    f.write('"'..action.name..'" = '..dump_lua(curves)..', \n')
+    f.write('["' + action.name + '"] = ' + dump_lua(curves) + ', \n')
     #animobjs[action.name] = curves
     
   f.write('} \n')
@@ -238,13 +246,16 @@ def sceneAnimations(context, f):
 
 def getData( context, clientcmds, dir):
       
+  # Make temp folder if it doesnt exist
+  temppath = os.path.abspath(dir + '/defoldsync/temp')
+  os.makedirs( temppath, 511, True )
+
   # Write data to temp data file for use by lua
-  with open(os.path.abspath(dir + '/defoldsync/syncdata.lua'), 'w') as f:
+  with open(os.path.abspath(dir + '/defoldsync/temp/syncdata.lua'), 'w') as f:
 
     f.write("return {\n")
 
-    # Check to see what commands are enabled. And collect data if they changed    
-
+    # Check to see what commands are enabled. And collect data if they changed
     # TODO: Optimise this into mapped methods
     for cmd in clientcmds:
 
@@ -254,16 +265,16 @@ def getData( context, clientcmds, dir):
         sceneInfo(context, f)
         f.write(', \n')
 
-      # Object level info of the scene
+      # Object transforms and hierarchy
       if(cmd == 'scene'):
         f.write('OBJECTS = ')
         sceneObjects(context, f)
         f.write(', \n')
 
-      # Object level info of the scene
+      # Mesh data 
       if(cmd == 'meshes'):
         f.write('MESHES = ')
-        sceneMeshes(context, f)
+        sceneMeshes(context, f, temppath + '/')
         f.write(', \n')
 
       # All bone animations in the scene
