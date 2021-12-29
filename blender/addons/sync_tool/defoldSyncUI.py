@@ -134,8 +134,7 @@ class SyncProperties(PropertyGroup):
     sync_mode: EnumProperty(
         name="Dropdown:",
         description="Sync Tool Operation Mode",
-        items=[ ('Sync Check', "Sync Check", ""),
-                ('Sync Build', "Sync Build", ""),
+        items=[ ('Sync Build', "Sync Build", ""),
                 ('Debug', "Debug", ""),
                ]
         )

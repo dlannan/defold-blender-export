@@ -24,14 +24,13 @@ if(string.len(project_path) == 0) then project_path = "./Sample" end
 
 -- Project path, escape any . charcters
 project_path = project_path:gsub("%.", "%%%.")
-print(project_path)
 
 if(config.sync_mode == "Sync Build") then
     gen.makefolders( collection_name, project_path )
     gen.makecollection( collection_name, data["OBJECTS"], data["MESHES"])
 end
 
-if(config.sync_mode == "Sync Check") then
+if(config.sync_mode == "Debug") then
     for k,v in pairs(data) do 
         print(k, tostring(v))
     end 
