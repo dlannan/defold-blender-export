@@ -31,7 +31,7 @@ def dump_lua(data):
 
 # ------------------------------------------------------------------------
 # Get scene information - objects, names and parent names
-def sceneInfo(context):
+def sceneInfo(context, f):
     dataobjs = {}
 
     scene = context.scene
@@ -50,140 +50,148 @@ def sceneInfo(context):
         
         dataobjs[thisobj["name"]] = thisobj
 
-    return dump_lua(dataobjs)
+    f.write( dump_lua(dataobjs) )
 
 # ------------------------------------------------------------------------
 # Get all available obejcts in the scene (including transforms)
-def sceneObjects(context):
+def sceneObjects(context, f):
 
-    dataobjs = {}
+  f.write('{ \n')
 
-    scene = context.scene
-    for obj in scene.objects:
-    
+  scene = context.scene
+  for obj in scene.objects:
+  
+      thisobj = {
+        "name": str(obj.name),
+        "type": str(obj.type)
+      }
+        
+      if(obj.parent != None):
+          thisobj["parent"] = {
+            "name": str(obj.parent.name),
+            "type": str(obj.parent_type)
+          }
+
+      local_coord = obj.matrix_local.translation #obj.location
+      thisobj["location"] = { 
+        "x": local_coord.x, 
+        "y": local_coord.y, 
+        "z": local_coord.z 
+      }
+
+      rot = obj.rotation_euler.copy()
+      quat = rot.to_quaternion()
+      thisobj["rotation"] = { 
+        "quat": { 
+          "x": quat.x,
+          "y": quat.y,
+          "z": quat.z,
+          "w": quat.w
+        },
+        "euler": {
+          "x": rot.x,
+          "y": rot.y,
+          "z": rot.z
+        }
+      }
+
+
+      f.write('"'..thisobj["name"]..'" = '..dump_lua(thisobj)..', \n')
+      #thisobj["name"] ] = thisobj 
+
+  f.write('} \n')
+
+# ------------------------------------------------------------------------
+# Get all available meshes in the scene (including data)
+def sceneMeshes(context, f):
+
+  f.write('{ \n')
+
+  scene = context.scene
+  for obj in scene.objects:
+  
+      # Only collect meshes in the scene
+      if(obj.type == "MESH"):
+
         thisobj = {
           "name": str(obj.name),
           "type": str(obj.type)
         }
-         
+        
         if(obj.parent != None):
-            thisobj["parent"] = {
-              "name": str(obj.parent.name),
-              "type": str(obj.parent_type)
+          thisobj["parent"] = str(obj.parent.name)
+
+        if(obj.data):
+
+          me = obj.data
+          # Build the mesh into triangles
+          # bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+          me.calc_loop_triangles()
+
+          # Get the vert data
+          verts = []
+          verts_local = [v.co for v in obj.data.vertices.values()]
+          verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
+
+          for v in verts_local:
+            verts.append( { "x": v.x, "y": v.y, "z": v.z } )
+          thisobj["vertices"] = verts
+
+          textures = []
+          for f in obj.data.polygons:
+            mat = obj.material_slots[f.material_index].material
+            for n in mat.node_tree.nodes:
+                if n.type=='TEX_IMAGE':
+                  img=n.image.filepath_from_user()
+                  # If this is an image texture, with an active image append its name to the list
+                  if( img not in textures):
+                    textures.append( img )
+
+          if(len(textures) > 0):
+            thisobj["textures"] = textures
+
+          uv_layer = NoneType
+          if(me.uv_layers.active != NoneType):
+            uv_layer = me.uv_layers.active.data
+          tris = []
+
+          for i, face in enumerate(me.loop_triangles):
+            verts_indices = face.vertices[:]
+
+            triobj = {}
+            thistri = []
+            normal = face.normal
+            triobj["normal"] = {
+              "x": normal.x, 
+              "y": normal.y,
+              "z": normal.z
             }
 
-        local_coord = obj.matrix_local.translation #obj.location
-        thisobj["location"] = { 
-          "x": local_coord.x, 
-          "y": local_coord.y, 
-          "z": local_coord.z 
-        }
+            for i in range(0, 3):
+              idx = verts_indices[i]
 
-        rot = obj.rotation_euler.copy()
-        quat = rot.to_quaternion()
-        thisobj["rotation"] = { 
-          "quat": { 
-            "x": quat.x,
-            "y": quat.y,
-            "z": quat.z,
-            "w": quat.w
-          },
-          "euler": {
-            "x": rot.x,
-            "y": rot.y,
-            "z": rot.z
-          }
-        }
-
-        dataobjs[ thisobj["name"] ] = thisobj 
-
-    return dump_lua(dataobjs)
-
-# ------------------------------------------------------------------------
-# Get all available meshes in the scene (including data)
-def sceneMeshes(context):
-
-    dataobjs = {}
-
-    scene = context.scene
-    for obj in scene.objects:
-    
-        # Only collect meshes in the scene
-        if(obj.type == "MESH"):
-
-          thisobj = {
-            "name": str(obj.name),
-            "type": str(obj.type)
-          }
-          
-          if(obj.parent != None):
-            thisobj["parent"] = str(obj.parent.name)
-
-          if(obj.data):
-
-            me = obj.data
-            # Build the mesh into triangles
-            # bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-            me.calc_loop_triangles()
-
-            # Get the vert data
-            verts = []
-            verts_local = [v.co for v in obj.data.vertices.values()]
-            verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
-
-            for v in verts_local:
-              verts.append( { "x": v.x, "y": v.y, "z": v.z } )
-            thisobj["vertices"] = verts
-
-            textures = []
-            for f in obj.data.polygons:
-              mat = obj.material_slots[f.material_index].material
-              for n in mat.node_tree.nodes:
-                  if n.type=='TEX_IMAGE':
-                    img=n.image.filepath_from_user()
-                    # If this is an image texture, with an active image append its name to the list
-                    if( img not in textures):
-                      textures.append( img )
-
-            if(len(textures) > 0):
-              thisobj["textures"] = textures
-
-            uv_layer = me.uv_layers.active.data
-            tris = []
-
-            for i, face in enumerate(me.loop_triangles):
-              verts_indices = face.vertices[:]
-
-              triobj = {}
-              thistri = []
-              normal = face.normal
-              triobj["normal"] = {
-                "x": normal.x, 
-                "y": normal.y,
-                "z": normal.z
-              }
-
-              for i in range(0, 3):
-                idx = verts_indices[i]
+              uv = { "x": 0.0, "y": 0.0 }
+              if(uv_layer):
                 uv = uv_layer[face.loops[i]].uv
 
-                thistri.append( { 
-                  "vertex": idx,
-                  "uv": { "x": uv.x, "y": uv.y }
-                } )
-              triobj["tri"] = thistri
-              tris.append(triobj)
-            thisobj["tris"] = tris
-          
-          dataobjs[ thisobj["name"] ] = thisobj 
+              thistri.append( { 
+                "vertex": idx,
+                "uv": { "x": uv.x, "y": uv.y }
+              } )
+            triobj["tri"] = thistri
+            tris.append(triobj)
+          thisobj["tris"] = tris
+        
+        f.write('"'..thisobj["name"]..'" = '..dump_lua(thisobj)..', \n')
+        #dataobjs[ thisobj["name"] ] = thisobj 
 
-    return dump_lua(dataobjs)
+  f.write('} \n')
 
 # ------------------------------------------------------------------------
 
-def sceneAnimations(context):
+def sceneAnimations(context, f):
 
-  animobjs = {}
+  f.write('{ \n')
 
   scene = context.scene
   for action in bpy.data.actions:
@@ -221,90 +229,49 @@ def sceneAnimations(context):
         "index": fcu.array_index
       }
 
-    animobjs[action.name] = curves
-
-  return dump_lua(animobjs)
-      
-
-# ------------------------------------------------------------------------
-# Commands:
-#    Each command is an enable/disable toggle for outputting data. 
-#    The server continuously outputs information in a data stream once 
-#    a client connects. This can be a big overhead. 
-#
-#    To limit this, and control updates, the client can determine what 
-#    it needs to have active in the stream at any one time. 
-#    Additionally, the server is smart enough to only send stream data 
-#    that is both ACTIVE and MODIFIED on the blender side.
-#
-#    Unmodified data will not be sent, unless a RESEND command is sent
-
-# Valid accepted commands
-validcmds = [
-  "info",
-  "scene", 
-  "meshes",
-  "anims"
-]
-
-def runCommand(context, sock, client, cmd):
+    f.write('"'..action.name..'" = '..dump_lua(curves)..', \n')
+    #animobjs[action.name] = curves
     
-    # If this is a new client
-
-    if( sock not in gclients):
-      gclients[sock] = { 
-        "client": sock,
-        "cmds"  : []
-      }
-    clientobj = gclients[sock] 
-
-    strcmd = str(cmd)
-    if cmd in validcmds:
-      cmds = clientobj["cmds"]
-      strstate = "Active"
-      if( strcmd in cmds ):
-        strstate = "In-Active"
-        cmds.remove(strcmd)
-      else:
-        cmds.append(strcmd)
-      #print("Command: " + strcmd + "   State: " + strstate)
-
-      ## client.put(str(TAG_END))
-    return 
+  f.write('} \n')
 
 # ------------------------------------------------------------------------
 
-def getData( context, clientcmds):
+def getData( context, clientcmds, dir):
       
-  data = "return {\n"
+  # Write data to temp data file for use by lua
+  with open(os.path.abspath(dir + '/defoldsync/syncdata.lua'), 'w') as f:
 
-  # Check to see what commands are enabled. And collect data if they changed    
+    f.write("return {\n")
 
-  # TODO: Optimise this into mapped methods
-  for cmd in clientcmds:
+    # Check to see what commands are enabled. And collect data if they changed    
 
-    # Basic info of the scene
-    if(cmd == 'info'):
-        results = sceneInfo(context)
-        data = data + 'INFO = ' + str(results) + ', \n'
+    # TODO: Optimise this into mapped methods
+    for cmd in clientcmds:
 
-    # Object level info of the scene
-    if(cmd == 'scene'):
-        results = sceneObjects(context)
-        data = data + 'OBJECTS = ' + str(results) + ', \n'
+      # Basic info of the scene
+      if(cmd == 'info'):
+        f.write('INFO = ')
+        sceneInfo(context, f)
+        f.write(', \n')
 
-    # Object level info of the scene
-    if(cmd == 'meshes'):
-        results = sceneMeshes(context)
-        print(results)
-        data = data + 'MESHES = ' + str(results) + ', \n'
+      # Object level info of the scene
+      if(cmd == 'scene'):
+        f.write('OBJECTS = ')
+        sceneObjects(context, f)
+        f.write(', \n')
 
-    # All bone animations in the scene
-    if(cmd == 'anims'):
-        results = sceneAnimations(context)
-        data = data + 'ANIMS = ' + str(results) + ', \n'
-  
-  data = data + "}"
-  return data
+      # Object level info of the scene
+      if(cmd == 'meshes'):
+        f.write('MESHES = ')
+        sceneMeshes(context, f)
+        f.write(', \n')
+
+      # All bone animations in the scene
+      if(cmd == 'anims'):
+        f.write('ANIMS = ')
+        sceneAnimations(context, f)
+        f.write(', \n')
+    
+    f.write("}\n")
 
 # ------------------------------------------------------------------------

@@ -124,7 +124,7 @@ class SyncProperties(PropertyGroup):
         )
 
     sync_proj: StringProperty(
-        name = "Directory",
+        name = "Project Folder",
         description="Choose a directory:",
         default="",
         maxlen=1024,
@@ -153,13 +153,14 @@ class WM_OT_SyncTool(Operator):
         mytool = scene.sync_tool
 
         dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
+        projpath    = os.path.realpath(bpy.path.abspath(mytool.sync_proj))
 
         # Write all the sync tool properties to a config file
         with open(  os.path.abspath(dir + '/defoldsync/config.lua'), 'w') as f:
             f.write('-- Lua generated config - do not edit.\n')
             f.write('return {\n')
             f.write('   sync_mode        = "' + str(mytool.sync_mode) + '",\n')
-            f.write('   sync_proj        = "' + os.path.realpath(bpy.path.abspath(mytool.sync_proj)) + '",\n')
+            f.write('   sync_proj        = "' + projpath + '",\n')
             f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
@@ -172,11 +173,7 @@ class WM_OT_SyncTool(Operator):
         commands    = [ "scene", "meshes" ]
 
         # get the data from the objects in blender
-        data = defoldCmds.getData(context, commands)
-        
-        # Write data to temp data file for use by lua
-        with open(os.path.abspath(dir + '/defoldsync/syncdata.lua'), 'w') as f:
-            f.write(data)
+        defoldCmds.getData(context, commands, dir)
 
         # Data is written for each stream. 
         subprocess.check_output(['luajit', dirpath, os.path.abspath(dir)])
