@@ -153,7 +153,10 @@ class WM_OT_SyncTool(Operator):
         mytool = scene.sync_tool
 
         dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
+       
         projpath    = os.path.realpath(bpy.path.abspath(mytool.sync_proj))
+         # Convert \ in path to \\
+        projpath    = projpath.replace('\\','\\\\')
 
         # Write all the sync tool properties to a config file
         with open(  os.path.abspath(dir + '/defoldsync/config.lua'), 'w') as f:

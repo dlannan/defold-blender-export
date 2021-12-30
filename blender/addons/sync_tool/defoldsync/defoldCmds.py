@@ -92,6 +92,12 @@ def sceneObjects(context, f):
         }
       }
 
+      scl = obj.scale.copy()
+      thisobj["scaling"] = {
+        "x": scl.x,
+        "y": scl.y,
+        "z": scl.z
+      }
 
       f.write('["' + thisobj["name"] + '"] = ' + dump_lua(thisobj) + ', \n')
       #thisobj["name"] ] = thisobj 
@@ -141,6 +147,9 @@ def sceneMeshes(context, fhandle, temppath):
             for n in mat.node_tree.nodes:
                 if n.type=='TEX_IMAGE':
                   img=n.image.filepath_from_user()
+                  if os.path.exists(img) == False:
+                    n.image.filepath = img
+                    n.image.save()
                   # If this is an image texture, with an active image append its name to the list
                   if( img not in textures):
                     textures.append( img )
@@ -249,6 +258,7 @@ def getData( context, clientcmds, dir):
   # Make temp folder if it doesnt exist
   temppath = os.path.abspath(dir + '/defoldsync/temp')
   os.makedirs( temppath, 511, True )
+  os.makedirs( os.path.abspath( dir + "/textures" ), 511, True )
 
   # Write data to temp data file for use by lua
   with open(os.path.abspath(dir + '/defoldsync/temp/syncdata.lua'), 'w') as f:

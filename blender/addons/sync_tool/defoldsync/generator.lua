@@ -203,9 +203,7 @@ GO_CHILDREN
         GO_ROTATION_QUATERNION
     }
     scale3 {
-        x: 1.0
-        y: 1.0
-        z: 1.0
+        GO_SCALE
     }
 }
 ]]
@@ -222,9 +220,7 @@ embedded_instances {
         GO_ROTATION_QUATERNION
     }
     scale3 {
-        x: 1.0
-        y: 1.0
-        z: 1.0
+        GO_SCALE
     }
 }
 ]]
@@ -261,9 +257,7 @@ embedded_instances {
         GO_ROTATION_QUATERNION
     }
     scale3 {
-        x: 1.0
-        y: 1.0
-        z: 1.0
+        GO_SCALE
     }
 }
 ]]
@@ -313,11 +307,6 @@ local function makebufferfile(name, filepath, mesh )
     local bufferfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".buffer"
     --print(bufferfilepath)
     --pprint(name, gendata.meshes[name] )
-
-    local fh = io.open( gendata.meshes[name], "rb" )
-    if(fh == nil) then return "" end
-    local fdata = fh:read("*all")
-    local mesh = json.decode(fdata)
     if(mesh == nil) then return "" end
 
     local verts = mesh.vertices 
@@ -351,8 +340,10 @@ end
 local function maketexturefile( name, filepath, mesh )
 
     local texturefile = ""
+    print(tostring(mesh))
     if(mesh.textures and mesh.textures[1]) then 
         local texturefilename = string.match(mesh.textures[1], "([^"..PATH_SEPARATOR.."]+)$")
+        print("TEXTURE: ", texturefilename)
         -- copy to local folder first 
         local targetfile = filepath..gendata.folders.images..PATH_SEPARATOR..texturefilename
         os.execute(CMD_COPY.." "..mesh.textures[1].." "..targetfile)
@@ -392,9 +383,19 @@ local function makegofile( name, filepath, go )
     godata = string.gsub(godata, "MESH_GO_NAME", go.name.."_mesh")
 
     if(go.type == "MESH") then 
-        local mesh = gendata.meshes[name] 
-        local meshfilepath = makemeshfile(name, filepath, mesh)
-        godata = string.gsub(godata, "MESH_FILE_PATH", localpathname(meshfilepath))
+
+        local meshfilepath = ""
+        local meshpath = string.gsub( gendata.meshes[name], "\\", "\\\\" )
+        print(meshpath)
+        local fh = io.open( meshpath, "rb" )
+        if(fh) then
+            local fdata = fh:read("*all")
+            fh:close()
+            local mesh = json.decode( fdata ) 
+            meshfilepath = localpathname(makemeshfile(name, filepath, mesh))
+        end
+
+        godata = string.gsub(godata, "MESH_FILE_PATH", meshfilepath)
     end 
 
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")
@@ -480,11 +481,17 @@ local function makecollection( collectionname, objects, meshes )
         objdata = string.gsub(objdata, "GO_POSITION", position)
 
         local rotation = "x:0.0\n\ty:0.0\n\tz:0.0\n\tw:1.0"
-        if(v.location) then 
+        if(v.rotation) then 
             rotation = "x:"..v.rotation.quat.x.."\n\ty:"..v.rotation.quat.y
             rotation = rotation.."\n\tz:"..v.rotation.quat.z.."\n\tw:"..v.rotation.quat.w
         end 
         objdata = string.gsub(objdata, "GO_ROTATION_QUATERNION", rotation)
+
+        local scaling = "x:1.0\n\ty:1.0\n\tz:1.0"
+        if(v.scaling) then 
+            scaling = "x:"..v.scaling.x.."\n\ty:"..v.scaling.y.."\n\tz:"..v.scaling.z
+        end 
+        objdata = string.gsub(objdata, "GO_SCALE", scaling)
 
         colldata = colldata.."\n"..objdata
     end 
