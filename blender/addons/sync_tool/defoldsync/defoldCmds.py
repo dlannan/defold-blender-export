@@ -144,12 +144,25 @@ def sceneMeshes(context, fhandle, temppath):
           textures = []
           for f in obj.data.polygons:
             mat = obj.material_slots[f.material_index].material
-            for n in mat.node_tree.nodes:
-                if n.type=='TEX_IMAGE':
-                  img=n.image.filepath_from_user()
+            # Get the nodes in the node tree
+            nodes = mat.node_tree.nodes
+            # Get a principled node
+            bsdf = nodes.get("Principled BSDF") 
+            # Get the slot for 'base color'
+            if(bsdf):
+              base_color = bsdf.inputs[0]
+              # Get the link
+              if( base_color.is_linked ):
+                link = base_color.links[0]
+                link_node = link.from_node
+                imgnode = link_node.image
+
+                if imgnode.type == 'IMAGE' or imgnode.type == 'TEX_IMAGE':
+                  img=imgnode.filepath_from_user()
+
                   if os.path.exists(img) == False:
-                    n.image.filepath = img
-                    n.image.save()
+                    imgnode.filepath = img
+                    imgnode.save()
                   # If this is an image texture, with an active image append its name to the list
                   if( img not in textures):
                     textures.append( img )
