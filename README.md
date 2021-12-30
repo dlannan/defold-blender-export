@@ -27,6 +27,20 @@ Sync can be unticked at any time and the data will stop pushing to the collectio
 
 Once this is setup you can add/edit the blender scene as you need and any Sync's you do, will update the meshes, textures and object positions in Defold.
 
+## Example
+I decided to add some improvements for large scene support. A sample Blender scene was used from here:
+
+https://cloud.blender.org/p/gallery/5dd6d7044441651fa3decb56
+
+I loaded into Blender. Here it is with Sync Tool open and setup. 
+![alt text](https://raw.githubusercontent.com/dlannan/defold-blender-export/main/images/sync-tool-2021-12-30_22-19.png)
+
+After pressing the 'Sync Scene' the resulting collection (after taking a while to load) was:
+![alt text](https://raw.githubusercontent.com/dlannan/defold-blender-export/main/images/sync-tool-2021-12-30_22-20.png)
+
+It is surprisingly decent, and is able to be edited within the editor ok. 
+I will be adding more optimisations and support for more texture channels (only Base Color supported atm).
+
 ## Issues
 There are a number of odd issues using this system. It is early days, so they will be ironed out. 
 Some limitations on what Blender can stream:
