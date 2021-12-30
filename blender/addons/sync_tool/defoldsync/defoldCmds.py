@@ -105,6 +105,25 @@ def sceneObjects(context, f):
   f.write('} \n')
 
 # ------------------------------------------------------------------------
+
+def addTexture( textures, name, color_node ):
+  # Get the link
+  if( color_node.is_linked ):
+    link = color_node.links[0]
+    link_node = link.from_node
+    imgnode = link_node.image
+
+    if imgnode.type == 'IMAGE' or imgnode.type == 'TEX_IMAGE':
+      img=imgnode.filepath_from_user()
+
+      if os.path.exists(img) == False:
+        imgnode.filepath = img
+        imgnode.save()
+      
+      # If this is an image texture, with an active image append its name to the list
+      textures[ name ] = img
+
+# ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
 def sceneMeshes(context, fhandle, temppath):
 
@@ -141,7 +160,7 @@ def sceneMeshes(context, fhandle, temppath):
             verts.append( { "x": v.x, "y": v.y, "z": v.z } )
           thisobj["vertices"] = verts
 
-          textures = []
+          textures = {}
           for f in obj.data.polygons:
             mat = obj.material_slots[f.material_index].material
             # Get the nodes in the node tree
@@ -150,23 +169,11 @@ def sceneMeshes(context, fhandle, temppath):
             bsdf = nodes.get("Principled BSDF") 
             # Get the slot for 'base color'
             if(bsdf):
-              base_color = bsdf.inputs[0]
-              # Get the link
-              if( base_color.is_linked ):
-                link = base_color.links[0]
-                link_node = link.from_node
-                imgnode = link_node.image
-
-                if imgnode.type == 'IMAGE' or imgnode.type == 'TEX_IMAGE':
-                  img=imgnode.filepath_from_user()
-
-                  if os.path.exists(img) == False:
-                    imgnode.filepath = img
-                    imgnode.save()
-                  # If this is an image texture, with an active image append its name to the list
-                  if( img not in textures):
-                    textures.append( img )
-
+              addTexture( textures, "base_color", bsdf.inputs[0] )
+              addTexture( textures, "metallic_color", bsdf.inputs[4] )
+              addTexture( textures, "emissive_color" ,bsdf.inputs[17] )
+              addTexture( textures, "normal_map", bsdf.inputs[19] )
+            
           if(len(textures) > 0):
             thisobj["textures"] = textures
 
