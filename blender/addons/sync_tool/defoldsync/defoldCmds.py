@@ -6,6 +6,8 @@ TAG_END   = "\n\n!!ECMD"
 
 TAG_TAIL  = "!!\n\n"
 
+TEXTURE_PATH  = ""
+
 # ------------------------------------------------------------------------
 def dump_lua(data):
     if type(data) is str:
@@ -111,9 +113,9 @@ def getImageNode( color_node ):
   if( color_node.is_linked ):
     link = color_node.links[0]
     link_node = link.from_node
-    if link_node.type == 'TEX_IMAGE':
+    if link_node and link_node.type == 'TEX_IMAGE':
       imgnode = link_node.image
-      if imgnode.type == 'IMAGE':
+      if imgnode and imgnode.type == 'IMAGE':
         return imgnode 
   return None 
 
@@ -126,11 +128,12 @@ def addTexture( textures, name, color_node ):
     img=imgnode.filepath_from_user()
 
     if os.path.exists(img) == False:
-      imgnode.filepath = img
+
+      imgnode.filepath = TEXTURE_PATH + "/" + os.path.basename(img)
       imgnode.save()
     
     # If this is an image texture, with an active image append its name to the list
-    textures[ name ] = img
+    textures[ name ] = img.replace('\\','\\\\')
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
@@ -171,18 +174,20 @@ def sceneMeshes(context, fhandle, temppath):
 
           textures = {}
           for f in obj.data.polygons:
-            mat = obj.material_slots[f.material_index].material
-            # Get the nodes in the node tree
-            nodes = mat.node_tree.nodes
-            # Get a principled node
-            bsdf = nodes.get("Principled BSDF") 
-            # Get the slot for 'base color'
-            if(bsdf):
-              addTexture( textures, "base_color", bsdf.inputs[0] )
-              addTexture( textures, "metallic_color", bsdf.inputs[4] )
-              addTexture( textures, "roughness_color", bsdf.inputs[7] )
-              addTexture( textures, "emissive_color" ,bsdf.inputs[17] )
-              addTexture( textures, "normal_map", bsdf.inputs[19] )
+            if(len(obj.material_slots) > 0):
+              mat = obj.material_slots[f.material_index].material
+              if mat:
+                # Get the nodes in the node tree
+                nodes = mat.node_tree.nodes
+                # Get a principled node
+                bsdf = nodes.get("Principled BSDF") 
+                # Get the slot for 'base color'
+                if(bsdf):
+                  addTexture( textures, "base_color", bsdf.inputs[0] )
+                  addTexture( textures, "metallic_color", bsdf.inputs[4] )
+                  addTexture( textures, "roughness_color", bsdf.inputs[7] )
+                  addTexture( textures, "emissive_color" ,bsdf.inputs[17] )
+                  addTexture( textures, "normal_map", bsdf.inputs[19] )
             
           if(len(textures) > 0):
             thisobj["textures"] = textures
@@ -288,7 +293,8 @@ def getData( context, clientcmds, dir):
   # Make temp folder if it doesnt exist
   temppath = os.path.abspath(dir + '/defoldsync/temp')
   os.makedirs( temppath, 511, True )
-  os.makedirs( os.path.abspath( dir + "/textures" ), 511, True )
+  TEXTURE_PATH = os.path.abspath( dir + "/textures" )
+  os.makedirs( TEXTURE_PATH, 511, True )
 
   # Write data to temp data file for use by lua
   with open(os.path.abspath(dir + '/defoldsync/temp/syncdata.lua'), 'w') as f:
