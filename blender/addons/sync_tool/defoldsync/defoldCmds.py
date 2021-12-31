@@ -106,22 +106,31 @@ def sceneObjects(context, f):
 
 # ------------------------------------------------------------------------
 
-def addTexture( textures, name, color_node ):
-  # Get the link
+def getImageNode( color_node ):
+    # Get the link
   if( color_node.is_linked ):
     link = color_node.links[0]
     link_node = link.from_node
-    imgnode = link_node.image
+    if link_node.type == 'TEX_IMAGE':
+      imgnode = link_node.image
+      if imgnode.type == 'IMAGE':
+        return imgnode 
+  return None 
 
-    if imgnode.type == 'IMAGE' or imgnode.type == 'TEX_IMAGE':
-      img=imgnode.filepath_from_user()
+# ------------------------------------------------------------------------
 
-      if os.path.exists(img) == False:
-        imgnode.filepath = img
-        imgnode.save()
-      
-      # If this is an image texture, with an active image append its name to the list
-      textures[ name ] = img
+def addTexture( textures, name, color_node ):
+
+  imgnode = getImageNode( color_node )
+  if imgnode != None:
+    img=imgnode.filepath_from_user()
+
+    if os.path.exists(img) == False:
+      imgnode.filepath = img
+      imgnode.save()
+    
+    # If this is an image texture, with an active image append its name to the list
+    textures[ name ] = img
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
@@ -171,6 +180,7 @@ def sceneMeshes(context, fhandle, temppath):
             if(bsdf):
               addTexture( textures, "base_color", bsdf.inputs[0] )
               addTexture( textures, "metallic_color", bsdf.inputs[4] )
+              addTexture( textures, "roughness_color", bsdf.inputs[7] )
               addTexture( textures, "emissive_color" ,bsdf.inputs[17] )
               addTexture( textures, "normal_map", bsdf.inputs[19] )
             

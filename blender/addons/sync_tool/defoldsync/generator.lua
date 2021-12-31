@@ -180,6 +180,7 @@ local gpbrsimple_fp = [[
 
 // uniform samplerCube cubeMap ;
 uniform sampler2D emissiveMap ;
+uniform sampler2D metallicMap;
 uniform sampler2D roughnessMap;
 uniform sampler2D albedoMap ;
 uniform sampler2D normalMap ;
@@ -243,8 +244,8 @@ void main()
 
 	float fLightIntensity = max(dot(vNormalisedLocalSurfaceToLightDirection, vNormalisedLocalSurfaceNormal), 0.0) ;
 
-	float fMetalness = texture(roughnessMap, vuvCoord0).g ;
-	float fRoughness = max(0.001, texture(roughnessMap, vuvCoord0).b ) ;
+	float fMetalness = texture(metallicMap, vuvCoord0).r ;
+	float fRoughness = max(0.001, texture(roughnessMap, vuvCoord0).r ) ;
 
 	float distributionMicroFacet = computeGGXDistribution(vNormalisedLocalSurfaceNormal, vNormalisedLocalSurfaceToLightDirection, fRoughness) ;
 	float geometryMicroFacet = computeGGXPartialGeometryTerm(vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal, vLocalLightViewHalfVector, fRoughness) ;
@@ -255,7 +256,7 @@ void main()
 	vec3 rgbAlbedo = texture(albedoMap, vuvCoord0).rgb;
 	vec3 rgbEmissive = texture(emissiveMap, vuvCoord0).rgb;
 
-	vec3 rgbFragment = rgbAlbedo * (1.0 - fMetalness);
+	vec3 rgbFragment = rgbAlbedo * fMetalness;
 
 	//	vec3 rgbSourceReflection = textureCubeLod(cubeMap, vNormalisedLocalReflectedSurfaceToViewerDirection, 9.0 * fRoughness).rgb ;
 	vec3 rgbSourceReflection = vec3(0.0);
@@ -379,12 +380,19 @@ samplers {
   filter_mag: FILTER_MODE_MAG_NEAREST
 }
 samplers {
-  name: "roughnessMap"
+  name: "metallicMap"
   wrap_u: WRAP_MODE_REPEAT
   wrap_v: WRAP_MODE_REPEAT
   filter_min: FILTER_MODE_MIN_NEAREST
   filter_mag: FILTER_MODE_MAG_NEAREST
 }
+samplers {
+    name: "roughnessMap"
+    wrap_u: WRAP_MODE_REPEAT
+    wrap_v: WRAP_MODE_REPEAT
+    filter_min: FILTER_MODE_MIN_NEAREST
+    filter_mag: FILTER_MODE_MAG_NEAREST
+  }
 samplers {
   name: "emissiveMap"
   wrap_u: WRAP_MODE_REPEAT
@@ -644,7 +652,8 @@ local function maketexturefile( filepath, mesh )
     local texturefiles = {}
     if(mesh.textures) then 
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_color', 'grey.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_color', 'black.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_color', 'grey.png') )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
     end 
