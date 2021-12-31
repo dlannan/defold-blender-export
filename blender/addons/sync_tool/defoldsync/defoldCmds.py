@@ -1,13 +1,5 @@
 import bpy, time, queue, re, os, json
 
-# These are used to start/end a data stream block. 
-TAG_START = "\n\n!!BCMD"
-TAG_END   = "\n\n!!ECMD"
-
-TAG_TAIL  = "!!\n\n"
-
-TEXTURE_PATH  = ""
-
 # ------------------------------------------------------------------------
 def dump_lua(data):
     if type(data) is str:
@@ -121,15 +113,17 @@ def getImageNode( color_node ):
 
 # ------------------------------------------------------------------------
 
-def addTexture( textures, name, color_node ):
+def addTexture( textures, name, color_node, texture_path ):
 
   imgnode = getImageNode( color_node )
+
   if imgnode != None:
     img=imgnode.filepath_from_user()
 
     if os.path.exists(img) == False:
 
-      imgnode.filepath = TEXTURE_PATH + "/" + os.path.basename(img)
+      img = texture_path + "/" + os.path.basename(img)
+      imgnode.filepath = img
       imgnode.save()
     
     # If this is an image texture, with an active image append its name to the list
@@ -137,7 +131,7 @@ def addTexture( textures, name, color_node ):
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
-def sceneMeshes(context, fhandle, temppath):
+def sceneMeshes(context, fhandle, temppath, texture_path):
 
   fhandle.write('{ \n')
   UVObj = type('UVObj', (object,), {})
@@ -183,11 +177,11 @@ def sceneMeshes(context, fhandle, temppath):
                 bsdf = nodes.get("Principled BSDF") 
                 # Get the slot for 'base color'
                 if(bsdf):
-                  addTexture( textures, "base_color", bsdf.inputs[0] )
-                  addTexture( textures, "metallic_color", bsdf.inputs[4] )
-                  addTexture( textures, "roughness_color", bsdf.inputs[7] )
-                  addTexture( textures, "emissive_color" ,bsdf.inputs[17] )
-                  addTexture( textures, "normal_map", bsdf.inputs[19] )
+                  addTexture( textures, "base_color", bsdf.inputs[0], texture_path )
+                  addTexture( textures, "metallic_color", bsdf.inputs[4], texture_path )
+                  addTexture( textures, "roughness_color", bsdf.inputs[7], texture_path )
+                  addTexture( textures, "emissive_color" ,bsdf.inputs[17], texture_path )
+                  addTexture( textures, "normal_map", bsdf.inputs[19], texture_path )
             
           if(len(textures) > 0):
             thisobj["textures"] = textures
@@ -293,8 +287,8 @@ def getData( context, clientcmds, dir):
   # Make temp folder if it doesnt exist
   temppath = os.path.abspath(dir + '/defoldsync/temp')
   os.makedirs( temppath, 511, True )
-  TEXTURE_PATH = os.path.abspath( dir + "/textures" )
-  os.makedirs( TEXTURE_PATH, 511, True )
+  texture_path = os.path.abspath( dir + "/textures" )
+  os.makedirs( texture_path, 511, True )
 
   # Write data to temp data file for use by lua
   with open(os.path.abspath(dir + '/defoldsync/temp/syncdata.lua'), 'w') as f:
@@ -320,7 +314,7 @@ def getData( context, clientcmds, dir):
       # Mesh data 
       if(cmd == 'meshes'):
         f.write('MESHES = ')
-        sceneMeshes(context, f, temppath + '/')
+        sceneMeshes(context, f, temppath + '/', texture_path)
         f.write(', \n')
 
       # All bone animations in the scene
