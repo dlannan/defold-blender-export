@@ -121,6 +121,8 @@ components {
 ]]
 
 ------------------------------------------------------------------------------------------------------------
+local gpbrsimple_vp_lightdir_local = [[normalize(vLightModelPosition - p.xyz)]]
+local gpbrsimple_vp_lightdir_global = [[vec3(0.0, 2.0, 3.0)]]
 
 local gpbrsimple_vp = [[
 // Positions can be world or local space, since world and normal
@@ -158,7 +160,7 @@ void main()
 	vvLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
 
 	vec3 vLightModelPosition = vec3(mtx_view * vec4(light.xyz, 1.0));
-	vvLocalSurfaceToLightDirection = normalize(vLightModelPosition - p.xyz) ;
+	vvLocalSurfaceToLightDirection = MATERIAL_VP_LIGHTDIR;
 
 	vvLocalSurfaceNormal = normalize((mtx_normal * vec4(normal, 0.0)).xyz);
 	//	vvLocalSurfaceNormal = normalize(gl_Normal) ; // use the actual normal from the actual geometry
@@ -256,10 +258,10 @@ void main()
 	vec3 rgbAlbedo = texture(albedoMap, vuvCoord0).rgb;
 	vec3 rgbEmissive = texture(emissiveMap, vuvCoord0).rgb;
 
-	vec3 rgbFragment = rgbAlbedo * fMetalness;
+	vec3 rgbFragment = rgbAlbedo * (1.0 - fMetalness);
 
 	//	vec3 rgbSourceReflection = textureCubeLod(cubeMap, vNormalisedLocalReflectedSurfaceToViewerDirection, 9.0 * fRoughness).rgb ;
-	vec3 rgbSourceReflection = vec3(0.0);
+	vec3 rgbSourceReflection = vec3(0.5);
 	vec3 rgbReflection = rgbSourceReflection ;
 	rgbReflection *= rgbAlbedo * fMetalness ;
 	rgbReflection *= fLightSourceFresnelTerm ;
@@ -578,6 +580,15 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
+local function makefilebinary( fpath, fdata )
+
+    local fh = io.open(fpath, "wb")
+    fh:write(fdata)
+    fh:close()
+end
+
+------------------------------------------------------------------------------------------------------------
+
 local function makefolders( collectionname, base )
 
     assert(collectionname ~= nil, "Invalid collectionname")
@@ -669,7 +680,7 @@ local function makemeshfile(name, filepath, mesh )
     local meshdata = meshfiledata
     local meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".mesh"
 
-    local materialfile = localpathname(filepath)..gendata.folders.materials..PATH_SEPARATOR.."pbr-simple.material"
+    local materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
     meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
 
     -- If a texture file is found, copy it, then assign it
@@ -760,12 +771,14 @@ local function makecollection( collectionname, objects, meshes )
     local matstr = gpbrsimplematerial:gsub("MATERIAL_VP", localpathname(material_vp_path))
     matstr = matstr:gsub("MATERIAL_FP", localpathname(material_fp_path))
     makefile( material_path.."pbr-simple.material", matstr)
+
+    gpbrsimple_vp = gpbrsimple_vp:gsub("MATERIAL_VP_LIGHTDIR", gpbrsimple_vp_lightdir_global)
     makefile( material_vp_path, gpbrsimple_vp )
     makefile( material_fp_path, gpbrsimple_fp )
-    makefile( material_path.."white.png", WHITE_PNG )
-    makefile( material_path.."normal.png", NORMAL_PNG )
-    makefile( material_path.."grey.png", GREY_PNG )
-    makefile( material_path.."black.png", BLACK_PNG )
+    makefilebinary( material_path.."white.png", WHITE_PNG )
+    makefilebinary( material_path.."normal.png", NORMAL_PNG )
+    makefilebinary( material_path.."grey.png", GREY_PNG )
+    makefilebinary( material_path.."black.png", BLACK_PNG )
 
     -- Objects need to be in flat table - straight from blender.
 
