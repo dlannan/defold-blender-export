@@ -96,17 +96,36 @@ class SyncProperties(PropertyGroup):
         )
 
     stream_anim: BoolProperty(
-        name="Stream Animation",
+        name="Export Animation",
         description="Enable Animation Stream",
         default = False
         )
+
+    stream_anim_name: PointerProperty(
+        name="Select Armature",
+        description="Select an Armature for Animation export",
+        type=bpy.types.Object
+        )
+
+    sync_light_mode: EnumProperty(
+        name="Light Mode:",
+        description="Select the type of global light to use.",
+        items=[ 
+                ('Light Local', "Use Local Point Light", ""),
+                ('Light Global', "Use Global Directional Light", ""),
+               ]
+        )
+
+    sync_light_obj: PointerProperty(
+        name="Select Light",
+        description="Select a Light for the Scene",
+        type=bpy.types.Object
+    ) 
 
     root_position: FloatVectorProperty(
         name = "Scene Position",
         description="Position of the scene in Defol",
         default=(0.0, 0.0, 0.0), 
-        min= 0.0, # float
-        max = 0.1
     ) 
     
     sync_host: StringProperty(
@@ -129,6 +148,15 @@ class SyncProperties(PropertyGroup):
         default="",
         maxlen=1024,
         subtype='DIR_PATH'
+        )
+
+    sync_shader: EnumProperty(
+        name="Shader:",
+        description="Sync Tool Shader Type",
+        items=[ 
+                ('Model Material', "Builtin Model Material Shader", ""),
+                ('PBR Simple', "PBR Material Shader", ""),
+               ]
         )
         
     sync_mode: EnumProperty(
@@ -165,6 +193,7 @@ class WM_OT_SyncTool(Operator):
             f.write('   sync_mode        = "' + str(mytool.sync_mode) + '",\n')
             f.write('   sync_proj        = "' + projpath + '",\n')
             f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
+            f.write('   sync_shdaer      = "' + str(mytool.sync_shader) + '",\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
             f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
@@ -174,9 +203,11 @@ class WM_OT_SyncTool(Operator):
         # Run with library demo
         # result = subprocess.check_output(['luajit', '-l', 'demo', '-e', 'test("a", "b")'])
         commands    = [ "scene", "meshes" ]
+        if(mytool.stream_anim == True):
+            commands.append("anims")
 
         # get the data from the objects in blender
-        defoldCmds.getData(context, commands, dir)
+        defoldCmds.getData(context, commands, dir, mytool)
 
         # Data is written for each stream. 
         subprocess.check_output(['luajit', dirpath, os.path.abspath(dir)])
@@ -217,15 +248,44 @@ class OBJECT_PT_CustomPanel(Panel):
         scene = context.scene
         mytool = scene.sync_tool
 
-        layout.prop(mytool, "sync_mode", text="") 
+        box = layout.box()
+        row = box.row()
+        row.prop(mytool, "sync_mode", text="")
+        row = box.row() 
+        row.prop(mytool, "sync_shader", text="") 
+        layout.separator()
+
+        box = layout.box()
+        row = box.row()
+        #layout.prop(mytool, "sync_host")
+        row.prop(mytool, "sync_proj")
+        row = box.row()
+        row.prop(mytool, "sync_scene")
+        row = box.row()
+        row.prop(mytool, "root_position")
+        row = box.row()
+        layout.separator()
+
+        box = layout.box()
+        row = box.row()
+        row.prop(mytool, "sync_light_mode")
+        if(mytool.stream_anim == True):
+            row = box.row()
+            row.prop(mytool, "sync_light_obj")
+        layout.separator()
+
         #layout.prop(mytool, "stream_info")
         #layout.prop(mytool, "stream_object")
         #layout.prop(mytool, "stream_mesh")
-        layout.prop(mytool, "stream_anim")
-        #layout.prop(mytool, "sync_host")
-        layout.prop(mytool, "sync_proj")
-        layout.prop(mytool, "sync_scene")
-        layout.prop(mytool, "root_position")
+        box = layout.box()
+        row = box.row()
+        row.prop(mytool, "stream_anim")
+        if(mytool.stream_anim == True):
+            row = box.row()
+            row.prop(mytool, "stream_anim_name")
+
+        layout.separator()
+
         layout.operator("wm.sync_scene")
         layout.separator()
 

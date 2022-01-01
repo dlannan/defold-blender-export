@@ -26,7 +26,7 @@ if(string.len(project_path) == 0) then project_path = "./Sample" end
 project_path = project_path:gsub("%.", "%%%.")
 
 if(config.sync_mode == "Sync Build") then
-    gen.makefolders( collection_name, project_path )
+    gen.makefolders( collection_name, project_path, config )
     gen.makecollection( collection_name, data["OBJECTS"], data["MESHES"])
 end
 

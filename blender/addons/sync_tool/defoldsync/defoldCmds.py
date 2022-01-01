@@ -1,4 +1,5 @@
 import bpy, time, queue, re, os, json
+from pathlib import Path
 
 # ------------------------------------------------------------------------
 def dump_lua(data):
@@ -15,7 +16,7 @@ def dump_lua(data):
         return l
     if type(data) is dict:
         t = "{"
-        t += ", ".join([f'[\"{k}\"]={dump_lua(v)}'for k,v in data.items()])
+        t += ", ".join([f"['{k}']={dump_lua(v)}"for k,v in data.items()])
         t += "}"
         return t
     logging.error(f"Unknown type {type(data)}")
@@ -236,56 +237,82 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
 
 # ------------------------------------------------------------------------
 
-def sceneAnimations(context, f):
+def sceneAnimations(context, f, temppath):
+
+  # write out the animation to a dae file. 
+  #   This is then referenced in the model file (if it has an anim association)
+  scene = context.scene
+
+  obj = scene.objects.get("Armature")
+  if obj != None:
+      obj.select = True
+      scene.objects.active = obj
+
+  animfile = temppath + scene.name + ".dae"
+  bpy.ops.wm.collada_export(filepath=animfile, 
+          include_armatures=True,
+          selected=True,
+          include_all_actions=True,
+          export_animation_type_selection='sample',
+          filter_collada=True, 
+          filter_folder=True, 
+          filemode=8)
 
   f.write('{ \n')
+  f.write( "['" + scene.name + "'] = " + '\"' + animfile + '\",\n')
 
-  scene = context.scene
-  for action in bpy.data.actions:
-    curves = {}
-    for fcu in action.fcurves:
+  # for action in bpy.data.actions:
+  #   curves = {}
+  #   for fcu in action.fcurves:
 
-      channelname = str(fcu.data_path)
-      if channelname not in curves:
-        curves[channelname] = {}
+  #     channelname = str(fcu.data_path)
+  #     if channelname not in curves:
+  #       curves[channelname] = {}
 
-      thisframe = []
-      for keyframe in fcu.keyframe_points:
-          print(keyframe.co) #coordinates x,y
-          coord = keyframe.co
+  #     thisframe = []
+  #     for keyframe in fcu.keyframe_points:
+  #         print(keyframe.co) #coordinates x,y
+  #         coord = keyframe.co
 
-          thisframe.append({
-            "x": coord.x,
-            "y": coord.y,
-            "handle_left": { "x":keyframe.handle_left.x, "y":keyframe.handle_left.y },
-            "handle_right": { "x":keyframe.handle_right.x, "y":keyframe.handle_right.y },
-            "easing": str(keyframe.easing),
-            "interp": str(keyframe.interpolation)
-          })
+  #         thisframe.append({
+  #           "x": coord.x,
+  #           "y": coord.y,
+  #           "handle_left": { "x":keyframe.handle_left.x, "y":keyframe.handle_left.y },
+  #           "handle_right": { "x":keyframe.handle_right.x, "y":keyframe.handle_right.y },
+  #           "easing": str(keyframe.easing),
+  #           "interp": str(keyframe.interpolation)
+  #         })
 
-      samples = []
-      for sample in fcu.sampled_points:
-        samples.append({
-          "x": sample.co.x, "y": sample.co.y
-        })
-      index = str(fcu.array_index)
-      curves[channelname][index] = {
-        "frames": thisframe,
-        "samples": samples,
-        "index": fcu.array_index
-      }
+  #     samples = []
+  #     for sample in fcu.sampled_points:
+  #       samples.append({
+  #         "x": sample.co.x, "y": sample.co.y
+  #       })
+  #     index = str(fcu.array_index)
+  #     curves[channelname][index] = {
+  #       "frames": thisframe,
+  #       "samples": samples,
+  #       "index": fcu.array_index
+  #     }
 
-    f.write('["' + action.name + '"] = ' + dump_lua(curves) + ', \n')
-    #animobjs[action.name] = curves
+  #   f.write("['" + action.name + "'] = " + dump_lua(curves) + ', \n')
+  #   #animobjs[action.name] = curves
     
   f.write('} \n')
 
 # ------------------------------------------------------------------------
 
-def getData( context, clientcmds, dir):
-      
-  # Make temp folder if it doesnt exist
+def getData( context, clientcmds, dir, config):
+
   temppath = os.path.abspath(dir + '/defoldsync/temp')
+  dir_path = Path(temppath)
+
+  try:
+      dir_path.rmdir()
+  except OSError as e:
+      print("Error: %s : %s" % (dir_path, e.strerror))
+
+  # Make temp folder if it doesnt exist
   os.makedirs( temppath, 511, True )
   texture_path = os.path.abspath( dir + "/textures" )
   os.makedirs( texture_path, 511, True )
@@ -316,13 +343,13 @@ def getData( context, clientcmds, dir):
         f.write('MESHES = ')
         sceneMeshes(context, f, temppath + '/', texture_path)
         f.write(', \n')
-
+    
       # All bone animations in the scene
       if(cmd == 'anims'):
         f.write('ANIMS = ')
-        sceneAnimations(context, f)
+        sceneAnimations(context, f, temppath + '/')
         f.write(', \n')
-    
+
     f.write("}\n")
 
 # ------------------------------------------------------------------------

@@ -589,12 +589,13 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function makefolders( collectionname, base )
+local function makefolders( collectionname, base, config )
 
     assert(collectionname ~= nil, "Invalid collectionname")
     assert(base ~= nil, "Invalid Base path string.")
 
-    gendata.base = base
+    gendata.base    = base
+    gendata.config  = config
 
     -- Make the base path
     os.execute(CMD_MKDIR.." "..base..PATH_SEPARATOR..collectionname)
@@ -662,11 +663,15 @@ local function maketexturefile( filepath, mesh )
 
     local texturefiles = {}
     if(mesh.textures) then 
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_color', 'black.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_color', 'grey.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
+        if(gendata.config.sync_shader == "PBR Simple") then 
+            table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
+            table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_color', 'black.png') )
+            table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_color', 'grey.png') )
+            table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
+            table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
+        else 
+            table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
+        end
     end 
     return texturefiles
 end 
@@ -680,8 +685,13 @@ local function makemeshfile(name, filepath, mesh )
     local meshdata = meshfiledata
     local meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".mesh"
 
-    local materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
-    meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
+    if(gendata.config.sync_shader == "PBR Simple") then 
+        local materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
+        meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
+    else 
+        local materialfile = "/builtins/materials/model.material"
+        meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
+    end 
 
     -- If a texture file is found, copy it, then assign it
     local alltextures = maketexturefile( filepath, mesh )
