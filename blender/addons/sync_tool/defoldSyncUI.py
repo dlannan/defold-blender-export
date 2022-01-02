@@ -75,6 +75,22 @@ data_changed = False
 #    Scene Properties
 # ------------------------------------------------------------------------
 
+def update_lightposition(self, context):
+    scene = context.scene
+    mytool = scene.sync_tool
+    if(mytool.sync_light_obj != None):
+        mytool.sync_light_vector[0] = mytool.sync_light_obj.location.x
+        mytool.sync_light_vector[1] = mytool.sync_light_obj.location.y
+        mytool.sync_light_vector[2] = mytool.sync_light_obj.location.z
+
+def update_lightglobal(self, context):
+    scene = context.scene
+    mytool = scene.sync_tool
+    if(mytool.sync_light_mode == 'Light Global'):
+        mytool.sync_light_vector = [0.0, -1.0, 0.0]
+    else:
+        mytool.sync_light_vector = [0.0, 0.0, 0.0]
+
 class SyncProperties(PropertyGroup):
 
     stream_info: BoolProperty(
@@ -110,16 +126,24 @@ class SyncProperties(PropertyGroup):
     sync_light_mode: EnumProperty(
         name="Light Mode:",
         description="Select the type of global light to use.",
+        update=update_lightglobal,
         items=[ 
                 ('Light Local', "Use Local Point Light", ""),
                 ('Light Global', "Use Global Directional Light", ""),
                ]
         )
 
+    sync_light_vector: FloatVectorProperty(
+        name = "Light Position/Direction",
+        description="Direction or Position of the Scene Light.",
+        default=(0.0, -1.0, 0.0), 
+    ) 
+
     sync_light_obj: PointerProperty(
         name="Select Light",
         description="Select a Light for the Scene",
-        type=bpy.types.Object
+        type=bpy.types.Object,
+        update=update_lightposition,
     ) 
 
     root_position: FloatVectorProperty(
@@ -185,8 +209,11 @@ class WM_OT_SyncTool(Operator):
         projpath    = os.path.realpath(bpy.path.abspath(mytool.sync_proj))
          # Convert \ in path to \\
         projpath    = projpath.replace('\\','\\\\')
-        
-        print(mytool.stream_anim_name)
+
+        lv = mytool.sync_light_vector  
+        animname = ""
+        if (mytool.stream_anim_name != None):
+            animname = str(mytool.stream_anim_name.name)
 
         # Write all the sync tool properties to a config file
         with open(  os.path.abspath(dir + '/defoldsync/config.lua'), 'w') as f:
@@ -197,12 +224,12 @@ class WM_OT_SyncTool(Operator):
             f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
             f.write('   sync_shader      = "' + str(mytool.sync_shader) + '",\n')
             f.write('   sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
-            f.write('   sync_light_obj   = "' + str(mytool.sync_light_obj) + '",\n')
+            f.write('   sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
             f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
             f.write('   stream_anim      = ' + str(mytool.stream_anim).lower() + ',\n')
-            f.write('   stream_anim_name = "' + str(mytool.stream_anim_name.name) + '",\n')
+            f.write('   stream_anim_name = "' + animname + '",\n')
             f.write('}\n')
 
         # Run with library demo
@@ -274,9 +301,12 @@ class OBJECT_PT_CustomPanel(Panel):
         box = layout.box()
         row = box.row()
         row.prop(mytool, "sync_light_mode")
+        row = box.row()
+        row.prop(mytool, "sync_light_vector")
         if(mytool.sync_light_mode == "Light Local"):
             row = box.row()
             row.prop(mytool, "sync_light_obj")
+
         layout.separator()
 
         #layout.prop(mytool, "stream_info")

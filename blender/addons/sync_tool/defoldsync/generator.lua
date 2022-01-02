@@ -676,7 +676,7 @@ local function processtexturefile( filepath, mesh, source, default )
 
     local texfile = filepath..gendata.folders.materials..PATH_SEPARATOR..default
     local outputfile = localpathname(gendata.project_path..PATH_SEPARATOR..gendata.folders.materials.."/"..default)
-    if(mesh.textures[source]) then 
+    if(mesh.textures and mesh.textures[source]) then 
         texfile = string.match(mesh.textures[source], "([^"..PATH_SEPARATOR.."]+)$")
         -- copy to local folder first 
         local targetfile = filepath..gendata.folders.images..PATH_SEPARATOR..texfile
@@ -691,17 +691,15 @@ end
 local function maketexturefile( filepath, mesh )
 
     local texturefiles = {}
-    if(mesh.textures) then 
-        if(gendata.config.sync_shader == "PBR Simple") then 
-            table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
-            table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_color', 'black.png') )
-            table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_color', 'grey.png') )
-            table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
-            table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
-        else 
-            table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
-        end
-    end 
+    if(gendata.config.sync_shader == "PBR Simple") then 
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_color', 'black.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_color', 'grey.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
+    else 
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
+    end
     return texturefiles
 end 
 
@@ -744,7 +742,7 @@ local function makegofile( name, filepath, go )
 
     local godata = gofiledata
     local meshdata = nil
-    if(go.animated) then godata = gomodelfiledata end
+    if(go.animated and gendata.anims) then godata = gomodelfiledata end
 
     local gofilepath = filepath..gendata.folders.gos..PATH_SEPARATOR..name..".go"
     godata = string.gsub(godata, "MESH_GO_NAME", go.name.."_mesh")
@@ -771,7 +769,7 @@ local function makegofile( name, filepath, go )
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")
 
     -- Apply animation specific changes to model data
-    if(go.animated) then
+    if(go.animated and gendata.anims) then
         local animname, animfile = next(gendata.anims)
         godata = string.gsub(godata, "MESH_FILE_PATH", animfile)
 
