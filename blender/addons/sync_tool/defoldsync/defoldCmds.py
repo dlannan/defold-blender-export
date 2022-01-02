@@ -1,5 +1,4 @@
-import bpy, time, queue, re, os, json
-from pathlib import Path
+import bpy, time, queue, re, os, json, shutil
 
 # ------------------------------------------------------------------------
 def dump_lua(data):
@@ -94,7 +93,7 @@ def sceneObjects(context, f):
         "z": scl.z
       }
 
-      if obj.animation_data and obj.animation_data.action:
+      if( len(obj.vertex_groups) > 0 ):
         thisobj["animated"] = True
 
       f.write('["' + thisobj["name"] + '"] = ' + dump_lua(thisobj) + ', \n')
@@ -232,6 +231,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
         #   fh.write('return {\n')
         #   fh.write( '   mesh = ' + dump_lua(thisobj) + '\n' )
         #   fh.write('}\n')
+        meshfile = meshfile.replace('\\','\\\\')
 
         fhandle.write('["' + thisobj["name"] + '"] = "' + meshfile + '", \n')
         #dataobjs[ thisobj["name"] ] = thisobj 
@@ -248,21 +248,27 @@ def sceneAnimations(context, f, temppath, config):
   f.write('{ \n')
 
   obj = config.stream_anim_name
-  print(obj)
   if obj != None:
     obj.select_set(True)
 
     animfile = temppath + scene.name + ".dae"
     bpy.ops.wm.collada_export(filepath=animfile, 
-            include_armatures=True,
+            include_armatures=False,
             selected=True,
             include_all_actions=True,
-            export_animation_type_selection='sample',
+            export_animation_type_selection='keys',
             filter_collada=True, 
             filter_folder=True, 
             filemode=8)
 
-    f.write( "['" + scene.name + "'] = " + '\"' + animfile + '\",\n')
+    animfile = animfile.replace("\\", "\\\\")
+
+    # Make sure we have vertex objects in this obj
+    if( len(obj.vertex_groups) > 0 ):
+      for a in bpy.data.actions:
+        print(a.name)
+
+        f.write( "['" + a.name + "'] = " + '\"' + animfile + '\",\n')
 
   # for action in bpy.data.actions:
   #   curves = {}
@@ -308,10 +314,9 @@ def sceneAnimations(context, f, temppath, config):
 def getData( context, clientcmds, dir, config):
 
   temppath = os.path.abspath(dir + '/defoldsync/temp')
-  dir_path = Path(temppath)
 
   try:
-      dir_path.rmdir()
+      shutil.rmtree(temppath, ignore_errors=True)
   except OSError as e:
       print("Error: %s : %s" % (dir_path, e.strerror))
 
