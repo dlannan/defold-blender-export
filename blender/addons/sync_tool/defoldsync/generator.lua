@@ -109,6 +109,8 @@ embedded_components {
     id: "MESH_GO_NAME"
     type: "model"
     data: "mesh: \"MESH_FILE_PATH\"\n"
+    "material: \"MATERIAL_FILE_PATH\"\n"
+    "MESH_TEXTURE_FILES"
     "skeleton: \"MODEL_SKELETON_FILE\"\n"
     "animations: \"MODEL_ANIM_FILE\"\n"
     "default_animation: \"MODEL_ANIM_NAME\"\n"
@@ -714,12 +716,12 @@ local function makemeshfile(name, filepath, mesh )
     
     local meshdata = meshfiledata
     local meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".mesh"
+    local materialfile = "/builtins/materials/model.material"
 
     if(gendata.config.sync_shader == "PBR Simple") then 
-        local materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
+        materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
         meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
     else 
-        local materialfile = "/builtins/materials/model.material"
         meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
     end 
 
@@ -734,7 +736,9 @@ local function makemeshfile(name, filepath, mesh )
     local bufferfilepath = makebufferfile( name, filepath, mesh )
     meshdata = string.gsub(meshdata, "BUFFER_FILE_PATH", localpathname(bufferfilepath))
     makefile( meshfilepath, meshdata )
-    return meshfilepath
+
+    -- Return meshfile path and mesh info (for model data)
+    return meshfilepath, { matfile = materialfile, texfiles = texture_file_list }
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -742,6 +746,7 @@ end
 local function makegofile( name, filepath, go )
 
     local godata = gofiledata
+    local meshdata = nil
     if(go.animated) then godata = gomodelfiledata end
 
     local gofilepath = filepath..gendata.folders.gos..PATH_SEPARATOR..name..".go"
@@ -755,11 +760,15 @@ local function makegofile( name, filepath, go )
         if(fh) then
             local fdata = fh:read("*all")
             fh:close()
-            local mesh = json.decode( fdata ) 
-            meshfilepath = localpathname(makemeshfile(name, filepath, mesh))
+            local mesh = json.decode( fdata )
+            local meshfile, mdata = makemeshfile(name, filepath, mesh)
+            meshdata = mdata 
+            meshfilepath = localpathname(meshfile)
         end
 
-        godata = string.gsub(godata, "MESH_FILE_PATH", meshfilepath)
+        if(go.animated == nil) then
+            godata = string.gsub(godata, "MESH_FILE_PATH", meshfilepath)
+        end
     end 
 
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")
@@ -767,6 +776,15 @@ local function makegofile( name, filepath, go )
     -- Apply animation specific changes to model data
     if(go.animated) then
         local animname, animfile = next(gendata.anims)
+        godata = string.gsub(godata, "MESH_FILE_PATH", animfile)
+
+        if(meshdata) then 
+            godata = string.gsub(godata, "MATERIAL_FILE_PATH", meshdata.matfile)
+            local texfiles = meshdata.texfiles:gsub('\"', '\\\"')
+            texfiles = texfiles:gsub('\n', '\\n')
+            godata = string.gsub(godata, "MESH_TEXTURE_FILES", texfiles)
+        end 
+
         godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
         godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
         godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
@@ -811,7 +829,7 @@ local function setupanimations( collname, anims )
         local afile = string.match(v, "([^"..PATH_SEPARATOR.."/]+)$")
         local targetfile = gendata.project_path..PATH_SEPARATOR..gendata.folders.animations..PATH_SEPARATOR..afile
         os.execute(CMD_COPY..' "'..v..'" "'..targetfile..'"')
-        anims[k] = localpathname(gendata.project_path)..gendata.folders.animations..PATH_SEPARATOR..afile
+        anims[k] = localpathname(gendata.project_path)..'/'..gendata.folders.animations..'/'..afile
     end 
 end 
 

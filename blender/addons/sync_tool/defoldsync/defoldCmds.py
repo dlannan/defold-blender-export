@@ -247,16 +247,25 @@ def sceneAnimations(context, f, temppath, config):
   scene = context.scene
   f.write('{ \n')
 
-  obj = config.stream_anim_name
-  if obj != None:
-    obj.select_set(True)
+  # Select all the meshes
+  for meshobj in bpy.context.scene.collection.all_objects:
+    if meshobj != None and meshobj.type == "MESH":
+      meshobj.select_set(True)
+
+  armobj = config.stream_anim_name
+  if armobj != None:
+    armobj.select_set(True)
 
     animfile = temppath + scene.name + ".dae"
     bpy.ops.wm.collada_export(filepath=animfile, 
-            include_armatures=False,
+            include_armatures=True,
+            export_global_forward_selection='Z',
+            export_global_up_selection='-Y',
+            apply_global_orientation=True,
             selected=True,
+            deform_bones_only=True,
+            include_animations=True,
             include_all_actions=True,
-            export_animation_type_selection='keys',
             filter_collada=True, 
             filter_folder=True, 
             filemode=8)
@@ -264,7 +273,7 @@ def sceneAnimations(context, f, temppath, config):
     animfile = animfile.replace("\\", "\\\\")
 
     # Make sure we have vertex objects in this obj
-    if( len(obj.vertex_groups) > 0 ):
+    if( armobj != None ):
       for a in bpy.data.actions:
         print(a.name)
 
