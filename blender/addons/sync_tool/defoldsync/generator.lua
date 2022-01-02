@@ -102,6 +102,36 @@ components {
 GO_FILE_SCRIPT
 ]]
 
+------------------------------------------------------------------------------------------------------------
+
+local gomodelfiledata = [[
+embedded_components {
+    id: "MESH_GO_NAME"
+    type: "model"
+    data: "mesh: \"MESH_FILE_PATH\"\n"
+    "skeleton: \"MODEL_SKELETON_FILE\"\n"
+    "animations: \"MODEL_ANIM_FILE\"\n"
+    "default_animation: \"MODEL_ANIM_NAME\"\n"
+    "name: \"unnamed\"\n"
+    ""
+    position {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+    }
+    rotation {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+    }
+}
+GO_FILE_SCRIPT
+]]
+
+------------------------------------------------------------------------------------------------------------
+
+
 local gofiledatascript = [[
 components {
     id: "script"
@@ -712,11 +742,13 @@ end
 local function makegofile( name, filepath, go )
 
     local godata = gofiledata
+    if(go.animated) then godata = gomodelfiledata end
+
     local gofilepath = filepath..gendata.folders.gos..PATH_SEPARATOR..name..".go"
 
     godata = string.gsub(godata, "MESH_GO_NAME", go.name.."_mesh")
-
-    if(go.type == "MESH") then 
+    -- If animated need to use model type 
+    if(go.type == "MESH")  then 
 
         local meshfilepath = ""
         local meshpath = string.gsub( gendata.meshes[name], "\\", "\\\\" )
@@ -732,6 +764,15 @@ local function makegofile( name, filepath, go )
     end 
 
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")
+
+    -- Apply animation specific changes to model data
+    if(go.animated) then
+        local animname, animfile = next(gendata.anims)
+        godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
+        godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
+        godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
+    end 
+
     makefile( gofilepath, godata )
     return gofilepath
 end
@@ -763,12 +804,26 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function makecollection( collectionname, objects, meshes )
+local function setupanimations( collname, anims )
+
+    for k,v in pairs(anims) do
+        -- copy to local folder first 
+        local afile = string.match(v, "([^"..PATH_SEPARATOR.."]+)$")
+        local targetfile = gendata.project_path..gendata.folders.animations..PATH_SEPARATOR..afile
+        os.execute(CMD_COPY..' "'..v..'" "'..targetfile..'"')
+        anims[k] = localpathname(gendata.project_path)..gendata.folders.animations.."/"..afile
+    end 
+end 
+
+------------------------------------------------------------------------------------------------------------
+
+local function makecollection( collectionname, objects, meshes, anims )
 
     if(objects == nil) then return end 
 
     objects = processChildren(objects)
-    gendata.meshes = meshes
+    gendata.meshes  = meshes
+    gendata.anims   = anims
     
     local project_path = gendata.base..PATH_SEPARATOR..collectionname
     gendata.project_path = project_path
@@ -789,6 +844,8 @@ local function makecollection( collectionname, objects, meshes )
     makefilebinary( material_path.."normal.png", NORMAL_PNG )
     makefilebinary( material_path.."grey.png", GREY_PNG )
     makefilebinary( material_path.."black.png", BLACK_PNG )
+
+    if(table.getn(anims) > 0) then setupanimations( collectionname, anims ) end 
 
     -- Objects need to be in flat table - straight from blender.
 

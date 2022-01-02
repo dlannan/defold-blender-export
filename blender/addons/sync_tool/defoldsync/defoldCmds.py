@@ -94,6 +94,9 @@ def sceneObjects(context, f):
         "z": scl.z
       }
 
+      if obj.animation_data and obj.animation_data.action:
+        thisobj["animated"] = True
+
       f.write('["' + thisobj["name"] + '"] = ' + dump_lua(thisobj) + ', \n')
       #thisobj["name"] ] = thisobj 
 
@@ -237,29 +240,29 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
 
 # ------------------------------------------------------------------------
 
-def sceneAnimations(context, f, temppath):
+def sceneAnimations(context, f, temppath, config):
 
   # write out the animation to a dae file. 
   #   This is then referenced in the model file (if it has an anim association)
   scene = context.scene
-
-  obj = scene.objects.get("Armature")
-  if obj != None:
-      obj.select = True
-      scene.objects.active = obj
-
-  animfile = temppath + scene.name + ".dae"
-  bpy.ops.wm.collada_export(filepath=animfile, 
-          include_armatures=True,
-          selected=True,
-          include_all_actions=True,
-          export_animation_type_selection='sample',
-          filter_collada=True, 
-          filter_folder=True, 
-          filemode=8)
-
   f.write('{ \n')
-  f.write( "['" + scene.name + "'] = " + '\"' + animfile + '\",\n')
+
+  obj = config.stream_anim_name
+  print(obj)
+  if obj != None:
+    obj.select_set(True)
+
+    animfile = temppath + scene.name + ".dae"
+    bpy.ops.wm.collada_export(filepath=animfile, 
+            include_armatures=True,
+            selected=True,
+            include_all_actions=True,
+            export_animation_type_selection='sample',
+            filter_collada=True, 
+            filter_folder=True, 
+            filemode=8)
+
+    f.write( "['" + scene.name + "'] = " + '\"' + animfile + '\",\n')
 
   # for action in bpy.data.actions:
   #   curves = {}
@@ -347,7 +350,7 @@ def getData( context, clientcmds, dir, config):
       # All bone animations in the scene
       if(cmd == 'anims'):
         f.write('ANIMS = ')
-        sceneAnimations(context, f, temppath + '/')
+        sceneAnimations(context, f, temppath + '/', config)
         f.write(', \n')
 
     f.write("}\n")

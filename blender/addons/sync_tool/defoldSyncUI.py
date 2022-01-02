@@ -185,6 +185,8 @@ class WM_OT_SyncTool(Operator):
         projpath    = os.path.realpath(bpy.path.abspath(mytool.sync_proj))
          # Convert \ in path to \\
         projpath    = projpath.replace('\\','\\\\')
+        
+        print(mytool.stream_anim_name)
 
         # Write all the sync tool properties to a config file
         with open(  os.path.abspath(dir + '/defoldsync/config.lua'), 'w') as f:
@@ -193,11 +195,14 @@ class WM_OT_SyncTool(Operator):
             f.write('   sync_mode        = "' + str(mytool.sync_mode) + '",\n')
             f.write('   sync_proj        = "' + projpath + '",\n')
             f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
-            f.write('   sync_shdaer      = "' + str(mytool.sync_shader) + '",\n')
+            f.write('   sync_shader      = "' + str(mytool.sync_shader) + '",\n')
+            f.write('   sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
+            f.write('   sync_light_obj   = "' + str(mytool.sync_light_obj) + '",\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
             f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
             f.write('   stream_anim      = ' + str(mytool.stream_anim).lower() + ',\n')
+            f.write('   stream_anim_name = "' + str(mytool.stream_anim_name.name) + '",\n')
             f.write('}\n')
 
         # Run with library demo
@@ -269,7 +274,7 @@ class OBJECT_PT_CustomPanel(Panel):
         box = layout.box()
         row = box.row()
         row.prop(mytool, "sync_light_mode")
-        if(mytool.stream_anim == True):
+        if(mytool.sync_light_mode == "Light Local"):
             row = box.row()
             row.prop(mytool, "sync_light_obj")
         layout.separator()
