@@ -370,10 +370,7 @@ vertex_constants {
   name: "light"
   type: CONSTANT_TYPE_USER
   value {
-    x: 1.0
-    y: 1.0
-    z: 1.0
-    w: 1.0
+MATERIAL_LIGHT_VECTOR
   }
 }
 vertex_constants {
@@ -821,7 +818,32 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function setupanimations( collname, anims )
+local function setupmaterials( project_path )
+    -- Make the default pbr material, and shaders
+    local material_path = project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR
+    local material_vp_path = material_path.."pbr-simple.vp"
+    local material_fp_path = material_path.."pbr-simple.fp"
+    local matstr = gpbrsimplematerial:gsub("MATERIAL_VP", localpathname(material_vp_path))
+    matstr = matstr:gsub("MATERIAL_FP", localpathname(material_fp_path))
+
+    local lv = gendata.config.sync_light_vec
+    local light_vector = '\tx: '..lv.x..'\n\ty: '..lv.y..'\n\tz: '..lv.z..'\n\tw: 1.0'
+    matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
+
+    makefile( material_path.."pbr-simple.material", matstr)
+
+    gpbrsimple_vp = gpbrsimple_vp:gsub("MATERIAL_VP_LIGHTDIR", gpbrsimple_vp_lightdir_global)
+    makefile( material_vp_path, gpbrsimple_vp )
+    makefile( material_fp_path, gpbrsimple_fp )
+    makefilebinary( material_path.."white.png", WHITE_PNG )
+    makefilebinary( material_path.."normal.png", NORMAL_PNG )
+    makefilebinary( material_path.."grey.png", GREY_PNG )
+    makefilebinary( material_path.."black.png", BLACK_PNG )
+end 
+
+------------------------------------------------------------------------------------------------------------
+
+local function setupanimations(  anims )
 
     for k,v in pairs(anims) do
 
@@ -847,27 +869,10 @@ local function makecollection( collectionname, objects, meshes, anims )
     gendata.project_path = project_path
     local colldata = gocollectionheader
 
-    -- Make the default pbr material, and shaders
-    local material_path = project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR
-    local material_vp_path = material_path.."pbr-simple.vp"
-    local material_fp_path = material_path.."pbr-simple.fp"
-    local matstr = gpbrsimplematerial:gsub("MATERIAL_VP", localpathname(material_vp_path))
-    matstr = matstr:gsub("MATERIAL_FP", localpathname(material_fp_path))
-    makefile( material_path.."pbr-simple.material", matstr)
-
-    gpbrsimple_vp = gpbrsimple_vp:gsub("MATERIAL_VP_LIGHTDIR", gpbrsimple_vp_lightdir_global)
-    makefile( material_vp_path, gpbrsimple_vp )
-    makefile( material_fp_path, gpbrsimple_fp )
-    makefilebinary( material_path.."white.png", WHITE_PNG )
-    makefilebinary( material_path.."normal.png", NORMAL_PNG )
-    makefilebinary( material_path.."grey.png", GREY_PNG )
-    makefilebinary( material_path.."black.png", BLACK_PNG )
+    setupmaterials( project_path )
 
     if(anims) then 
-        local k,v = next(anims)
-        print(k, v) 
-
-        setupanimations( collectionname, anims ) 
+        setupanimations( anims ) 
     end 
 
     -- Objects need to be in flat table - straight from blender.
