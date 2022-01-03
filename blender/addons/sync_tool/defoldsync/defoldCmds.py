@@ -44,8 +44,18 @@ def sceneInfo(context, f):
     f.write( dump_lua(dataobjs) )
 
 # ------------------------------------------------------------------------
+
+def has_keyframe(ob, attr):
+    anim = ob.animation_data
+    if anim is not None and anim.action is not None:
+        for fcu in anim.action.fcurves:
+            if fcu.data_path == attr:
+                return len(fcu.keyframe_points) > 0
+    return False
+
+# ------------------------------------------------------------------------
 # Get all available obejcts in the scene (including transforms)
-def sceneObjects(context, f):
+def sceneObjects(context, f, config):
 
   f.write('{ \n')
 
@@ -93,7 +103,7 @@ def sceneObjects(context, f):
         "z": scl.z
       }
 
-      if( len(obj.vertex_groups) > 0 ):
+      if( len(obj.vertex_groups) > 0 and config.stream_anim == True ):
         thisobj["animated"] = True
 
       f.write('["' + thisobj["name"] + '"] = ' + dump_lua(thisobj) + ', \n')
@@ -352,7 +362,7 @@ def getData( context, clientcmds, dir, config):
       # Object transforms and hierarchy
       if(cmd == 'scene'):
         f.write('OBJECTS = ')
-        sceneObjects(context, f)
+        sceneObjects(context, f, config)
         f.write(', \n')
 
       # Mesh data 
