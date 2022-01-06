@@ -749,20 +749,23 @@ local function makegofile( name, filepath, go )
     -- If animated need to use model type 
     if(go.type == "MESH")  then 
 
-        local meshfilepath = ""
-        local meshpath = string.gsub( gendata.meshes[name], "\\", "\\\\" )
-        local fh = io.open( meshpath, "rb" )
-        if(fh) then
-            local fdata = fh:read("*all")
-            fh:close()
-            local mesh = json.decode( fdata )
-            local meshfile, mdata = makemeshfile(name, filepath, mesh)
-            meshdata = mdata 
-            meshfilepath = localpathname(meshfile)
-        end
+        local meshurl = gendata.meshes[name]
+        if(meshurl) then 
+            local meshfilepath = ""
+            local meshpath = string.gsub( meshurl, "\\", "\\\\" )
+            local fh = io.open( meshpath, "rb" )
+            if(fh) then
+                local fdata = fh:read("*all")
+                fh:close()
+                local mesh = json.decode( fdata )
+                local meshfile, mdata = makemeshfile(name, filepath, mesh)
+                meshdata = mdata 
+                meshfilepath = localpathname(meshfile)
+            end
 
-        if(go.animated == nil) then
-            godata = string.gsub(godata, "MESH_FILE_PATH", meshfilepath)
+            if(go.animated == nil) then
+                godata = string.gsub(godata, "MESH_FILE_PATH", meshfilepath)
+            end
         end
     end 
 

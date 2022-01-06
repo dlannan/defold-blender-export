@@ -60,8 +60,10 @@ def sceneObjects(context, f, config):
   f.write('{ \n')
 
   scene = context.scene
-  for obj in scene.objects:
-  
+  for coll in bpy.data.collections:
+
+    for obj in coll.objects:
+    
       thisobj = {
         "name": str(obj.name),
         "type": str(obj.type)
@@ -106,7 +108,7 @@ def sceneObjects(context, f, config):
       if( len(obj.vertex_groups) > 0 and config.stream_anim == True ):
         thisobj["animated"] = True
 
-      f.write('["' + thisobj["name"] + '"] = ' + dump_lua(thisobj) + ', \n')
+      f.write('["' + str(obj.name) + '"] = ' + dump_lua(thisobj) + ', \n')
       #thisobj["name"] ] = thisobj 
 
   f.write('} \n')
@@ -183,7 +185,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
           for f in obj.data.polygons:
             if(len(obj.material_slots) > 0):
               mat = obj.material_slots[f.material_index].material
-              if mat:
+              if mat and mat.node_tree:
                 # Get the nodes in the node tree
                 nodes = mat.node_tree.nodes
                 # Get a principled node
