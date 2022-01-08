@@ -4,6 +4,16 @@
 local ffi                   = require("ffi")
 local json                  = require("defoldsync.json")
 
+
+table.count = function( tbl ) 
+    local count = 0
+    if(tbl == nil or type(tbl) ~= "TABLE") then return count end
+    for k,v in pairs(tbl) do count = count + 1 end 
+    return count 
+end
+
+------------------------------------------------------------------------------------------------------------
+
 local PATH_SEPARATOR        = "/"
 local CMD_COPY              = "cp"
 local CMD_MKDIR             = "mkdir -p"
@@ -537,7 +547,7 @@ local gocollectiongeneric = [[
 embedded_instances {
     id: "GO_NAME"
     data: ""
-    GO_CHILDREN
+GO_CHILDREN
     position {
         GO_POSITION
     }
@@ -574,7 +584,7 @@ embedded_instances {
     "    w: 1.0\n"
     "  }\n"
     "}\n"
-    GO_CHILDREN
+GO_CHILDREN
     position {
         GO_POSITION
     }
@@ -797,24 +807,18 @@ end
 
 local function processChildren(objs)
 
-    local objects = {}
-    -- Add to object list 
-    for k,v in pairs(objs) do 
-        if k then 
-            objects[k] = v 
-        end 
-    end
     -- Regen children using parent information 
-    for k,v in pairs(objects) do 
-        if(v.parent and v.parent.name) then 
-            local parent = objects[v.parent.name]
-            if(parent) then
-                parent.children = parent.children or {} 
-                table.insert(parent.children, v.name)
+    for k,v in pairs(objs) do 
+        local p = v['parent'] or { name = 'nil' }
+        if(v['parent'] and v['parent']['name']) then 
+            local pobj = objs[v['parent']['name']]
+            if(pobj) then
+                pobj.children = pobj.children or {} 
+                table.insert(pobj.children, v['name'])
             end
         end 
     end
-    return objects
+    return objs
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -858,27 +862,14 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function makecollection( collectionname, objects, meshes, anims )
+local function makecollection( collectionname, objects )
 
-    if(objects == nil) then return end 
-
-    objects = processChildren(objects)
-    gendata.meshes  = meshes
-    gendata.anims   = anims
-    
-    local project_path = gendata.base..PATH_SEPARATOR..collectionname
-    gendata.project_path = project_path
     local colldata = gocollectionheader
 
-    setupmaterials( project_path )
-
-    if(anims) then 
-        setupanimations( anims ) 
-    end 
-
-    -- Objects need to be in flat table - straight from blender.
-
+    -- Objects are children of a collection object (ideally)
+    --    If no collections, then all in root. 
     local rootchildren = ""
+    
     for k,v in pairs(objects) do 
 
         local name = v.name or ("Dummy"..k)
@@ -886,7 +877,7 @@ local function makecollection( collectionname, objects, meshes, anims )
         if(v.type == "MESH") then 
             objdata = gocollectiondata
 
-            local gofilepath = makegofile( name, project_path..PATH_SEPARATOR, v )
+            local gofilepath = makegofile( name, gendata.project_path..PATH_SEPARATOR, v )
             objdata = string.gsub(objdata, "GO_FILE_PATH", localpathname(gofilepath))
 
         elseif(v.type == "CAMERA") then 
@@ -905,7 +896,7 @@ local function makecollection( collectionname, objects, meshes, anims )
         local children = ""
         if(v.children) then 
             for k,v in pairs(v.children) do
-                children = "    children: \""..v.."\"\n"
+                children = children.."    children: \""..v.."\"\n"
             end
         end
         objdata = string.gsub(objdata, "GO_CHILDREN", children)
@@ -933,17 +924,57 @@ local function makecollection( collectionname, objects, meshes, anims )
     end 
 
     -- Add the root instance 
-    gcollectionroot = string.gsub(gcollectionroot, "ROOT_CHILDREN", rootchildren)
-    colldata = colldata.."\n"..gcollectionroot
+    local newcollection = string.gsub(gcollectionroot, "ROOT_CHILDREN", rootchildren)
+    colldata = colldata.."\n"..newcollection
     
     -- Write the file
-    makefile( project_path..PATH_SEPARATOR..collectionname..".collection", colldata )
+    local scenepath = gendata.project_path..PATH_SEPARATOR
+    makefile( scenepath..collectionname..".collection", colldata )
+end 
+
+------------------------------------------------------------------------------------------------------------
+
+local function makescene( scenename, objects, meshes, anims )
+    if(objects == nil) then return end 
+
+    gendata.meshes  = meshes
+    gendata.anims   = anims
+    
+    local project_path = gendata.base..PATH_SEPARATOR..scenename
+    gendata.project_path = project_path
+
+    setupmaterials( project_path )
+
+    if(anims) then 
+        setupanimations( anims ) 
+    end
+
+    -- Check for collections first. There may be root objects then collections
+    --   below them.
+    local collectionlist = {}
+    local objectlist = {} 
+    for k,v in pairs(objects) do 
+        if(k:sub(1, 5) == "COLL_") then 
+            collectionlist[k:sub(6, -1)] = v
+        else 
+            table.insert(objectlist, v)
+        end 
+    end
+
+    -- Go through the collections in the OBJECTS table 
+    for k,v in pairs(collectionlist) do 
+        local collobjs = processChildren(v)
+        makecollection( k, collobjs )
+    end
+
+    local rootobjs = processChildren(objectlist)
+    if(table.count(rootobjs) > 0) then makecollection( scenename, rootobjs ) end 
 end
 
 ------------------------------------------------------------------------------------------------------------
 
 gendata.makefile        = makefile
 gendata.makefolders     = makefolders
-gendata.makecollection  = makecollection
+gendata.makescene       = makescene
 
 return gendata

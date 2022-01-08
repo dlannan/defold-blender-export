@@ -62,6 +62,11 @@ def sceneObjects(context, f, config):
   scene = context.scene
   for coll in bpy.data.collections:
 
+    # Add an object for the collection
+    #   - Probably should make this a collection in Defold?
+
+    f.write('["COLL_' + str(coll.name) + '"] = { \n')
+    
     for obj in coll.objects:
     
       thisobj = {
@@ -110,6 +115,8 @@ def sceneObjects(context, f, config):
 
       f.write('["' + str(obj.name) + '"] = ' + dump_lua(thisobj) + ', \n')
       #thisobj["name"] ] = thisobj 
+
+    f.write('}, \n')
 
   f.write('} \n')
 
