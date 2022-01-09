@@ -499,7 +499,7 @@ end
 
 local gcollectionroot = [[
 embedded_instances {
-    id: "root"
+    id: "__root"
 ROOT_CHILDREN
     data: ""
     position {

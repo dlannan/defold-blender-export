@@ -1,6 +1,26 @@
 import bpy, time, queue, re, os, json, shutil
 
 # ------------------------------------------------------------------------
+
+def linear_to_srgb8(c):
+    if c < 0.0031308:
+        srgb = 0.0 if c < 0.0 else c * 12.92
+    else:
+        srgb = 1.055 * pow(c, 1.0 / 2.4) - 0.055
+    if srgb > 1: srgb = 1
+    return round(255*srgb)
+
+# ------------------------------------------------------------------------
+
+def toHex(r, g, b, a):
+    return "%02x%02x%02x%02x" % (
+        linear_to_srgb8(r),
+        linear_to_srgb8(g),
+        linear_to_srgb8(b),
+        round(a * 255),
+    )
+
+# ------------------------------------------------------------------------
 def dump_lua(data):
     if type(data) is str:
         return f'"{data}"'
@@ -87,8 +107,13 @@ def sceneObjects(context, f, config):
         "z": local_coord.z 
       }
 
-      rot = obj.rotation_euler.copy()
-      quat = rot.to_quaternion()
+      rot = obj.rotation_quaternion.to_euler()
+      quat = obj.rotation_quaternion
+
+      if( obj.rotation_mode != "QUATERNION"):
+        rot = obj.rotation_euler.copy()
+        quat = rot.to_quaternion()
+      
       thisobj["rotation"] = { 
         "quat": { 
           "x": quat.x,
@@ -122,25 +147,46 @@ def sceneObjects(context, f, config):
 
 # ------------------------------------------------------------------------
 
-def getImageNode( color_node ):
-    # Get the link
+def getImageNode( colors, index, matname, name, texture_path ):
+  
+  color_node = colors[index]
+  # Get the link
   if( color_node.is_linked ):
     link = color_node.links[0]
     link_node = link.from_node
     if link_node and link_node.type == 'TEX_IMAGE':
       imgnode = link_node.image
       if imgnode and imgnode.type == 'IMAGE':
-        return imgnode 
+        return imgnode   
+
+  # if the node is a color vector. Make a tiny color png in temp
+  if( color_node.type == "RGBA" and name == "base_color" ):
+    col   = color_node.default_value
+    alpha = colors["Alpha"].default_value
+
+    hexname = toHex(col[0], col[1], col[2], alpha)
+    texname = name + str(matname) + "_" + name + "_" + hexname
+    imgw  = 16 
+    imgh  = 16
+
+    img = bpy.data.images.new(texname, width=imgw,height=imgh, alpha=True)
+    img.file_format = 'PNG'
+    img.generated_color = (col[0], col[1], col[2], alpha)
+
+    img.filepath_raw = texture_path + "/" + texname + ".png"
+    img.save() 
+    return img
+
   return None 
 
 # ------------------------------------------------------------------------
 
-def addTexture( textures, name, color_node, texture_path ):
+def addTexture( matname, textures, name, color_node, index, texture_path ):
 
-  imgnode = getImageNode( color_node )
+  imgnode = getImageNode( color_node, index, matname, name, texture_path )
 
   if imgnode != None:
-    img=imgnode.filepath_from_user()
+    img = imgnode.filepath_from_user()
 
     if os.path.exists(img) == False:
 
@@ -189,9 +235,11 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
           thisobj["vertices"] = verts
 
           textures = {}
-          for f in obj.data.polygons:
-            if(len(obj.material_slots) > 0):
-              mat = obj.material_slots[f.material_index].material
+#          for f in obj.data.polygons:
+#            if(len(obj.material_slots) > 0):
+          for matobj in obj.material_slots:
+            if(matobj):
+              mat = matobj.material
               if mat and mat.node_tree:
                 # Get the nodes in the node tree
                 nodes = mat.node_tree.nodes
@@ -199,11 +247,11 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
                 bsdf = nodes.get("Principled BSDF") 
                 # Get the slot for 'base color'
                 if(bsdf):
-                  addTexture( textures, "base_color", bsdf.inputs[0], texture_path )
-                  addTexture( textures, "metallic_color", bsdf.inputs[4], texture_path )
-                  addTexture( textures, "roughness_color", bsdf.inputs[7], texture_path )
-                  addTexture( textures, "emissive_color" ,bsdf.inputs[17], texture_path )
-                  addTexture( textures, "normal_map", bsdf.inputs[19], texture_path )
+                  addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path )
+                  addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path )
+                  addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path )
+                  addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path )
+                  addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path )
             
           if(len(textures) > 0):
             thisobj["textures"] = textures
