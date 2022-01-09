@@ -297,15 +297,15 @@ void main()
 
 	float fLightSourceFresnelTerm = computeFresnelTerm(0.5, vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal) ;
 
-	vec3 rgbAlbedo = texture(albedoMap, vuvCoord0).rgb;
+	vec4 rgbAlbedo = texture(albedoMap, vuvCoord0);
 	vec3 rgbEmissive = texture(emissiveMap, vuvCoord0).rgb;
 
-	vec3 rgbFragment = rgbAlbedo * (1.0 - fMetalness);
+	vec3 rgbFragment = rgbAlbedo.rgb * (1.0 - fMetalness);
 
 	//	vec3 rgbSourceReflection = textureCubeLod(cubeMap, vNormalisedLocalReflectedSurfaceToViewerDirection, 9.0 * fRoughness).rgb ;
 	vec3 rgbSourceReflection = vec3(0.5);
 	vec3 rgbReflection = rgbSourceReflection ;
-	rgbReflection *= rgbAlbedo * fMetalness ;
+	rgbReflection *= rgbAlbedo.rgb * fMetalness ;
 	rgbReflection *= fLightSourceFresnelTerm ;
 	rgbReflection = min(rgbReflection, rgbSourceReflection) ; // conservation of energy
 
@@ -323,8 +323,7 @@ void main()
 	rgbFragment += rgbReflection ;
 	rgbFragment += rgbEmissive ;
 
-	gl_FragColor.rgb = rgbFragment;
-	gl_FragColor.a = 1.0 ; // TODO : Worry about materials which allow transparency!
+	gl_FragColor = vec4(rgbFragment, rgbAlbedo.a);
 }
 ]]
 
@@ -655,20 +654,22 @@ local function makebufferfile(name, filepath, mesh )
     if(mesh == nil) then return "" end
 
     local verts = mesh.vertices 
+    local normals = mesh.normals
     local vertdata = {}
     local uvdata = {}
     local normdata = {}
     for k,v in pairs(mesh.tris) do 
         for i,t in pairs(v.tri) do 
             local vert = verts[t.vertex + 1]
+            local norm = normals[t.vertex + 1]
             table.insert(vertdata, vert.x)
             table.insert(vertdata, vert.y)
             table.insert(vertdata, vert.z)
             table.insert(uvdata, t.uv.x)
             table.insert(uvdata, t.uv.y)
-            table.insert(normdata, v.normal.x)
-            table.insert(normdata, v.normal.y)
-            table.insert(normdata, v.normal.z)
+            table.insert(normdata, norm.x)
+            table.insert(normdata, norm.y)
+            table.insert(normdata, norm.z)
         end
     end
     

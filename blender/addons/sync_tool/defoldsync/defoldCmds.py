@@ -2,21 +2,21 @@ import bpy, time, queue, re, os, json, shutil
 
 # ------------------------------------------------------------------------
 
-def linear_to_srgb8(c):
+def to_srgb(c):
     if c < 0.0031308:
         srgb = 0.0 if c < 0.0 else c * 12.92
     else:
         srgb = 1.055 * pow(c, 1.0 / 2.4) - 0.055
-    if srgb > 1: srgb = 1
-    return round(255*srgb)
+
+    return srgb
 
 # ------------------------------------------------------------------------
 
 def toHex(r, g, b, a):
     return "%02x%02x%02x%02x" % (
-        linear_to_srgb8(r),
-        linear_to_srgb8(g),
-        linear_to_srgb8(b),
+        round(r * 255),
+        round(g * 255),
+        round(b * 255),
         round(a * 255),
     )
 
@@ -165,13 +165,13 @@ def getImageNode( colors, index, matname, name, texture_path ):
     alpha = colors["Alpha"].default_value
 
     hexname = toHex(col[0], col[1], col[2], alpha)
-    texname = name + str(matname) + "_" + name + "_" + hexname
+    texname = str(matname) + "_" + name + "_" + hexname
     imgw  = 16 
     imgh  = 16
 
     img = bpy.data.images.new(texname, width=imgw,height=imgh, alpha=True)
     img.file_format = 'PNG'
-    img.generated_color = (col[0], col[1], col[2], alpha)
+    img.generated_color = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), alpha)
 
     img.filepath_raw = texture_path + "/" + texname + ".png"
     img.save() 
@@ -226,32 +226,36 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
           me.calc_loop_triangles()
 
           # Get the vert data
-          verts = []
-          verts_local = [v.co for v in obj.data.vertices.values()]
-          verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
+          verts   = []
+          normals = []
+          verts_local = [v for v in obj.data.vertices.values()]
+          # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
 
           for v in verts_local:
-            verts.append( { "x": v.x, "y": v.y, "z": v.z } )
+            verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+            normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
+
           thisobj["vertices"] = verts
+          thisobj["normals"]  = normals
 
           textures = {}
-#          for f in obj.data.polygons:
-#            if(len(obj.material_slots) > 0):
-          for matobj in obj.material_slots:
-            if(matobj):
-              mat = matobj.material
-              if mat and mat.node_tree:
-                # Get the nodes in the node tree
-                nodes = mat.node_tree.nodes
-                # Get a principled node
-                bsdf = nodes.get("Principled BSDF") 
-                # Get the slot for 'base color'
-                if(bsdf):
-                  addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path )
-                  addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path )
-                  addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path )
-                  addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path )
-                  addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path )
+          # for f in obj.data.polygons:
+          #   if(len(obj.material_slots) > 0):
+          # for matobj in obj.material_slots:
+          #   if(matobj):
+          mat = obj.material_slots[0].material
+          if mat and mat.node_tree:
+            # Get the nodes in the node tree
+            nodes = mat.node_tree.nodes
+            # Get a principled node
+            bsdf = nodes.get("Principled BSDF") 
+            # Get the slot for 'base color'
+            if(bsdf):
+              addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path )
+              addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path )
+              addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path )
+              addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path )
+              addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path )
             
           if(len(textures) > 0):
             thisobj["textures"] = textures
@@ -266,12 +270,12 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
 
             triobj = {}
             thistri = []
-            normal = face.normal
-            triobj["normal"] = {
-              "x": normal.x, 
-              "y": normal.y,
-              "z": normal.z
-            }
+            # normal = face.normal
+            # triobj["normal"] = {
+            #   "x": normal.x, 
+            #   "y": normal.y,
+            #   "z": normal.z
+            # }
 
             for i in range(0, 3):
               idx = verts_indices[i]
