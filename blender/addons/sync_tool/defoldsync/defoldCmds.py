@@ -160,9 +160,21 @@ def getImageNode( colors, index, matname, name, texture_path ):
         return imgnode   
 
   # if the node is a color vector. Make a tiny color png in temp
-  if( color_node.type == "RGBA" and name == "base_color" ):
-    col   = color_node.default_value
-    alpha = colors["Alpha"].default_value
+  print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
+  if((color_node.type == "RGBA" or color_node.type == "RGB") and name == "base_color" ):
+
+    alpha     = colors["Alpha"].default_value
+    col       = color_node.default_value
+    
+    # check if this is linked 
+    if( color_node.is_linked ):
+      link = color_node.links[0]
+      link_node = link.from_node
+      col = link_node.outputs[0].default_value
+      print(matname + " " + name + "  " + str(col[0]) + "," + str(col[1]) + "," + str(col[2]))
+      gencolor  = (col[0], col[1], col[2], alpha)
+
+    gencolor  = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), alpha)
 
     hexname = toHex(col[0], col[1], col[2], alpha)
     texname = str(matname) + "_" + name + "_" + hexname
@@ -171,7 +183,7 @@ def getImageNode( colors, index, matname, name, texture_path ):
 
     img = bpy.data.images.new(texname, width=imgw,height=imgh, alpha=True)
     img.file_format = 'PNG'
-    img.generated_color = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), alpha)
+    img.generated_color = gencolor
 
     img.filepath_raw = texture_path + "/" + texname + ".png"
     img.save() 
@@ -239,11 +251,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
           thisobj["normals"]  = normals
 
           textures = {}
-          # for f in obj.data.polygons:
-          #   if(len(obj.material_slots) > 0):
-          # for matobj in obj.material_slots:
-          #   if(matobj):
-          mat = obj.material_slots[0].material
+          mat = obj.material_slots[0].material        
           if mat and mat.node_tree:
             # Get the nodes in the node tree
             nodes = mat.node_tree.nodes
