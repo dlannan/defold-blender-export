@@ -658,15 +658,17 @@ local function makebufferfile(name, filepath, mesh )
     for k,v in pairs(mesh.tris) do 
         for i,t in pairs(v.tri) do 
             local vert = verts[t.vertex + 1]
-            local norm = normals[t.vertex + 1]
             table.insert(vertdata, vert.x)
             table.insert(vertdata, vert.y)
             table.insert(vertdata, vert.z)
             table.insert(uvdata, t.uv.x)
             table.insert(uvdata, t.uv.y)
-            table.insert(normdata, norm.x)
-            table.insert(normdata, norm.y)
-            table.insert(normdata, norm.z)
+            if(normals) then 
+                local norm = normals[t.vertex + 1]
+                table.insert(normdata, norm.x)
+                table.insert(normdata, norm.y)
+                table.insert(normdata, norm.z)
+            end
         end
     end
     
