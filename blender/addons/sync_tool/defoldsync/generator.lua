@@ -167,53 +167,52 @@ local gpbrsimple_vp_lightdir_local = [[normalize(vLightModelPosition - p.xyz)]]
 local gpbrsimple_vp_lightdir_global = [[vec3(0.0, 2.0, 3.0)]]
 
 local gpbrsimple_vp = [[
-// Positions can be world or local space, since world and normal
-// matrices are identity for world vertex space materials.
-// If world vertex space is selected, you can remove the
-// normal matrix multiplication for optimal performance.
-
-attribute highp vec4 position;
-attribute mediump vec2 texcoord0;
-attribute mediump vec3 normal;
-
-uniform mediump mat4 mtx_worldview;
-uniform mediump mat4 mtx_view;
-uniform mediump mat4 mtx_proj;
-uniform mediump mat4 mtx_normal;
-uniform mediump vec4 light;
-
-//uniform mediump vec4 camPos;
-
-// Original work by Martia A Saunders
-// https://dominium.maksw.com/articles/physically-based-rendering-pbr/pbr-part-one/
-
-// attribute vec3 aVertexTangent;
-
-varying vec3 vvLocalSurfaceNormal ;
-varying vec3 vvLocalSurfaceToLightDirection;
-varying vec3 vvLocalReflectedSurfaceToViewerDirection;
-varying vec3 vvLocalSurfaceToViewerDirection;
-varying vec2 vuvCoord0 ;
-
-void main()
-{
-	vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
-	vec3 vViewModelPosition = normalize(mtx_view * vec4(0.0, 0.0, 1.0, 0.0)).xyz;
-	vvLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
-
-	vec3 vLightModelPosition = vec3(mtx_view * vec4(light.xyz, 1.0));
-	vvLocalSurfaceToLightDirection = MATERIAL_VP_LIGHTDIR;
-
-	vvLocalSurfaceNormal = normalize((mtx_normal * vec4(normal, 0.0)).xyz);
-	//	vvLocalSurfaceNormal = normalize(gl_Normal) ; // use the actual normal from the actual geometry
-
-	vec3 vLocalSurfaceToViewerDirection = normalize(vViewModelPosition - position.xyz) ;
-	vvLocalReflectedSurfaceToViewerDirection = normalize(reflect(vLocalSurfaceToViewerDirection, vvLocalSurfaceNormal)) ;
-
-	vuvCoord0 = texcoord0 ;
-
-	gl_Position = mtx_proj * p;
-}
+    // Positions can be world or local space, since world and normal
+    // matrices are identity for world vertex space materials.
+    // If world vertex space is selected, you can remove the
+    // normal matrix multiplication for optimal performance.
+    
+    attribute highp vec4 position;
+    attribute mediump vec2 texcoord0;
+    attribute mediump vec3 normal;
+    
+    uniform mediump mat4 mtx_worldview;
+    uniform mediump mat4 mtx_view;
+    uniform mediump mat4 mtx_proj;
+    uniform mediump mat4 mtx_normal;
+    uniform mediump vec4 light;
+    
+    //uniform mediump vec4 camPos;
+    
+    // Original work by Martia A Saunders
+    // https://dominium.maksw.com/articles/physically-based-rendering-pbr/pbr-part-one/
+    
+    // attribute vec3 aVertexTangent;
+    
+    varying vec3 vvLocalSurfaceNormal ;
+    varying vec3 vvLocalSurfaceToLightDirection;
+    varying vec3 vvLocalReflectedSurfaceToViewerDirection;
+    varying vec3 vvLocalSurfaceToViewerDirection;
+    varying vec2 vuvCoord0 ;
+    
+    void main()
+    {
+        vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
+        vec3 vViewModelPosition = normalize( mtx_view * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+        vvLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
+    
+        vec3 vLightModelPosition = vec3(mtx_view * vec4(light.xyz, 1.0));
+        vvLocalSurfaceToLightDirection = vLightModelPosition - p.xyz;
+    
+        vvLocalSurfaceNormal = normalize((mtx_normal * vec4(normal, 0.0)).xyz);
+        //	vvLocalSurfaceNormal = normalize(gl_Normal) ; // use the actual normal from the actual geometry
+    
+        vec3 vLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
+        vvLocalReflectedSurfaceToViewerDirection = normalize(reflect(vLocalSurfaceToViewerDirection, vvLocalSurfaceNormal)) ;
+    
+        vuvCoord0 = texcoord0 ;
+        gl_Position = mtx_proj * p;
+    }    
 ]]
 
 ------------------------------------------------------------------------------------------------------------
