@@ -297,13 +297,13 @@ void main()
 
 	float fLightSourceFresnelTerm = computeFresnelTerm(0.5, vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal) ;
 
-	vec4 rgbAlbedo = texture(albedoMap, vuvCoord0);
+	vec4 rgbAlbedo = texture(albedoMap, vuvCoord0) * tint;
 	vec3 rgbEmissive = texture(emissiveMap, vuvCoord0).rgb;
 
 	vec3 rgbFragment = rgbAlbedo.rgb * (1.0 - fMetalness);
 
 	//	vec3 rgbSourceReflection = textureCubeLod(cubeMap, vNormalisedLocalReflectedSurfaceToViewerDirection, 9.0 * fRoughness).rgb ;
-	vec3 rgbSourceReflection = vec3(0.5);
+	vec3 rgbSourceReflection = vec3(params.y);
 	vec3 rgbReflection = rgbSourceReflection ;
 	rgbReflection *= rgbAlbedo.rgb * fMetalness ;
 	rgbReflection *= fLightSourceFresnelTerm ;
@@ -312,13 +312,13 @@ void main()
 	vec3 rgbSpecular = vec3(0.0) ;
 	if (fLightIntensity > 0.0)
 	{
-		rgbSpecular = vec3(1.0) ;
+		rgbSpecular = vec3(params.z) ;
 		rgbSpecular *= microFacetContribution * fLightSourceFresnelTerm ;
 		rgbSpecular = min(vec3(1.0), rgbSpecular) ; // conservation of energy
 	}
 
 	float ambientLevel = fLightIntensity * (1.0 - params.x) + params.x;
-	rgbFragment += rgbSpecular; // * tint.xyz;
+	rgbFragment += rgbSpecular;
 	rgbFragment *= ambientLevel;
 	rgbFragment += rgbReflection ;
 	rgbFragment += rgbEmissive ;
@@ -406,10 +406,7 @@ fragment_constants {
   name: "params"
   type: CONSTANT_TYPE_USER
   value {
-    x: 0.5
-    y: 0.0
-    z: 0.0
-    w: 0.0
+MATERIAL_PARAMS
   }
 }
 samplers {
@@ -835,6 +832,10 @@ local function setupmaterials( project_path )
     local lv = gendata.config.sync_light_vec
     local light_vector = '\tx: '..lv.x..'\n\ty: '..lv.y..'\n\tz: '..lv.z..'\n\tw: 1.0'
     matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
+
+    local mp = gendata.config.sync_mat_params
+    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 1.0'
+    matstr = matstr:gsub("MATERIAL_PARAMS", mat_params) 
 
     makefile( material_path.."pbr-simple.material", matstr)
 

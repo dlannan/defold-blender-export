@@ -80,8 +80,8 @@ def update_lightposition(self, context):
     mytool = scene.sync_tool
     if(mytool.sync_light_obj != None):
         mytool.sync_light_vector[0] = mytool.sync_light_obj.location.x
-        mytool.sync_light_vector[1] = mytool.sync_light_obj.location.y
-        mytool.sync_light_vector[2] = mytool.sync_light_obj.location.z
+        mytool.sync_light_vector[1] = mytool.sync_light_obj.location.z
+        mytool.sync_light_vector[2] = -mytool.sync_light_obj.location.y
 
 def update_lightglobal(self, context):
     scene = context.scene
@@ -182,6 +182,12 @@ class SyncProperties(PropertyGroup):
                 ('PBR Simple', "PBR Material Shader", ""),
                ]
         )
+
+    sync_mat_params: FloatVectorProperty(
+        name = "Shader Params",
+        description="Material Shader parameters.",
+        default=(0.1, 0.2, 0.5), 
+    ) 
         
     sync_mode: EnumProperty(
         name="Dropdown:",
@@ -210,6 +216,7 @@ class WM_OT_SyncTool(Operator):
          # Convert \ in path to \\
         projpath    = projpath.replace('\\','\\\\')
 
+        prm = mytool.sync_mat_params  
         lv = mytool.sync_light_vector  
         animname = ""
         if (mytool.stream_anim_name != None):
@@ -225,6 +232,7 @@ class WM_OT_SyncTool(Operator):
             f.write('   sync_shader      = "' + str(mytool.sync_shader) + '",\n')
             f.write('   sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
             f.write('   sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
+            f.write('   sync_mat_params   = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
             f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
@@ -285,6 +293,9 @@ class OBJECT_PT_CustomPanel(Panel):
         row.prop(mytool, "sync_mode", text="")
         row = box.row() 
         row.prop(mytool, "sync_shader", text="") 
+        row = box.row()
+        row.prop(mytool, "sync_mat_params")
+
         layout.separator()
 
         box = layout.box()
