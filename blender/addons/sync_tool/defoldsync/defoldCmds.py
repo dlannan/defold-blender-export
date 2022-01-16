@@ -160,7 +160,7 @@ def getImageNode( colors, index, matname, name, texture_path ):
         return imgnode   
 
   # if the node is a color vector. Make a tiny color png in temp
-  print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
+  # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
   if((color_node.type == "RGBA" or color_node.type == "RGB") and name == "base_color" ):
 
     alpha     = colors["Alpha"].default_value
@@ -171,8 +171,6 @@ def getImageNode( colors, index, matname, name, texture_path ):
       link = color_node.links[0]
       link_node = link.from_node
       col = link_node.outputs[0].default_value
-      print(matname + " " + name + "  " + str(col[0]) + "," + str(col[1]) + "," + str(col[2]))
-      gencolor  = (col[0], col[1], col[2], alpha)
 
     gencolor  = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), alpha)
 
@@ -211,7 +209,7 @@ def addTexture( matname, textures, name, color_node, index, texture_path ):
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
-def sceneMeshes(context, fhandle, temppath, texture_path):
+def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
   fhandle.write('{ \n')
   UVObj = type('UVObj', (object,), {})
@@ -251,20 +249,21 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
           thisobj["normals"]  = normals
 
           textures = {}
-          mat = obj.material_slots[0].material        
-          if mat and mat.node_tree:
-            # Get the nodes in the node tree
-            nodes = mat.node_tree.nodes
-            # Get a principled node
-            bsdf = nodes.get("Principled BSDF") 
-            # Get the slot for 'base color'
-            if(bsdf):
-              addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path )
-              addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path )
-              addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path )
-              addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path )
-              addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path )
-            
+          if( len(obj.material_slots) > 0 ):
+            mat = obj.material_slots[0].material        
+            if mat and mat.node_tree:
+              # Get the nodes in the node tree
+              nodes = mat.node_tree.nodes
+              # Get a principled node
+              bsdf = nodes.get("Principled BSDF") 
+              # Get the slot for 'base color'
+              if(bsdf):
+                addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path )
+                addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path )
+                addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path )
+                addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path )
+                addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path )
+              
           if(len(textures) > 0):
             thisobj["textures"] = textures
 
@@ -278,22 +277,21 @@ def sceneMeshes(context, fhandle, temppath, texture_path):
 
             triobj = {}
             thistri = []
-            # normal = face.normal
-            # triobj["normal"] = {
-            #   "x": normal.x, 
-            #   "y": normal.y,
-            #   "z": normal.z
-            # }
+            normal = face.normal
 
-            for i in range(0, 3):
-              idx = verts_indices[i]
+            for ti in range(0, 3):
+              idx = verts_indices[ti]
+              # override normals if using facenormals
+              if(config.sync_mat_facenormals == True):
+                normals[idx] = (normal.x, normal.y, normal.z,)
+                #print(idx, normal.x, normal.y, normal.z)
 
               uv = UVObj()
               uv.x = 0.0
               uv.y = 0.0
 
               if(uv_layer):
-                uv = uv_layer[face.loops[i]].uv
+                uv = uv_layer[face.loops[ti]].uv
 
               thistri.append( { 
                 "vertex": idx,
@@ -437,7 +435,7 @@ def getData( context, clientcmds, dir, config):
       # Mesh data 
       if(cmd == 'meshes'):
         f.write('MESHES = ')
-        sceneMeshes(context, f, temppath + '/', texture_path)
+        sceneMeshes(context, f, temppath + '/', texture_path, config)
         f.write(', \n')
     
       # All bone animations in the scene
