@@ -651,6 +651,7 @@ local function makebufferfile(name, filepath, mesh )
 
     local verts = mesh.vertices 
     local normals = mesh.normals
+
     local vertdata = {}
     local uvdata = {}
     local normdata = {}
@@ -663,10 +664,10 @@ local function makebufferfile(name, filepath, mesh )
             table.insert(uvdata, t.uv.x)
             table.insert(uvdata, t.uv.y)
             if(normals) then 
-                local norm = normals[t.vertex + 1]
+                local norm = normals[t.normal]
                 table.insert(normdata, norm.x)
+                table.insert(normdata, -norm.z)
                 table.insert(normdata, norm.y)
-                table.insert(normdata, norm.z)
             end
         end
     end

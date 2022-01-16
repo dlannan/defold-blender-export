@@ -241,12 +241,15 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           verts_local = [v for v in obj.data.vertices.values()]
           # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
 
-          for v in verts_local:
-            verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
-            normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
+          if(config.sync_mat_facenormals == True):
+            for v in verts_local:
+              verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+          else:
+            for v in verts_local:
+              verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+              normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
 
           thisobj["vertices"] = verts
-          thisobj["normals"]  = normals
 
           textures = {}
           if( len(obj.material_slots) > 0 ):
@@ -271,19 +274,21 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           if(me.uv_layers.active != None):
             uv_layer = me.uv_layers.active.data
           tris = []
+          nidx = 0
 
           for i, face in enumerate(me.loop_triangles):
             verts_indices = face.vertices[:]
 
             triobj = {}
             thistri = []
-            normal = face.normal
+            facenormal = face.normal
 
             for ti in range(0, 3):
               idx = verts_indices[ti]
               # override normals if using facenormals
               if(config.sync_mat_facenormals == True):
-                normals[idx] = (normal.x, normal.y, normal.z,)
+                normals.append( { "x": facenormal.x, "y": facenormal.y, "z": facenormal.z } )
+                nidx = nidx + 1
                 #print(idx, normal.x, normal.y, normal.z)
 
               uv = UVObj()
@@ -295,11 +300,14 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
               thistri.append( { 
                 "vertex": idx,
+                "normal": nidx,
                 "uv": { "x": uv.x, "y": uv.y }
               } )
             triobj["tri"] = thistri
             tris.append(triobj)
+
           thisobj["tris"] = tris
+          thisobj["normals"]  = normals
         
         meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
         with open( meshfile, 'w') as f:
