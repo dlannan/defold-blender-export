@@ -135,6 +135,15 @@ def sceneObjects(context, f, config):
         "z": scl.z
       }
 
+      # Store custom properties too 
+      if(len(obj.keys()) > 0):
+        props = {}
+        for K in obj.keys():
+          if K not in '_RNA_UI' and K != 'cycles':
+            props[str(K)] = str(obj[K])
+            print( K , "-" , obj[K] )
+        thisobj["props"] = props
+
       if( len(obj.vertex_groups) > 0 and config.stream_anim == True ):
         thisobj["animated"] = True
 
@@ -307,6 +316,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
             tris.append(triobj)
 
           thisobj["tris"] = tris
+          #normals_world = [obj.matrix_world @ n_local for n_local in normals]
           thisobj["normals"]  = normals
         
         meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
