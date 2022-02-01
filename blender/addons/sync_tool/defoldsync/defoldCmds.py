@@ -162,10 +162,11 @@ def sceneObjects(context, f, config):
       if(len(obj.keys()) > 0):
         props = {}
         for K in obj.keys():
-          if K not in '_RNA_UI' and K != 'cycles':
-            props[str(K)] = str(obj[K])
-            print( K , "-" , obj[K] )
-        thisobj["props"] = props
+            if(isinstance(obj[K], str)):
+              props[str(K)] = str(obj[K])
+              print( K , "-" , obj[K] )
+        if(len(props) > 0):
+          thisobj["props"] = props
 
       if( len(obj.vertex_groups) > 0 and config.stream_anim == True ):
         thisobj["animated"] = True
