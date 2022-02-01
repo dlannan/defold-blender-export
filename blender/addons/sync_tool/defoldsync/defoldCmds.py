@@ -41,6 +41,19 @@ def dump_lua(data):
     logging.error(f"Unknown type {type(data)}")
 
 # ------------------------------------------------------------------------
+# update progress bar 
+
+def update_progress( context, value, text ):
+
+    scene = context.scene
+    mytool = scene.sync_tool
+    #update progess bar
+    mytool.sync_progress = value
+    mytool.sync_progress_label = text
+
+    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
+
+# ------------------------------------------------------------------------
 # Get scene information - objects, names and parent names
 def sceneInfo(context, f):
     dataobjs = {}
@@ -80,15 +93,25 @@ def sceneObjects(context, f, config):
   f.write('{ \n')
 
   scene = context.scene
+    
+  prog_text = "Exporting objects..."
+  objcount = 0
+  for coll in bpy.data.collections:
+    objcount += len(coll.objects)
+  objcurr = 0
+
   for coll in bpy.data.collections:
 
     # Add an object for the collection
     #   - Probably should make this a collection in Defold?
 
     f.write('["COLL_' + str(coll.name) + '"] = { \n')
-    
+
     for obj in coll.objects:
     
+      update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
+      objcurr += 1
+
       thisobj = {
         "name": str(obj.name),
         "type": str(obj.type)
@@ -222,10 +245,17 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
   fhandle.write('{ \n')
   UVObj = type('UVObj', (object,), {})
-
-  scene = context.scene
-  for obj in scene.objects:
   
+  scene = context.scene
+  prog_text = "Exporting meshes..."
+  objcount = len(scene.objects)
+  objcurr = 0
+
+  for obj in scene.objects:
+
+      update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
+      objcurr += 1
+
       # Only collect meshes in the scene
       if(obj.type == "MESH"):
 

@@ -35,6 +35,7 @@ bl_info = {
 
 
 import bpy, subprocess, os, sys, socket
+import platform
 
 from bpy.props import (StringProperty,
                        BoolProperty,
@@ -137,20 +138,20 @@ class SyncProperties(PropertyGroup):
         name = "Light Position/Direction",
         description="Direction or Position of the Scene Light.",
         default=(0.0, -1.0, 0.0), 
-    ) 
+        ) 
 
     sync_light_obj: PointerProperty(
         name="Select Light",
         description="Select a Light for the Scene",
         type=bpy.types.Object,
         update=update_lightposition,
-    ) 
+        ) 
 
     root_position: FloatVectorProperty(
         name = "Scene Position",
         description="Position of the scene in Defol",
         default=(0.0, 0.0, 0.0), 
-    ) 
+        ) 
     
     sync_host: StringProperty(
         name="Host",
@@ -187,7 +188,7 @@ class SyncProperties(PropertyGroup):
         name = "Shader Params",
         description="Material Shader parameters.",
         default=(0.1, 0.2, 0.5), 
-    ) 
+        ) 
 
     sync_mat_facenormals: BoolProperty(
         name="Face Normals",
@@ -202,6 +203,17 @@ class SyncProperties(PropertyGroup):
                 ('Debug', "Debug", ""),
                ]
         )
+
+    sync_progress: FloatProperty( 
+        name="Progress", 
+        subtype="PERCENTAGE",
+        soft_min=0, 
+        soft_max=100, 
+        precision=0,
+        )
+
+    sync_progress_label: StringProperty()
+
 
 # ------------------------------------------------------------------------
 #    Operators
@@ -257,7 +269,20 @@ class WM_OT_SyncTool(Operator):
         defoldCmds.getData(context, commands, dir, mytool)
 
         # Data is written for each stream. 
-        subprocess.check_output(['luajit', dirpath, os.path.abspath(dir)])
+        platform_luajits = {
+            "Linux": "luajit/linux/luajit",
+            "Windows": "luajit/win/luajit.exe",
+            "Darwin": "luajit/darwin/luajit"
+        }
+        this_platform = platform.system()
+
+        prog_text = "Generating Defold data..."
+        defoldCmds.update_progress(context, 10, prog_text)
+        luajit_cmd = os.path.abspath(dir + '/defoldsync/' + platform_luajits[this_platform] )
+
+        subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
+        prog_text = "Process Complete."
+        defoldCmds.update_progress(context, 100, prog_text)
 
         # print the values to the console
         if( str(mytool.sync_mode) == 'Debug' ):
@@ -343,6 +368,10 @@ class OBJECT_PT_CustomPanel(Panel):
 
         layout.operator("wm.sync_scene")
         layout.separator()
+
+#        if mytool.progress: 
+        row = layout.row()
+        row.prop(mytool, "sync_progress", text=mytool.sync_progress_label)
 
 # ------------------------------------------------------------------------
 #    Registration
