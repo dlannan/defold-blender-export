@@ -27,6 +27,8 @@ Sync can be unticked at any time and the data will stop pushing to the collectio
 
 Once this is setup you can add/edit the blender scene as you need and any Sync's you do, will update the meshes, textures and object positions in Defold.
 
+Todo: Add this module as a downloadable on the online community modules. Once the tool has stabilized I will do this.
+
 ## Example
 I decided to add some improvements for large scene support. A sample Blender scene was used from here:
 
