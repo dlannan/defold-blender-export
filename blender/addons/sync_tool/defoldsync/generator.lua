@@ -86,10 +86,22 @@ MESH_NORMAL_DATA
     "type": "float32",
     "count": 2,
     "data": [
-MESH_UV_DATA
+MESH_UV_DATA1
     ]
 }
+MESH_UV_TEXCOORD1
 ]
+]]
+
+local buffertexcoord1 = [[
+,{
+    "name": "texcoord1",
+    "type": "float32",
+    "count": 2,
+    "data": [
+MESH_UV_DATA2
+    ]
+}
 ]]
 
 ------------------------------------------------------------------------------------------------------------
@@ -697,6 +709,7 @@ local function makebufferfile(name, filepath, mesh )
 
     local vertdata = {}
     local uvdata = {}
+    local uvdata2 = {}
     local normdata = {}
     for k,v in pairs(mesh.tris) do 
         for i,t in pairs(v.tri) do 
@@ -706,21 +719,32 @@ local function makebufferfile(name, filepath, mesh )
             table.insert(vertdata, vert.z)
             table.insert(uvdata, t.uv.x)
             table.insert(uvdata, t.uv.y)
+            if(t.uv2) then 
+                table.insert(uvdata2, t.uv2.x)
+                table.insert(uvdata2, t.uv2.y)    
+            end 
             if(normals) then 
-                local norm = normals[t.normal]
+                local norm = normals[t.normal + 1]
                 if(norm) then 
                     table.insert(normdata, norm.x)
-                    table.insert(normdata, -norm.z)
+                    table.insert(normdata, -norm.z)  -- Hrm. Yuk.
                     table.insert(normdata, norm.y)
                 end
             end
         end
     end
-    
+
     bufferdata = string.gsub(bufferdata, "MESH_VERTEX_DATA", table.concat(vertdata, ","))
     bufferdata = string.gsub(bufferdata, "MESH_NORMAL_DATA", table.concat(normdata, ","))
-    bufferdata = string.gsub(bufferdata, "MESH_UV_DATA", table.concat(uvdata, ","))
-    
+    bufferdata = string.gsub(bufferdata, "MESH_UV_DATA1", table.concat(uvdata, ","))
+
+    -- Add uv2 coords to buffer - for Defold use.
+    local texcoord1 = ""
+    if(gendata.config.sync_mat_uv2 == true) then 
+        texcoord1 = string.gsub(buffertexcoord1, "MESH_UV_DATA2", table.concat(uvdata2, ","))
+    end
+    bufferdata = string.gsub(bufferdata, "MESH_UV_TEXCOORD1", texcoord1)
+
     makefile( bufferfilepath, bufferdata )
     return bufferfilepath
 end
