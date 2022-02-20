@@ -69,7 +69,6 @@ if not dir in sys.path:
 
 from defoldsync import defoldCmds
 
-owner = object()
 data_changed = False
 
 # ------------------------------------------------------------------------
@@ -195,6 +194,12 @@ class SyncProperties(PropertyGroup):
         description="Use face normals instead of vertex normals",
         default = False
         )
+
+    sync_mat_uv2: BoolProperty(
+        name="Second UVs",
+        description="Export second set of UV's if found in the mesh.",
+        default = False
+        )
         
     sync_mode: EnumProperty(
         name="Dropdown:",
@@ -252,6 +257,7 @@ class WM_OT_SyncTool(Operator):
             f.write('   sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
             f.write('   sync_mat_params   = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
             f.write('   sync_mat_facenormals = ' + str(mytool.sync_mat_facenormals).lower() + ',\n')
+            f.write('   sync_mat_uv2     = ' + str(mytool.sync_mat_uv2).lower() + ',\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
             f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
@@ -329,6 +335,8 @@ class OBJECT_PT_CustomPanel(Panel):
         row.prop(mytool, "sync_mat_params")
         row = box.row()
         row.prop(mytool, "sync_mat_facenormals")
+        row = box.row()
+        row.prop(mytool, "sync_mat_uv2")
 
         layout.separator()
 

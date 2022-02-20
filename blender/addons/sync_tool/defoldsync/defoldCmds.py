@@ -291,6 +291,14 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
           thisobj["vertices"] = verts
 
+          vert_uv_map = {}
+          for i, face in enumerate(me.loop_triangles):
+              verts_indices = face.vertices[:]
+              for ti in range(0, 3):
+                  idx = verts_indices[ti]
+                  uv = me.uv_layers.active.data[face.loops[ti]].uv
+                  vert_uv_map.setdefault(idx, []).append((face.loops[ti], uv))
+
           textures = {}
           if( len(obj.material_slots) > 0 ):
             mat = obj.material_slots[0].material        
@@ -313,6 +321,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           uv_layer = None
           if(me.uv_layers.active != None):
             uv_layer = me.uv_layers.active.data
+
           tris = []
           nidx = 0
 
@@ -325,24 +334,26 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
             for ti in range(0, 3):
               idx = verts_indices[ti]
+
               # override normals if using facenormals
               if(config.sync_mat_facenormals == True):
                 normals.append( { "x": facenormal.x, "y": facenormal.y, "z": facenormal.z } )
                 nidx = nidx + 1
                 #print(idx, normal.x, normal.y, normal.z)
 
-              uv = UVObj()
-              uv.x = 0.0
-              uv.y = 0.0
-
               if(uv_layer):
                 uv = uv_layer[face.loops[ti]].uv
-
-              thistri.append( { 
+              
+              tridata = { 
                 "vertex": idx,
                 "normal": nidx,
                 "uv": { "x": uv.x, "y": uv.y }
-              } )
+              }
+
+              # if( len(uvs) > 1 and config.sync_mat_uv2 == True):
+              #   tridata["uv2"] = { "x": uvs[1].x, "y": uvs[1].y }
+              thistri.append( tridata )
+
             triobj["tri"] = thistri
             tris.append(triobj)
 
