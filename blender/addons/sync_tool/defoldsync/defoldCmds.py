@@ -164,7 +164,7 @@ def sceneObjects(context, f, config):
         for K in obj.keys():
             if(isinstance(obj[K], str)):
               props[str(K)] = str(obj[K])
-              print( K , "-" , obj[K] )
+              #print( K , "-" , obj[K] )
         if(len(props) > 0):
           thisobj["props"] = props
 
@@ -224,15 +224,21 @@ def getImageNode( colors, index, matname, name, texture_path ):
 
 # ------------------------------------------------------------------------
 
-def addTexture( matname, textures, name, color_node, index, texture_path ):
+def addTexture( matname, textures, name, color_node, index, texture_path, context ):
 
   imgnode = getImageNode( color_node, index, matname, name, texture_path )
 
   if imgnode != None:
     img = imgnode.filepath_from_user()
+    splitname = os.path.splitext(os.path.basename(img))
+
+    if splitname[1] != '.png' or splitname[1] != '.PNG':
+      image = bpy.data.images.load(img)
+      img = texture_path + "/" + splitname[0] + ".png"
+      imgnode.file_format='PNG' 
+      image.save_render(img)
 
     if os.path.exists(img) == False:
-
       img = texture_path + "/" + os.path.basename(img)
       imgnode.filepath = img
       imgnode.save()
@@ -309,11 +315,11 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
               bsdf = nodes.get("Principled BSDF") 
               # Get the slot for 'base color'
               if(bsdf):
-                addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path )
-                addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path )
-                addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path )
-                addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path )
-                addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path )
+                addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
+                addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
+                addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
+                addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path, context )
+                addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
               
           if(len(textures) > 0):
             thisobj["textures"] = textures
@@ -334,6 +340,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
             for ti in range(0, 3):
               idx = verts_indices[ti]
+              nidx = idx
 
               # override normals if using facenormals
               if(config.sync_mat_facenormals == True):
@@ -398,6 +405,9 @@ def sceneAnimations(context, f, temppath, config):
             include_armatures=True,
             export_global_forward_selection='Z',
             export_global_up_selection='-Y',
+            export_animation_type_selection='sample',
+            export_animation_transformation_type_selection='matrix',
+            keep_keyframes=True,
             apply_global_orientation=True,
             selected=True,
             deform_bones_only=True,
@@ -412,7 +422,7 @@ def sceneAnimations(context, f, temppath, config):
     # Make sure we have vertex objects in this obj
     if( armobj != None ):
       for a in bpy.data.actions:
-        print(a.name)
+        #print(a.name)
 
         f.write( "['" + a.name + "'] = " + '\"' + animfile + '\",\n')
 
