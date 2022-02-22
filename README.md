@@ -6,6 +6,8 @@ Download the release.zip and install the addon from Blender preferences panel as
 
 https://docs.blender.org/manual/en/latest/editors/preferences/addons.html
 
+![alt text](https://raw.githubusercontent.com/dlannan/defold-blender-export/main/images/sync-tool-2022-02-22_17-54.png)
+
 Once installed you should see where it has been installed under the property: File.
 
 Go to this path, the open the folder ```defoldync/luajit/<your platform>/```
