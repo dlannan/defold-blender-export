@@ -67,7 +67,7 @@ local vp = [[
       vec3 vLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
       vvLocalReflectedSurfaceToViewerDirection = normalize(reflect(vLocalSurfaceToViewerDirection, vvLocalSurfaceNormal)) ;
 
-      vec3 e = p;
+      vec3 e = p.xyz;
       vec3 n = vvLocalSurfaceNormal;
 
       vec3 r = reflect( e, n );
