@@ -20,7 +20,15 @@ To do this, usually right click on the file and give "execution" permissions. Se
 Thats it. If you select the tick box to enable it, you should see a new panel in the "View tabs list" on the right of the main layout screen.
 
 You must be in Object Mode to view the panel.   
-  
+
+## Hardware Notes
+Some issues have been experienced when using the PBR Material. At the moment this material is _very_ inefficient and needs alot of GFPU resources to work well. If you are running on a laptop with minimal GPU capabilities, you can export to Defold default model material and the model should be visible in Defold. With limited GPU's complex 3D scenes may not be visible with the Simple PBR material.
+
+Sync Time can be longer when:
+- There are many textures to convert from non-PNG texture types (just convert them before syncing to save time)
+- Large geometries and hierarchies can take some time to sync - more data, more time.
+- When Defold imports new files that have large images or meshes, this can take some time - because they are all text files. There are some ways around this, but this is not available in this version of Sync Tool. 
+
 ## Example
 I decided to add some improvements for large scene support. A sample Blender scene was used from here:
 
