@@ -271,12 +271,12 @@ def addTexture( matname, textures, name, color_node, index, texture_path, contex
 
     if splitname[1] != '.png' or splitname[1] != '.PNG':
       image = bpy.data.images.load(img)
-      img = texture_path + "/" + splitname[0] + ".png"
+      img = os.path.join(texture_path , splitname[0] + ".png")
       imgnode.file_format='PNG' 
       image.save_render(img)
 
     if os.path.exists(img) == False:
-      img = texture_path + "/" + os.path.basename(img)
+      img = os.path.join(texture_path , os.path.basename(img))
       imgnode.filepath = img
       imgnode.save()
     
