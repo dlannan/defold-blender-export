@@ -80,7 +80,12 @@ if "bpy" in locals():
 
 # ------------------------------------------------------------------------
 
-dir = os.path.dirname(bpy.data.filepath)
+import addon_utils
+for mod in addon_utils.modules():
+    if(mod.bl_info.get("name") == "Sync Tool"):
+        dir = os.path.dirname(mod.__file__)
+
+# dir = os.path.dirname(bpy.data.filepath)
 if not dir in sys.path:
     sys.path.append(dir )
 

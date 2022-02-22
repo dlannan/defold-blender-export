@@ -20,6 +20,21 @@
 # SOFTWARE.
 # ------------------------------------------------------------------------
 
+bl_info = {
+    "name": "Sync Tool",
+    "description": "Sync a Blender Scene directly to Defold resources",
+    "author": "dlannan",
+    "version": (0, 0, 1),
+    "blender": (2, 80, 0),
+    "location": "3D View > Defold",
+    "warning": "", # used for warning icon and text in addons panel
+    "wiki_url": "",
+    "tracker_url": "",
+    "category": "Development"
+}
+
+modulesNames = ['DefoldSyncUI']
+
 import bpy, time, queue, re, os, json, shutil
 
 # ------------------------------------------------------------------------
