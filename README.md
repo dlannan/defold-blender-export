@@ -8,7 +8,8 @@ https://docs.blender.org/manual/en/latest/editors/preferences/addons.html
 
 Once installed you should see where it has been installed under the property: File.
 
-Go to this path, the open the folder ```defoldync/luajit/<you platform>/```
+Go to this path, the open the folder ```defoldync/luajit/<your platform>/```
+- your platform would be one of linux, windows or OSX (darwin)
 
 You will see a file called luajit - this is a very small lua interpreter. It needs to have permissions to generate files for the Defold projects.
 
