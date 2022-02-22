@@ -2,33 +2,17 @@
 A Blender export system for the Defold game engine.
 
 ## Setup Notes
-There are no exhaustive documents for this tool yet. Its just not complete, so everything is very much 'in flux'.
+Download the release.zip and install the addon from Blender preferences panel as described here:
+https://docs.blender.org/manual/en/latest/editors/preferences/addons.html
+Once installed you should see where it has been installed under the property: File.
+Go to this path, the open the folder defoldync/luajit/<you platform>/
+You will see a file called luajit - this is a very small lua interpreter. It needs to have permissions to generate files for the Defold projects.
+To do this, usually right click on the file and give "execution" permissions. See appropriate OS docs to do this if you are having problems.
+Thats it. If you select the tick box to enable it, you should see a new panel in the "View tabs list" on the right of the main layout screen.
+You must be in Object Mode to view the panel. 
 
-Note: The Sync Tool is now a Blender Only addon. This makes building Defold resource collections much simpler. 
-
-To use the tool follow the guide below.
-
-1. Copy the blender/addons/sync_tool folder to the blender addons folder. See blender docs for this. 
-2. Or.. you can copy the blender/addons/sync_tool/* files into the folder where your blender source file is, and the scripts should work from there.
-3. Open the blender file you want to work in (or open the test.blend to see an example already setup)
-4. Open the text editor in blender and loadin in the script "defoldSynUI.py"
-5. Run this file. You should see "bpy.ops.text.run_script()" in the Info Window in blender.
-6. Open the 3D layout window in blender and ensure you are in "Object Mode". 
-7. Examine the Tools menu on the right side of the Layout 3D View (see below)
-![alt text](https://raw.githubusercontent.com/dlannan/defold-blender-export/main/images/sync-tool-2021-12-29_15-22.png)
-8. Enter the appropriate properties for Scene Name and Directory (project directory to save into).
-9. Select "Sync Build" for the scene mode and press the "Sync Scene" button when ready.
-
-A folder will be created in the target project directory with all the resources needed to load the scene into Defold. 
-
-At a minimum you should see a collection file and some gameobjects (in the gameobjects folder). You can open this project and open the collection. 
-While the "Sync" tickbox is enabled, data will be written to the collection file - do not save new objects into it while Sync is on - they will be overwritten. 
-Sync can be unticked at any time and the data will stop pushing to the collection.
-
-Once this is setup you can add/edit the blender scene as you need and any Sync's you do, will update the meshes, textures and object positions in Defold.
-
-Todo: Add this module as a downloadable on the online community modules. Once the tool has stabilized I will do this.
-
+  
+  
 ## Example
 I decided to add some improvements for large scene support. A sample Blender scene was used from here:
 
