@@ -3,15 +3,20 @@ A Blender export system for the Defold game engine.
 
 ## Setup Notes
 Download the release.zip and install the addon from Blender preferences panel as described here:
-https://docs.blender.org/manual/en/latest/editors/preferences/addons.html
-Once installed you should see where it has been installed under the property: File.
-Go to this path, the open the folder defoldync/luajit/<you platform>/
-You will see a file called luajit - this is a very small lua interpreter. It needs to have permissions to generate files for the Defold projects.
-To do this, usually right click on the file and give "execution" permissions. See appropriate OS docs to do this if you are having problems.
-Thats it. If you select the tick box to enable it, you should see a new panel in the "View tabs list" on the right of the main layout screen.
-You must be in Object Mode to view the panel. 
 
-  
+https://docs.blender.org/manual/en/latest/editors/preferences/addons.html
+
+Once installed you should see where it has been installed under the property: File.
+
+Go to this path, the open the folder ```defoldync/luajit/<you platform>/```
+
+You will see a file called luajit - this is a very small lua interpreter. It needs to have permissions to generate files for the Defold projects.
+
+To do this, usually right click on the file and give "execution" permissions. See appropriate OS docs to do this if you are having problems.
+
+Thats it. If you select the tick box to enable it, you should see a new panel in the "View tabs list" on the right of the main layout screen.
+
+You must be in Object Mode to view the panel.   
   
 ## Example
 I decided to add some improvements for large scene support. A sample Blender scene was used from here:
