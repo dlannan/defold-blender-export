@@ -339,6 +339,8 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
               verts_indices = face.vertices[:]
               for ti in range(0, 3):
                   idx = verts_indices[ti]
+                  if not me.uv_layers.active:
+                    me.uv_layers.new()
                   uv = me.uv_layers.active.data[face.loops[ti]].uv
                   vert_uv_map.setdefault(idx, []).append((face.loops[ti], uv))
 
