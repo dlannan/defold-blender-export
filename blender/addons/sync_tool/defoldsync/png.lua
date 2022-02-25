@@ -3,8 +3,8 @@ local ffi = require("ffi")
 
 local libs = ffi_luajit_libs or {
    OSX     = { x86 = "libpng.dylib", x64 = "libpng.dylib" },
-   Windows = { x86 = "libpng.dll", x64 = "libpng.dll" },
-   Linux   = { x86 = "libpng", x64 = "libpng.so", arm = "libpng.so" },
+   Windows = { x64 = "libpng16-16.dll" },
+   Linux   = { x64 = "libpng.so", arm = "libpng.so" },
    BSD     = { x86 = "libpng.so",  x64 = "libpng.so" },
    POSIX   = { x86 = "libpng.so",  x64 = "libpng.so" },
    Other   = { x86 = "libpng.so",  x64 = "libpng.so" },
@@ -1411,4 +1411,6 @@ return
 
    -- test  = test,
 }
+
+
 
