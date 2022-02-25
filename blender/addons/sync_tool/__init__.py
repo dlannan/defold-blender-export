@@ -213,12 +213,6 @@ class SyncProperties(PropertyGroup):
         default=(0.1, 0.2, 0.5), 
         ) 
 
-    sync_mat_reflection: FloatProperty(
-        name = "Reflection Level",
-        description="Material Shader reflection level parameter.",
-        default=0.5, 
-        ) 
-
     sync_mat_facenormals: BoolProperty(
         name="Face Normals",
         description="Use face normals instead of vertex normals",
@@ -286,7 +280,6 @@ class WM_OT_SyncTool(Operator):
             f.write('   sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
             f.write('   sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
             f.write('   sync_mat_params   = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
-            f.write('   sync_mat_reflection = ' + str(mytool.sync_mat_reflection) + ',\n')
             f.write('   sync_mat_facenormals = ' + str(mytool.sync_mat_facenormals).lower() + ',\n')
             f.write('   sync_mat_uv2     = ' + str(mytool.sync_mat_uv2).lower() + ',\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
@@ -364,8 +357,6 @@ class OBJECT_PT_CustomPanel(Panel):
         row.prop(mytool, "sync_shader", text="") 
         row = box.row()
         row.prop(mytool, "sync_mat_params")
-        row = box.row()
-        row.prop(mytool, "sync_mat_reflection")
         row = box.row()
         row.prop(mytool, "sync_mat_facenormals")
         row = box.row()

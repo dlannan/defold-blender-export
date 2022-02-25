@@ -87,8 +87,7 @@ local fp = [[
   
   // uniform samplerCube cubeMap ;
   uniform sampler2D emissiveMap ;
-  uniform sampler2D metallicMap;
-  uniform sampler2D roughnessMap;
+  uniform sampler2D aoMetallicRoughnesMap;
   uniform sampler2D albedoMap ;
   uniform sampler2D normalMap ;
   uniform sampler2D reflectionMap;
@@ -154,8 +153,8 @@ local fp = [[
   
     float fLightIntensity = max(dot(vNormalisedLocalSurfaceToLightDirection, vNormalisedLocalSurfaceNormal), 0.0) ;
   
-    float fMetalness = texture(metallicMap, vuvCoord0).r ;
-    float fRoughness = max(0.001, texture(roughnessMap, vuvCoord0).r ) ;
+    float fMetalness = texture(aoMetallicRoughnesMap, vuvCoord0).b ;
+    float fRoughness = max(0.001, texture(aoMetallicRoughnesMap, vuvCoord0).g ) ;
   
     float distributionMicroFacet = computeGGXDistribution(vNormalisedLocalSurfaceNormal, vNormalisedLocalSurfaceToLightDirection, fRoughness) ;
     float geometryMicroFacet = computeGGXPartialGeometryTerm(vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal, vLocalLightViewHalfVector, fRoughness) ;
@@ -187,6 +186,7 @@ local fp = [[
     rgbFragment *= ambientLevel;
     rgbFragment += rgbReflection ;
     rgbFragment += rgbEmissive ;
+    rgbFragment *= texture(aoMetallicRoughnesMap, vuvCoord0).r
   
     gl_FragColor = vec4(rgbFragment, rgbAlbedo.a);
   }  
@@ -282,19 +282,12 @@ samplers {
   filter_mag: FILTER_MODE_MAG_NEAREST
 }
 samplers {
-  name: "metallicMap"
+  name: "aoMetallicRoughnessMap"
   wrap_u: WRAP_MODE_REPEAT
   wrap_v: WRAP_MODE_REPEAT
   filter_min: FILTER_MODE_MIN_NEAREST
   filter_mag: FILTER_MODE_MAG_NEAREST
 }
-samplers {
-    name: "roughnessMap"
-    wrap_u: WRAP_MODE_REPEAT
-    wrap_v: WRAP_MODE_REPEAT
-    filter_min: FILTER_MODE_MIN_NEAREST
-    filter_mag: FILTER_MODE_MAG_NEAREST
-  }
 samplers {
   name: "emissiveMap"
   wrap_u: WRAP_MODE_REPEAT

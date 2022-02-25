@@ -217,17 +217,40 @@ def sceneObjects(context, f, config):
 
 # ------------------------------------------------------------------------
 
+def makeBlockPNG(filename, col):
+    gencolor  = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), alpha)
+
+    hexname = toHex(col[0], col[1], col[2], alpha)
+    texname = str(matname) + "_" + name + "_" + hexname
+    imgw  = 16 
+    imgh  = 16
+
+    img = bpy.data.images.new(texname, width=imgw,height=imgh, alpha=True)
+    img.file_format = 'PNG'
+    img.generated_color = gencolor
+
+    img.filepath_raw = filename
+    img.save() 
+
+# ------------------------------------------------------------------------
+
 def getImageNode( colors, index, matname, name, texture_path ):
   
   color_node = colors[index]
-  # Get the link
+  # Get the link - this should extract embedded nodes too (need to test/check)
   if( color_node.is_linked ):
     link = color_node.links[0]
     link_node = link.from_node
     if link_node and link_node.type == 'TEX_IMAGE':
       imgnode = link_node.image
       if imgnode and imgnode.type == 'IMAGE':
-        return imgnode   
+        return imgnode
+
+  # Handle metallic roughness and emission if they have just values set (make a little color texture)
+  if(color_node.type == "VALUE") and (name == "metallic_color" or name == "roughness_color" or name == "emissive_color"):
+    
+    col       = color_node.default_value
+    return makeBlockPNG(texture_path + "/" + texname + ".png", col)
 
   # if the node is a color vector. Make a tiny color png in temp
   # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
@@ -242,20 +265,7 @@ def getImageNode( colors, index, matname, name, texture_path ):
       link_node = link.from_node
       col = link_node.outputs[0].default_value
 
-    gencolor  = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), alpha)
-
-    hexname = toHex(col[0], col[1], col[2], alpha)
-    texname = str(matname) + "_" + name + "_" + hexname
-    imgw  = 16 
-    imgh  = 16
-
-    img = bpy.data.images.new(texname, width=imgw,height=imgh, alpha=True)
-    img.file_format = 'PNG'
-    img.generated_color = gencolor
-
-    img.filepath_raw = texture_path + "/" + texname + ".png"
-    img.save() 
-    return img
+    return makeBlockPNG(texture_path + "/" + texname + ".png", col)
 
   return None 
 
@@ -358,8 +368,11 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                 addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
                 addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
                 addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path, context )
+                addTexture( mat.name, textures, "emissive_strength" ,bsdf.inputs, "Emission Strength", texture_path, context )
                 addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
-              
+              else:
+                print("[ ERROR ] : Uknown material type used.")
+
           if(len(textures) > 0):
             thisobj["textures"] = textures
 
@@ -442,6 +455,7 @@ def sceneAnimations(context, f, temppath, config):
     animfile = temppath + scene.name + ".dae"
     bpy.ops.wm.collada_export(filepath=animfile, 
             include_armatures=True,
+            include_children=True,
             export_global_forward_selection='Z',
             export_global_up_selection='-Y',
             export_animation_type_selection='sample',
@@ -461,10 +475,11 @@ def sceneAnimations(context, f, temppath, config):
     # Make sure we have vertex objects in this obj
     if( armobj != None ):
       for a in bpy.data.actions:
-        #print(a.name)
-
+        print(a.name)
         f.write( "['" + a.name + "'] = " + '\"' + animfile + '\",\n')
 
+  # TODO: Extract each individual action into a separate file 
+  #
   # for action in bpy.data.actions:
   #   curves = {}
   #   for fcu in action.fcurves:
