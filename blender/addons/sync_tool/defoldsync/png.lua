@@ -1367,8 +1367,8 @@ local function pngLoad(file_name)
       png.png_destroy_read_struct(png_ptr, nil, nil)
 
       data = {
-         png_ptr  = png_ptr,
-         info_ptr = info_ptr,
+         png_ptr        = png_ptr,
+         info_ptr       = info_ptr,
          row_pointers   = row_pointers,
       }
       fp:close()
@@ -1397,7 +1397,6 @@ local function pngFree( data )
    end
 end
 
-
 local function test()
    local data = pngLoad("test_in.png")
    pngSave( "test_out.png", data)
@@ -1408,6 +1407,7 @@ return
    png   = png, 
    load  = pngLoad,
    save  = pngSave,
+   free  = pngFree,
 
    -- test  = test,
 }
