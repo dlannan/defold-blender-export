@@ -25,7 +25,7 @@
 
 local ffi                   = require("ffi")
 local json                  = require("defoldsync.json")
-
+local materialSimple        = require("defoldsync.material-textures")
 
 table.count = function( tbl ) 
     local count = 0
@@ -495,10 +495,22 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
+local function getBlenderTexture( filepath, mesh, texturename, default )
+
+    if(mesh.textures and mesh.textures[texturename]) then 
+        -- copy to local folder first 
+        return mesh.textures[texturename]
+    else 
+        return gendata.project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR..default
+    end
+end
+
+------------------------------------------------------------------------------------------------------------
+
 local function processtexturefile( filepath, mesh, source, default )
 
     local texfile = filepath..gendata.folders.materials..PATH_SEPARATOR..default
-    local outputfile = localpathname(gendata.project_path..PATH_SEPARATOR..gendata.folders.materials.."/"..default)
+    local outputfile = localpathname(gendata.project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR..default)
     if(mesh.textures and mesh.textures[source]) then 
         texfile = string.match(mesh.textures[source], "([^"..PATH_SEPARATOR.."]+)$")
         -- copy to local folder first 
@@ -511,15 +523,31 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
+local function processaomaetalroughness( filepath, mesh )
+
+    local aofile = getBlenderTexture( filepath, mesh, "emissive_strength", 'white.png')
+    local metalfile = getBlenderTexture( filepath, mesh, "metallic_map", 'black.png')
+    local roughfile = getBlenderTexture( filepath, mesh, "roughness_map", 'grey.png')
+    local outputfile = filepath..gendata.folders.images..PATH_SEPARATOR..mesh.name.."AMRtexture.png"
+    print( outputfile, aofile, metalfile, roughfile )
+    materialSimple.genAMRMap( outputfile, aofile, metalfile, roughfile )
+    outputfile = localpathname(filepath)..gendata.folders.images.."/"..mesh.name.."AMRtexture.png"
+
+    return outputfile
+end
+
+------------------------------------------------------------------------------------------------------------
+
 local function maketexturefile( filepath, mesh )
 
     local texturefiles = {}
     if(gendata.config.sync_shader == "PBR Simple") then 
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_color', 'black.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_color', 'grey.png') )
+        -- Build an AO, metallic and roughness map
+        table.insert( texturefiles, processaomaetalroughness(filepath, mesh) )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'reflection_map', 'grey.png') )
     else 
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
     end
@@ -686,8 +714,7 @@ local function setupmaterials( project_path )
     matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
 
     local mp = gendata.config.sync_mat_params
-    local reflect = gendata.config.sync_mat_reflection
-    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: '..reflect
+    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 1.0'
     matstr = matstr:gsub("MATERIAL_PARAMS", mat_params) 
 
     makefile( material_path.."pbr-simple.material", matstr)

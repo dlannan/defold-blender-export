@@ -87,7 +87,7 @@ local fp = [[
   
   // uniform samplerCube cubeMap ;
   uniform sampler2D emissiveMap ;
-  uniform sampler2D aoMetallicRoughnesMap;
+  uniform sampler2D aoMetallicRoughnessMap;
   uniform sampler2D albedoMap ;
   uniform sampler2D normalMap ;
   uniform sampler2D reflectionMap;
@@ -153,8 +153,9 @@ local fp = [[
   
     float fLightIntensity = max(dot(vNormalisedLocalSurfaceToLightDirection, vNormalisedLocalSurfaceNormal), 0.0) ;
   
-    float fMetalness = texture(aoMetallicRoughnesMap, vuvCoord0).b ;
-    float fRoughness = max(0.001, texture(aoMetallicRoughnesMap, vuvCoord0).g ) ;
+    vec4 amrtex = texture(aoMetallicRoughnessMap, vuvCoord0);
+    float fMetalness = amrtex.g ;
+    float fRoughness = max(0.001, amrtex.b ) ;
   
     float distributionMicroFacet = computeGGXDistribution(vNormalisedLocalSurfaceNormal, vNormalisedLocalSurfaceToLightDirection, fRoughness) ;
     float geometryMicroFacet = computeGGXPartialGeometryTerm(vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal, vLocalLightViewHalfVector, fRoughness) ;
@@ -162,12 +163,12 @@ local fp = [[
   
     float fLightSourceFresnelTerm = computeFresnelTerm(0.5, vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal) ;
   
-    vec4 rgbAlbedo = texture(albedoMap, vuvCoord0) * tint;
+    vec4 rgbAlbedo = texture(albedoMap, vuvCoord0) * tint * params.y;
     vec3 rgbEmissive = texture(emissiveMap, vuvCoord0).rgb;
   
     vec3 rgbFragment = rgbAlbedo.rgb * (1.0 - fMetalness);
   
-    vec3 rgbSourceReflection = texture2D( reflectionMap, vN ).rgb * fRoughness * params.y;
+    vec3 rgbSourceReflection = texture2D( reflectionMap, vN ).rgb * fRoughness;
     vec3 rgbReflection = rgbSourceReflection ;
     rgbReflection *= rgbAlbedo.rgb * fMetalness ;
     rgbReflection *= fLightSourceFresnelTerm ;
@@ -186,7 +187,7 @@ local fp = [[
     rgbFragment *= ambientLevel;
     rgbFragment += rgbReflection ;
     rgbFragment += rgbEmissive ;
-    rgbFragment *= texture(aoMetallicRoughnesMap, vuvCoord0).r
+    rgbFragment *= amrtex.r;
   
     gl_FragColor = vec4(rgbFragment, rgbAlbedo.a);
   }  

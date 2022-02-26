@@ -38,13 +38,13 @@
 --    param.z - Specular response level
 ------------------------------------------------------------------------------------------------------------
 
-local png = require("png")
+local png = require("defoldsync.png")
 local str = tostring
 ------------------------------------------------------------------------------------------------------------
 -- Helper to merge pngs together. Use the source texture to merge dest into it. 
 -- Params:
 --   target - target texture that will be the target for the merge texture
---   merge - the texture that will be added into the target texture
+--   merge - the texture that will be added ito the target texture
 --   taerget_channel - where the incoming channel will be copied to
 --   merge_channel - where the merge texture channel is sourced from 
 --
@@ -53,8 +53,8 @@ local str = tostring
 
 local function mergeTextures( target, merge, target_channel, merge_channel)
 
-    print("[ COLOR TYPE TARGET ] "..str(target.info_ptr.color_type))
-    print("[ COLOR TYPE MERGE ] "..str(merge.info_ptr.color_type))
+    -- print("[ COLOR TYPE TARGET ] "..str(target.info_ptr.color_type))
+    -- print("[ COLOR TYPE MERGE ] "..str(merge.info_ptr.color_type))
 
     local scalex = target.info_ptr.width / merge.info_ptr.width
     local scaley = target.info_ptr.height / merge.info_ptr.height 
@@ -69,32 +69,48 @@ local function mergeTextures( target, merge, target_channel, merge_channel)
     -- Iterate height then rows
     local merge_pos = 0 
     local target_pos = 0
-    for y = 0, merge.info_ptr.height-1 do 
-        local srcrow = merge.row_pointers[y]
-        local dstrow = target.row_pointers[math.floor(y * scaley + 0.4999)]
-        for x = 0, merge.info_ptr.width-1 do
-            local srcpixel = srcrow + x * mergechannels + merge_channel
-            local dstpixel = dstrow + math.floor(x * scalex + 0.4999) * targetchannels + target_channel
-            dstrow[dstpixel] = srcrow[srcpixel]
+    for y = 0, target.info_ptr.height-1 do 
+        local sy = math.floor(y / scaley)
+        local srcrow = merge.row_pointers[sy]
+        local dstrow = target.row_pointers[y]
+        for x = 0, target.info_ptr.width-1 do
+            local srcpixel = srcrow + math.floor(x / scalex) * mergechannels + merge_channel
+            local dstpixel = dstrow + x * targetchannels + target_channel
+            dstpixel[0] = srcpixel[0]
         end
     end
 end
 
 ------------------------------------------------------------------------------------------------------------
+-- Output texture can be controlled in size and depth
+local output_width  = 256
+local output_height = 256
 
 -- Take in three textures and combine into one
 local function genAOMetallicRoughnessMap( mergefile, ao, metallic, roughness )
 
-    local aopng = png.pngLoad(ao)
-    mergeTextures( aopng, png.pngLoad(metallic), 2, 2 )
-    mergeTextures( aopng, png.pngLoad(roughness), 3, 3 )
-    png.pngSave( mergefile, aopng )
+    local outpng = png.create( mergefile, output_width, output_height, true )
+    mergeTextures( outpng, png.load(ao), 0, 0 )           -- red
+    mergeTextures( outpng, png.load(metallic), 2, 2 )     -- green
+    mergeTextures( outpng, png.load(roughness), 1, 1 )    -- blue
+    -- mergeTextures( aopng, png.load(roughness), 3, 1 ) -- alpha
+    png.save( mergefile, outpng )
 end
+
+
+-- Make a simple 16x16 32bit value texture 
+local function genValueTexture( filename, value )
+
+end
+
+-- Test
+-- genAOMetallicRoughnessMap( "merge.png", "red.png", "blue.png", "green.png")
 
 ------------------------------------------------------------------------------------------------------------
 
 return {
     genAMRMap       = genAOMetallicRoughnessMap,
+    genValueTexture = genValueTexture,
 }
 
 ------------------------------------------------------------------------------------------------------------

@@ -1355,6 +1355,51 @@ void     png_save_uint_16( void* buf, unsigned i );
 local PNG_LIBPNG_VER_STRING   = "1.6.37"
 local PNG_TRANSFORM_IDENTITY  = 0x0000  -- /* read and write */
 
+local PNG_COLOR_TYPE_RGB            = 2
+local PNG_COLOR_TYPE_RGBA           = 6
+local PNG_INTERLACE_NONE            = 0
+local PNG_COMPRESSION_TYPE_DEFAULT  = 0
+local PNG_FILTER_TYPE_DEFAULT       = 0
+
+local function pngCreate( file_name, w, h, alpha )
+   
+   local data = nil
+   local fp = io.open(file_name, "wb")
+   if(fp) then 
+
+      local png_ptr = png.png_create_write_struct(PNG_LIBPNG_VER_STRING, nil, nil, nil)
+      local info_ptr = png.png_create_info_struct(png_ptr) 
+
+      local bytesize       = 3
+      local pixelbyte      = PNG_COLOR_TYPE_RGB
+      if(alpha) then 
+         bytesize = 4
+         pixelbyte = PNG_COLOR_TYPE_RGBA 
+      end 
+
+      png.png_set_IHDR(png_ptr, info_ptr, w, h, 8,
+             pixelbyte, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT)
+
+      local row_pointers = ffi.cast("uint8_t **", png.png_malloc(png_ptr, h * ffi.sizeof("uint8_t *")))
+      for y=0, h-1 do 
+         row_pointers[y] = png.png_malloc(png_ptr, w * bytesize) 
+         ffi.fill(row_pointers[y],  w * bytesize, 0xFF)
+      end 
+      png.png_init_io(png_ptr, fp)
+      png.png_set_rows(png_ptr, info_ptr, row_pointers)
+      png.png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, nil)
+
+      data = {
+         png_ptr        = png_ptr,
+         info_ptr       = info_ptr,
+         row_pointers   = row_pointers,
+      }
+      png.png_destroy_write_struct(png_ptr, info_ptr)
+      fp:close()
+   end
+   return data
+end 
+
 local function pngLoad(file_name)
    local fp = io.open(file_name, "rb")
    local data = nil
@@ -1404,10 +1449,11 @@ end
 
 return 
 {
-   png   = png, 
-   load  = pngLoad,
-   save  = pngSave,
-   free  = pngFree,
+   png      = png, 
+   create   = pngCreate,
+   load     = pngLoad,
+   save     = pngSave,
+   free     = pngFree,
 
    -- test  = test,
 }

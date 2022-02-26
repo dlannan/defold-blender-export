@@ -217,13 +217,15 @@ def sceneObjects(context, f, config):
 
 # ------------------------------------------------------------------------
 
-def makeBlockPNG(filename, col):
-    gencolor  = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), alpha)
+def makeBlockPNG(texture_path, matname, name, col):
 
-    hexname = toHex(col[0], col[1], col[2], alpha)
+    gencolor = (to_srgb(col[0]), to_srgb(col[1]), to_srgb(col[2]), col[3])
+
+    hexname = toHex(col[0], col[1], col[2], col[3])
     texname = str(matname) + "_" + name + "_" + hexname
     imgw  = 16 
     imgh  = 16
+    filename = texture_path + "/" + texname + ".png"
 
     img = bpy.data.images.new(texname, width=imgw,height=imgh, alpha=True)
     img.file_format = 'PNG'
@@ -231,6 +233,7 @@ def makeBlockPNG(filename, col):
 
     img.filepath_raw = filename
     img.save() 
+    return img
 
 # ------------------------------------------------------------------------
 
@@ -247,10 +250,9 @@ def getImageNode( colors, index, matname, name, texture_path ):
         return imgnode
 
   # Handle metallic roughness and emission if they have just values set (make a little color texture)
-  if(color_node.type == "VALUE") and (name == "metallic_color" or name == "roughness_color" or name == "emissive_color"):
-    
+  if(color_node.type == "VALUE") and (matname == "metallic_color" or matname == "roughness_color" or matname == "emissive_color"):
     col       = color_node.default_value
-    return makeBlockPNG(texture_path + "/" + texname + ".png", col)
+    return makeBlockPNG(texture_path, matname, name, (col, col, col, col))
 
   # if the node is a color vector. Make a tiny color png in temp
   # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
@@ -265,7 +267,7 @@ def getImageNode( colors, index, matname, name, texture_path ):
       link_node = link.from_node
       col = link_node.outputs[0].default_value
 
-    return makeBlockPNG(texture_path + "/" + texname + ".png", col)
+    return makeBlockPNG(texture_path, matname, name, (col[0], col[1], col[2], alpha))
 
   return None 
 

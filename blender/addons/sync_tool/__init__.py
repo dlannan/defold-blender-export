@@ -43,7 +43,7 @@ bl_info = {
     "name": "Sync Tool",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (1, 0, 3),
+    "version": (1, 0, 4),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
@@ -209,8 +209,8 @@ class SyncProperties(PropertyGroup):
 
     sync_mat_params: FloatVectorProperty(
         name = "Shader Params",
-        description="Material Shader parameters.",
-        default=(0.1, 0.2, 0.5), 
+        description="Ambient, Albedo Percent and Specular.",
+        default=(0.1, 1.0, 0.5), 
         ) 
 
     sync_mat_facenormals: BoolProperty(
