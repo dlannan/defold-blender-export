@@ -250,15 +250,15 @@ def getImageNode( colors, index, matname, name, texture_path ):
         return imgnode
 
   # Handle metallic roughness and emission if they have just values set (make a little color texture)
-  if(color_node.type == "VALUE") and (matname == "metallic_color" or matname == "roughness_color" or matname == "emissive_color"):
+  if(color_node.type == "VALUE") and (matname == "metallic_color" or matname == "roughness_color" or matname == "emissive_color" or  matname == "alpha_map"):
     col       = color_node.default_value
     return makeBlockPNG(texture_path, matname, name, (col, col, col, col))
 
   # if the node is a color vector. Make a tiny color png in temp
   # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
-  if((color_node.type == "RGBA" or color_node.type == "RGB") and name == "base_color" ):
+  if((color_node.type == "RGBA" or color_node.type == "RGB") and matname == "base_color" ):
 
-    alpha     = colors["Alpha"].default_value
+    alpha     = 1.0 
     col       = color_node.default_value
     
     # check if this is linked 
@@ -369,9 +369,10 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                 addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
                 addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
                 addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
-                addTexture( mat.name, textures, "emissive_color" ,bsdf.inputs, "Emission", texture_path, context )
-                addTexture( mat.name, textures, "emissive_strength" ,bsdf.inputs, "Emission Strength", texture_path, context )
+                addTexture( mat.name, textures, "emissive_color", bsdf.inputs, "Emission", texture_path, context )
+                addTexture( mat.name, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, context )
                 addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
+                addTexture( mat.name, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
               else:
                 print("[ ERROR ] : Uknown material type used.")
 

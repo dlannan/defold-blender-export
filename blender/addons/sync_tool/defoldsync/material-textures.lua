@@ -82,18 +82,23 @@ local function mergeTextures( target, merge, target_channel, merge_channel)
 end
 
 ------------------------------------------------------------------------------------------------------------
--- Output texture can be controlled in size and depth
-local output_width  = 256
-local output_height = 256
-
 -- Take in three textures and combine into one
-local function genAOMetallicRoughnessMap( mergefile, ao, metallic, roughness )
+local function genAOMetallicRoughnessMap( mergefile, ao, metallic, roughness, outsize )
 
-    local outpng = png.create( mergefile, output_width, output_height, true )
+    local outpng = png.create( mergefile, outsize, outsize, true )
     mergeTextures( outpng, png.load(ao), 0, 0 )           -- red
     mergeTextures( outpng, png.load(metallic), 2, 2 )     -- green
     mergeTextures( outpng, png.load(roughness), 1, 1 )    -- blue
     -- mergeTextures( aopng, png.load(roughness), 3, 1 ) -- alpha
+    png.save( mergefile, outpng )
+end
+
+------------------------------------------------------------------------------------------------------------
+-- Take in three textures and combine into one
+local function genAlbedoAlphaMap( mergefile, albedo, alpha, outsize )
+
+    local outpng =  png.load(albedo)
+    mergeTextures( outpng, png.load(alpha), 3, 0 )          -- red -> alpha
     png.save( mergefile, outpng )
 end
 
@@ -109,8 +114,9 @@ end
 ------------------------------------------------------------------------------------------------------------
 
 return {
-    genAMRMap       = genAOMetallicRoughnessMap,
-    genValueTexture = genValueTexture,
+    genAMRMap           = genAOMetallicRoughnessMap,
+    genAlbedoAlphaMap   = genAlbedoAlphaMap,
+    genValueTexture     = genValueTexture,
 }
 
 ------------------------------------------------------------------------------------------------------------

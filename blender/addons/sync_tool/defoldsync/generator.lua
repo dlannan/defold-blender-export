@@ -529,9 +529,27 @@ local function processaomaetalroughness( filepath, mesh )
     local metalfile = getBlenderTexture( filepath, mesh, "metallic_map", 'black.png')
     local roughfile = getBlenderTexture( filepath, mesh, "roughness_map", 'grey.png')
     local outputfile = filepath..gendata.folders.images..PATH_SEPARATOR..mesh.name.."AMRtexture.png"
-    print( outputfile, aofile, metalfile, roughfile )
-    materialSimple.genAMRMap( outputfile, aofile, metalfile, roughfile )
+    materialSimple.genAMRMap( outputfile, aofile, metalfile, roughfile, 1024 )
     outputfile = localpathname(filepath)..gendata.folders.images.."/"..mesh.name.."AMRtexture.png"
+
+    return outputfile
+end
+
+
+------------------------------------------------------------------------------------------------------------
+
+local function processalbedoalpha( filepath, mesh )
+
+    if(mesh.textures == nil or mesh.textures["alpha_map"] == nil) then 
+        return processtexturefile(filepath, mesh, 'base_color', 'white.png')
+    end 
+
+    local basefile = getBlenderTexture( filepath, mesh, "base_color", 'white.png')
+    local alphafile = getBlenderTexture( filepath, mesh, "alpha_map", 'white.png')
+    local outputfile = filepath..gendata.folders.images..PATH_SEPARATOR..mesh.name.."AlbedoAlpha.png"
+--    print( outputfile, basefile, alphafile )
+    materialSimple.genAlbedoAlphaMap( outputfile, basefile, alphafile, 1024 )
+    outputfile = localpathname(filepath)..gendata.folders.images.."/"..mesh.name.."AlbedoAlpha.png"
 
     return outputfile
 end
@@ -542,7 +560,7 @@ local function maketexturefile( filepath, mesh )
 
     local texturefiles = {}
     if(gendata.config.sync_shader == "PBR Simple") then 
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
+        table.insert( texturefiles, processalbedoalpha(filepath, mesh ) )
         -- Build an AO, metallic and roughness map
         table.insert( texturefiles, processaomaetalroughness(filepath, mesh) )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
