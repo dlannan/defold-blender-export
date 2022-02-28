@@ -238,8 +238,9 @@ def makeBlockPNG(texture_path, matname, name, col):
 # ------------------------------------------------------------------------
 
 def getImageNode( colors, index, matname, name, texture_path ):
-  
+
   color_node = colors[index]
+
   # Get the link - this should extract embedded nodes too (need to test/check)
   if( color_node.is_linked ):
     link = color_node.links[0]
@@ -250,13 +251,17 @@ def getImageNode( colors, index, matname, name, texture_path ):
         return imgnode
 
   # Handle metallic roughness and emission if they have just values set (make a little color texture)
-  if(color_node.type == "VALUE") and (matname == "metallic_color" or matname == "roughness_color" or matname == "emissive_color" or  matname == "alpha_map"):
+  value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map"]
+  if(color_node.type == "VALUE") and (name in value_materials):
     col       = color_node.default_value
-    return makeBlockPNG(texture_path, matname, name, (col, col, col, col))
+    # If alpha is default, then base color will use default settings in alpha channel
+    if(name == "alpha_map" and col == 1.0):
+      return None
+    return makeBlockPNG(texture_path, matname, name, [col, col, col, col])
 
   # if the node is a color vector. Make a tiny color png in temp
   # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
-  if((color_node.type == "RGBA" or color_node.type == "RGB") and matname == "base_color" ):
+  if((color_node.type == "RGBA" or color_node.type == "RGB") and name == "base_color" ):
 
     alpha     = 1.0 
     col       = color_node.default_value
@@ -267,7 +272,7 @@ def getImageNode( colors, index, matname, name, texture_path ):
       link_node = link.from_node
       col = link_node.outputs[0].default_value
 
-    return makeBlockPNG(texture_path, matname, name, (col[0], col[1], col[2], alpha))
+    return makeBlockPNG(texture_path, matname, name, [col[0], col[1], col[2], alpha])
 
   return None 
 
@@ -280,12 +285,15 @@ def addTexture( matname, textures, name, color_node, index, texture_path, contex
   if imgnode != None:
     img = imgnode.filepath_from_user()
     splitname = os.path.splitext(os.path.basename(img))
-
-    if splitname[1] != '.png' or splitname[1] != '.PNG':
-      image = bpy.data.images.load(img)
-      img = os.path.join(texture_path , splitname[0] + ".png")
-      imgnode.file_format='PNG' 
-      image.save_render(img)
+    print("[ IMG PATH ] " + str(img))
+    print("[ IMG BASE PATH ] " + str(os.path.basename(img)))
+    if splitname[1] != '.png' and splitname[1] != '.PNG':
+      pngimg = os.path.join(texture_path , splitname[0] + ".png")
+      if(os.path.exists(pngimg) == False):
+        image = bpy.data.images.load(img)
+        imgnode.file_format='PNG' 
+        image.save_render(pngimg)
+      img = pngimg
 
     if os.path.exists(img) == False:
       img = os.path.join(texture_path , os.path.basename(img))
@@ -297,6 +305,7 @@ def addTexture( matname, textures, name, color_node, index, texture_path, contex
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
+
 def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
   fhandle.write('{ \n')
@@ -357,15 +366,24 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                   vert_uv_map.setdefault(idx, []).append((face.loops[ti], uv))
 
           textures = {}
-          if( len(obj.material_slots) > 0 ):
-            mat = obj.material_slots[0].material        
-            if mat and mat.node_tree:
+
+          if obj is not None and obj.type == 'MESH' and obj.active_material:   
+            mat = obj.active_material
+
+          bsdf_node_name = "Principled BSDF"
+          if mat is not None and mat.use_nodes and bsdf_node_name in mat.node_tree.nodes:
+              bsdf = mat.node_tree.nodes[bsdf_node_name] 
+
+          #if( len(obj.material_slots) > 0 ):
+          #  mat = obj.material_slots[0].material        
+          #  if mat and mat.node_tree:
               # Get the nodes in the node tree
-              nodes = mat.node_tree.nodes
+              #nodes = mat.node_tree.nodes
               # Get a principled node
-              bsdf = nodes.get("Principled BSDF") 
+              #bsdf = nodes.get("Principled BSDF") 
               # Get the slot for 'base color'
-              if(bsdf):
+              if(bsdf is not None):
+                print("[ BSDF ] : bsdf material type used.")
                 addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
                 addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
                 addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
