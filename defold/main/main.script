@@ -1,0 +1,62 @@
+local orbit 		= require("main.camera-orbit")
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	msg.post("@render:", "use_camera_projection")
+	msg.post("/main#camera", "acquire_camera_focus")
+
+	-- local pos = go.get_position("/Cameras/Original Camera")
+	-- local rot = go.get_rotation("/Cameras/Original Camera")
+	-- go.set_position(pos, "/main#camera")
+	-- go.set_rotation(rot, "/main#camera")
+
+	self.mesh 	= "/Collection/__root"  -- dont modify, this works for nearly all meshes
+	self.cam 	= orbit.init("/main#camera", self.mesh, 3.0 )
+	self.gear 	= true
+	self.cam.cameraheight = 2.4
+	self.anim_time	= 15
+
+--	self.anim = "/Collection/Mira_24 - Default_0#Mira_24 - Default_0_mesh"
+	-- self.anim = "/Collection/Object_4"
+	model.play_anim(self.anim, "Scene", go.PLAYBACK_NONE)
+end
+
+function final(self)
+end
+
+function update(self, dt)
+	self.cam.update(self, dt)	
+end
+
+function on_message(self, message_id, message, sender)
+end
+
+function on_input(self, action_id, action)
+
+	if(action_id == hash("up")) then 
+		self.cam.xangle = self.cam.xangle + 0.01
+	end 
+	if(action_id == hash("down")) then 
+		self.cam.xangle = self.cam.xangle - 0.01
+	end 
+
+	if(action_id == hash("left")) then 
+		self.cam.yangle = self.cam.yangle + 0.01
+	end 
+	if(action_id == hash("right")) then 
+		self.cam.yangle = self.cam.yangle - 0.01
+	end 
+
+	if(action_id == hash("gear") and action.released) then
+		self.gear = not self.gear
+		if(self.gear == false) then 
+			go.animate(self.anim, "cursor", go.PLAYBACK_ONCE_FORWARD, 1, go.EASING_LINEAR, self.anim_time)
+		else 
+			go.animate(self.anim, "cursor", go.PLAYBACK_ONCE_FORWARD, 0, go.EASING_LINEAR, self.anim_time)
+		end
+		print(self.gear)
+	end
+end
+
+function on_reload(self)
+end
