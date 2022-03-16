@@ -200,7 +200,7 @@ name: "pbr-simple"
 tags: "model"
 vertex_program: "MATERIAL_VP"
 fragment_program: "MATERIAL_FP"
-vertex_space: VERTEX_SPACE_LOCAL
+vertex_space: VERTEX_SPACE_WORLD
 vertex_constants {
   name: "mtx_world"
   type: CONSTANT_TYPE_WORLD

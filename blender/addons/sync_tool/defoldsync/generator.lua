@@ -43,8 +43,9 @@ local platform              =  ffi.os
 
 -- The system OS name: "Darwin", "Linux", "Windows", "HTML5", "Android" or "iPhone OS"
 if platform == "Windows" then
+    print("Windows Platform detected.")
     PATH_SEPARATOR  = "\\"
-    CMD_COPY        = "copy"
+    CMD_COPY        = "copy /y"
     CMD_MKDIR       = "mkdir"
 end
 
@@ -393,13 +394,27 @@ GO_CHILDREN
 
 ------------------------------------------------------------------------------------------------------------
 
-local function localpathname( path )
+local function localpathname( inpath )
+
+    local match = true 
+    local idx = 1
+    while match do
+        local c1 = inpath:sub(idx,idx)
+        local c2 = gendata.base:sub(idx,idx)
+        if(c1 ~= c2) then 
+            match = nil 
+        else 
+            idx = idx + 1
+        end 
+    end 
 
     -- Subtract project path from pathname     
-    local newpath = string.match(path, gendata.base.."(.*)")
+    local newpath = nil 
+    if(idx > 1) then newpath = string.sub(inpath, idx, -1) end 
+print(inpath, newpath)
     -- Local path should always use / 
     if(newpath) then newpath = string.gsub(newpath, "\\", "/") end
-    return newpath or path 
+    return newpath or inpath 
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -429,12 +444,13 @@ local function makefolders( collectionname, base, config )
 
     gendata.base    = base
     gendata.config  = config
+    local collectionpath = base..PATH_SEPARATOR..collectionname
 
     -- Make the base path
-    os.execute(CMD_MKDIR.." "..base..PATH_SEPARATOR..collectionname)
+    os.execute(CMD_MKDIR.." "..collectionpath)
     -- Make the folders that files will be generated in 
     for k,v in pairs(gendata.folders) do 
-        os.execute(CMD_MKDIR.." "..base..PATH_SEPARATOR..collectionname..PATH_SEPARATOR..v)
+        os.execute(CMD_MKDIR.." "..collectionpath..PATH_SEPARATOR..v)
     end
 end
 

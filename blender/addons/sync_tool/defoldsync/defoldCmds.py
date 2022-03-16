@@ -478,6 +478,7 @@ def sceneAnimations(context, f, temppath, config):
             filter_folder=True, 
             filemode=8)
 
+    animfile = os.path.normpath(animfile)
     animfile = animfile.replace("\\", "\\\\")
 
     # Make sure we have vertex objects in this obj
