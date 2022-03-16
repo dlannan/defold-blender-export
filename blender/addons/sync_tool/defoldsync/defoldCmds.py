@@ -568,13 +568,13 @@ def getData( context, clientcmds, dir, config):
       # Mesh data 
       if(cmd == 'meshes'):
         f.write('MESHES = ')
-        sceneMeshes(context, f, temppath + '/', texture_path, config)
+        sceneMeshes(context, f, temppath + bpy.path.native_pathsep('/'), texture_path, config)
         f.write(', \n')
     
       # All bone animations in the scene
       if(cmd == 'anims'):
         f.write('ANIMS = ')
-        sceneAnimations(context, f, temppath + '/', config)
+        sceneAnimations(context, f, temppath + bpy.path.native_pathsep('/'), config)
         f.write(', \n')
 
     f.write("}\n")

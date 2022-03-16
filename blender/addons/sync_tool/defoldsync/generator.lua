@@ -664,7 +664,18 @@ local function makegofile( name, filepath, go )
 
     local godata = gofiledata
     local meshdata = nil
-    if(go.animated and gendata.anims) then godata = gomodelfiledata end
+
+    local animname, animfile = nil, nil 
+    if(go.animated and gendata.anims) then
+        animname, animfile = next(gendata.anims)
+        if(animname and animfile) then 
+            godata = gomodelfiledata
+        else 
+            -- Fall back to mesh if anim isnt available
+            go.type = "MESH"
+            go.animated = nil
+        end 
+    end
 
     local gofilepath = filepath..gendata.folders.gos..PATH_SEPARATOR..name..".go"
     godata = string.gsub(godata, "MESH_GO_NAME", go.name.."_mesh")
@@ -694,22 +705,19 @@ local function makegofile( name, filepath, go )
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")
 
     -- Apply animation specific changes to model data
-    if(go.animated and gendata.anims) then
-        local animname, animfile = next(gendata.anims)
-        if(animname and animfile) then 
-            godata = string.gsub(godata, "MESH_FILE_PATH", animfile)
+    if(animname and animfile) then 
+        godata = string.gsub(godata, "MESH_FILE_PATH", animfile)
 
-            if(meshdata) then 
-                godata = string.gsub(godata, "MATERIAL_FILE_PATH", meshdata.matfile)
-                local texfiles = meshdata.texfiles:gsub('\"', '\\\"')
-                texfiles = texfiles:gsub('\n', '\\n')
-                godata = string.gsub(godata, "MESH_TEXTURE_FILES", texfiles)
-            end 
+        if(meshdata) then 
+            godata = string.gsub(godata, "MATERIAL_FILE_PATH", meshdata.matfile)
+            local texfiles = meshdata.texfiles:gsub('\"', '\\\"')
+            texfiles = texfiles:gsub('\n', '\\n')
+            godata = string.gsub(godata, "MESH_TEXTURE_FILES", texfiles)
+        end 
 
-            godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
-            godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
-            godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
-        end
+        godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
+        godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
+        godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
     end 
 
     makefile( gofilepath, godata )
