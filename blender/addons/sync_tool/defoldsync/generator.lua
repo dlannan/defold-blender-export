@@ -696,18 +696,20 @@ local function makegofile( name, filepath, go )
     -- Apply animation specific changes to model data
     if(go.animated and gendata.anims) then
         local animname, animfile = next(gendata.anims)
-        godata = string.gsub(godata, "MESH_FILE_PATH", animfile)
+        if(animname and animfile) then 
+            godata = string.gsub(godata, "MESH_FILE_PATH", animfile)
 
-        if(meshdata) then 
-            godata = string.gsub(godata, "MATERIAL_FILE_PATH", meshdata.matfile)
-            local texfiles = meshdata.texfiles:gsub('\"', '\\\"')
-            texfiles = texfiles:gsub('\n', '\\n')
-            godata = string.gsub(godata, "MESH_TEXTURE_FILES", texfiles)
-        end 
+            if(meshdata) then 
+                godata = string.gsub(godata, "MATERIAL_FILE_PATH", meshdata.matfile)
+                local texfiles = meshdata.texfiles:gsub('\"', '\\\"')
+                texfiles = texfiles:gsub('\n', '\\n')
+                godata = string.gsub(godata, "MESH_TEXTURE_FILES", texfiles)
+            end 
 
-        godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
-        godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
-        godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
+            godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
+            godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
+            godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
+        end
     end 
 
     makefile( gofilepath, godata )
