@@ -1,7 +1,7 @@
 name: "main"
 collection_instances {
   id: "Collection"
-  collection: "/warhawk01/Collection.collection"
+  collection: "/explorer/Collection.collection"
   position {
     x: 0.0
     y: 0.0

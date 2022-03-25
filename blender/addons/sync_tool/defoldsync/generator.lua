@@ -564,7 +564,11 @@ local function processalbedoalpha( filepath, mesh )
     local alphafile = getBlenderTexture( filepath, mesh, "alpha_map", 'white.png')
     local outputfile = filepath..gendata.folders.images..PATH_SEPARATOR..mesh.name.."AlbedoAlpha.png"
 --    print( outputfile, basefile, alphafile )
-    materialSimple.genAlbedoAlphaMap( outputfile, basefile, alphafile, 1024 )
+    if(basefile ~= 'white.png' and alphafile ~= 'white.png' and basefile == alphafile) then 
+        os.execute(CMD_COPY..' "'..basefile..'" "'..outputfile..'"')
+    else 
+        materialSimple.genAlbedoAlphaMap( outputfile, basefile, alphafile, 1024 )
+    end 
     outputfile = localpathname(filepath)..gendata.folders.images.."/"..mesh.name.."AlbedoAlpha.png"
 
     return outputfile
