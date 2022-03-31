@@ -303,6 +303,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
   objcount = len(scene.objects)
   objcurr = 0
 
+  animActionObjs = []
   for obj in scene.objects:
 
       update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
@@ -310,6 +311,13 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
       # Only collect meshes in the scene
       if(obj.type == "MESH"):
+
+        # If the mesh has a verex group, then this needs to be saved as a separate animation
+        if(len(obj.modifiers) > 0):
+          modifier = obj.modifiers[0]
+          if(obj.vertex_groups != None and modifier.type == 'ARMATURE'):
+            animActionObjs.append(str(obj.name))
+            print("[ ANIM OBJ ] " + str(obj.name))
 
         thisobj = {
           "name": str(obj.name),
@@ -441,51 +449,77 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
         #dataobjs[ thisobj["name"] ] = thisobj 
 
   fhandle.write('} \n')
+  return animActionObjs
 
 # ------------------------------------------------------------------------
+# Select parents up to the collection
+def selectParent(obj):
+  if(obj.type != "COLLECTION"):
+    obj.select_set(True)
+    if(obj.parent):
+      selectParent(obj.parent)
 
-def sceneAnimations(context, f, temppath, config):
+# ------------------------------------------------------------------------
+# Export scene animations
+def sceneAnimations(context, f, temppath, config, animobjs):
 
   # write out the animation to a dae file. 
   #   This is then referenced in the model file (if it has an anim association)
   scene = context.scene
   f.write('{ \n')
 
+  # Make a list of animations that are collected and output
+  animmeshes = []
+
   # Select all the meshes
-  for meshobj in bpy.context.scene.collection.all_objects:
-    if meshobj != None and meshobj.type == "MESH":
-      meshobj.select_set(True)
+  for meshname in animobjs:
+    meshobj = scene.objects[meshname]
 
-  armobj = config.stream_anim_name
-  if armobj != None:
-    armobj.select_set(True)
+    if(meshobj != None):
+      for obj in bpy.data.objects: obj.select_set(False)
 
-    animfile = temppath + scene.name + ".dae"
-    bpy.ops.wm.collada_export(filepath=animfile, 
-            include_armatures=True,
-            include_children=True,
-            export_global_forward_selection='Z',
-            export_global_up_selection='-Y',
-            export_animation_type_selection='sample',
-            export_animation_transformation_type_selection='matrix',
-            keep_keyframes=True,
-            apply_global_orientation=True,
-            selected=True,
-            deform_bones_only=True,
-            include_animations=True,
-            include_all_actions=True,
-            filter_collada=True, 
-            filter_folder=True, 
-            filemode=8)
+      # Select the mesh - and its parents (need full hierarchy)
+      selectParent(meshobj)
 
-    animfile = os.path.normpath(animfile)
-    animfile = animfile.replace("\\", "\\\\")
+      # Add the selection of the Armature modifier
+      armature = meshobj.modifiers[0].object
+      if bpy.data.objects[armature.name]:
+        bpy.data.objects[armature.name].select_set(True)
 
-    # Make sure we have vertex objects in this obj
-    if( armobj != None ):
-      for a in bpy.data.actions:
-        print(a.name)
-        f.write( "['" + a.name + "'] = " + '\"' + animfile + '\",\n')
+      # Set the mesh active
+      if(armature.name in bpy.data.armatures):
+        for a in bpy.data.armatures[armature.name].bones:
+          a.select = True
+
+      bpy.context.view_layer.objects.active = armature       
+
+      animfile = temppath + meshobj.name + ".dae"
+      bpy.ops.wm.collada_export(filepath=animfile, 
+              triangulate = True,
+              include_armatures=True,
+              include_children=False,
+              export_global_forward_selection='Z',
+              export_global_up_selection='-Y',
+              export_animation_type_selection='sample',
+              export_animation_transformation_type_selection='matrix',
+              #keep_keyframes=True,
+              apply_global_orientation=True,
+              selected=True,
+              deform_bones_only=True,
+              include_animations=True,
+              #include_all_actions=True,
+              filter_collada=True, 
+              filter_folder=True, 
+              filemode=8)
+
+      animfile = os.path.normpath(animfile)
+      animfile = animfile.replace("\\", "\\\\")
+      animmeshes.append( [meshobj.name, animfile] )
+
+  # Make sure we have vertex objects in this obj
+  if( len(animmeshes) > 0 ):
+    for a in animmeshes:
+      f.write( "['" + a[0] + "'] = " + '\"' + a[1] + '\",\n')
 
   # TODO: Extract each individual action into a separate file 
   #
@@ -549,6 +583,8 @@ def getData( context, clientcmds, dir, config):
 
     f.write("return {\n")
 
+    animobjs = []
+
     # Check to see what commands are enabled. And collect data if they changed
     # TODO: Optimise this into mapped methods
     for cmd in clientcmds:
@@ -568,13 +604,13 @@ def getData( context, clientcmds, dir, config):
       # Mesh data 
       if(cmd == 'meshes'):
         f.write('MESHES = ')
-        sceneMeshes(context, f, temppath + bpy.path.native_pathsep('/'), texture_path, config)
+        animobjs = sceneMeshes(context, f, temppath + bpy.path.native_pathsep('/'), texture_path, config)
         f.write(', \n')
     
       # All bone animations in the scene
       if(cmd == 'anims'):
         f.write('ANIMS = ')
-        sceneAnimations(context, f, temppath + bpy.path.native_pathsep('/'), config)
+        sceneAnimations(context, f, temppath + bpy.path.native_pathsep('/'), config, animobjs)
         f.write(', \n')
 
     f.write("}\n")

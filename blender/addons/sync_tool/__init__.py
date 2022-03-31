@@ -43,7 +43,7 @@ bl_info = {
     "name": "Sync Tool",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (1, 0, 6),
+    "version": (1, 0, 7),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
@@ -392,9 +392,9 @@ class OBJECT_PT_CustomPanel(Panel):
         box = layout.box()
         row = box.row()
         row.prop(mytool, "stream_anim")
-        if(mytool.stream_anim == True):
-            row = box.row()
-            row.prop(mytool, "stream_anim_name")
+        # if(mytool.stream_anim == True):
+        #     row = box.row()
+        #     row.prop(mytool, "stream_anim_name")
 
         layout.separator()
 
