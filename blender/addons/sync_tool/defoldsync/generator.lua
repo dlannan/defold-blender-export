@@ -671,7 +671,8 @@ local function makegofile( name, filepath, go )
 
     local animname, animfile = nil, nil 
     if(go.animated and gendata.anims) then
-        animname, animfile = next(gendata.anims)
+        animname = go.name
+        animfile = gendata.anims[animname]
         if(animname and animfile) then 
             godata = gomodelfiledata
         else 

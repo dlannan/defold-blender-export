@@ -65,6 +65,26 @@ def dump_lua(data):
     logging.error(f"Unknown type {type(data)}")
 
 # ------------------------------------------------------------------------
+# Is an object animated
+
+def isAnimated( obj ):
+  # If the mesh has a verex group, then this needs to be saved as a separate animation
+  if(len(obj.modifiers) > 0):
+    modifier = obj.modifiers[0]
+    if(obj.vertex_groups != None and modifier.type == 'ARMATURE'):
+      print("[ ANIM OBJ ] " + obj.name)
+      return True
+
+  # If an object has animation data then it is likely animated.
+  if(obj.parent != None):
+    if(obj.parent.animation_data):
+      anim = obj.parent.animation_data
+      if anim is not None and anim.action is not None:
+        return True
+  return False
+
+
+# ------------------------------------------------------------------------
 # update progress bar 
 
 def update_progress( context, value, text ):
@@ -192,7 +212,7 @@ def sceneObjects(context, f, config):
         if(len(props) > 0):
           thisobj["props"] = props
 
-      if( len(obj.vertex_groups) > 0 and config.stream_anim == True ):
+      if( isAnimated(obj) == True ):
         thisobj["animated"] = True
 
       f.write('["' + str(obj.name) + '"] = ' + dump_lua(thisobj) + ', \n')
@@ -312,12 +332,9 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
       # Only collect meshes in the scene
       if(obj.type == "MESH"):
 
-        # If the mesh has a verex group, then this needs to be saved as a separate animation
-        if(len(obj.modifiers) > 0):
-          modifier = obj.modifiers[0]
-          if(obj.vertex_groups != None and modifier.type == 'ARMATURE'):
-            animActionObjs.append(str(obj.name))
-            print("[ ANIM OBJ ] " + str(obj.name))
+        if(isAnimated(obj) == True):
+          if(not obj.name in animActionObjs): 
+            animActionObjs.append(obj.name)
 
         thisobj = {
           "name": str(obj.name),
@@ -482,16 +499,18 @@ def sceneAnimations(context, f, temppath, config, animobjs):
       selectParent(meshobj)
 
       # Add the selection of the Armature modifier
-      armature = meshobj.modifiers[0].object
-      if bpy.data.objects[armature.name]:
-        bpy.data.objects[armature.name].select_set(True)
+      if(len(meshobj.modifiers) > 0):
+        armature = meshobj.modifiers[0].object
+        if(armature != None):
+          if bpy.data.objects[armature.name]:
+            bpy.data.objects[armature.name].select_set(True)
 
-      # Set the mesh active
-      if(armature.name in bpy.data.armatures):
-        for a in bpy.data.armatures[armature.name].bones:
-          a.select = True
+          # Set the mesh active
+          if(armature.name in bpy.data.armatures):
+            for a in bpy.data.armatures[armature.name].bones:
+              a.select = True
 
-      bpy.context.view_layer.objects.active = armature       
+          bpy.context.view_layer.objects.active = armature       
 
       animfile = temppath + meshobj.name + ".dae"
       bpy.ops.wm.collada_export(filepath=animfile, 
