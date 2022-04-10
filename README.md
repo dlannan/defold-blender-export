@@ -21,6 +21,58 @@ Thats it. If you select the tick box to enable it, you should see a new panel in
 
 You must be in Object Mode to view the panel.   
 
+### OSX Install
+
+You will need Homebrew installed on OSX to do the following. Installing Homebrew is simple and safe:
+Source: https://brew.sh/
+What to do. Run this in a Terminal: ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
+
+There are a couple of little "gotchas" that may make running on OSX fail during sync. 
+1. As mentioned above, the execution persmission may be broken on OSX (I have recently checked in one with new persmissions). 
+If you see this error:
+```
+Traceback (most recent call last):
+  File "/Users/{USERNAME}/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/__init__.py", line 313, in execute
+    subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
+  File "/Applications/Blender.app/Contents/Resources/2.83/python/lib/python3.7/subprocess.py", line 395, in check_output
+    **kwargs).stdout
+  File "/Applications/Blender.app/Contents/Resources/2.83/python/lib/python3.7/subprocess.py", line 472, in run
+    with Popen(*popenargs, **kwargs) as process:
+  File "/Applications/Blender.app/Contents/Resources/2.83/python/lib/python3.7/subprocess.py", line 775, in __init__
+    restore_signals, start_new_session)
+  File "/Applications/Blender.app/Contents/Resources/2.83/python/lib/python3.7/subprocess.py", line 1522, in _execute_child
+    raise child_exception_type(errno_num, err_msg, err_filename)
+PermissionError: [Errno 13] Permission denied: '/Users/{USERNAME}/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit'
+
+location: <unknown location>:-1
+```
+
+It they are then you need to open a terminal window and apply the following:
+``` chmod +x /Users/{you user folder}/Library/Application\ Support/Blender/{Blender version number}/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit```
+*Note:* Only do this, if you see an error relating to running luajit.
+
+2. Libpng is needed for data conversion. You may need to install libpng. 
+If you see this error in Blender when exporting (look at the Information window when installing)
+```
+Traceback (most recent call last):
+  File "/Users/{USERNAME}/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/__init__.py", line 313, in execute
+    subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
+  File "/Applications/Blender.app/Contents/Resources/2.83/python/lib/python3.7/subprocess.py", line 395, in check_output
+    **kwargs).stdout
+  File "/Applications/Blender.app/Contents/Resources/2.83/python/lib/python3.7/subprocess.py", line 487, in run
+    output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/Users/{USERNAME}/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit', '/Users/{USERNAME}/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/main.lua', '/Users/{USERNAME}/Library/Application Support/Blender/2.83/scripts/addons/sync_tool']' returned non-zero exit status 1.
+
+location: <unknown location>:-1
+```
+
+To do so:
+Open a Terminal window and type:
+```brew install libpng```
+*Note:* This needs an internet connection and Homebrew installed
+
+If you have any problems please contact me on Discord: dlannan#1808
+
 ## Hardware Notes
 Some issues have been experienced when using the PBR Material. At the moment this material is _very_ inefficient and needs alot of GFPU resources to work well. If you are running on a laptop with minimal GPU capabilities, you can export to Defold default model material and the model should be visible in Defold. With limited GPU's complex 3D scenes may not be visible with the Simple PBR material.
 
