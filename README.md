@@ -51,7 +51,7 @@ PermissionError: [Errno 13] Permission denied: '/Users/{USERNAME}/Library/Applic
 location: <unknown location>:-1
 ```
 
-It they are then you need to open a terminal window and apply the following:
+It the permissions are incorrect then you need to open a terminal window and apply the following:
 
 ``` chmod +x /Users/{you user folder}/Library/Application\ Support/Blender/{Blender version number}/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit```
 
@@ -73,7 +73,7 @@ subprocess.CalledProcessError: Command '['/Users/{USERNAME}/Library/Application 
 location: <unknown location>:-1
 ```
 
-To do so:
+To install libpng:
 
 Open a Terminal window and type:
 
