@@ -246,6 +246,9 @@ def makeBlockPNG(texture_path, matname, name, col):
 
 def getImageNode( colors, index, matname, name, texture_path ):
 
+  if(not index in colors):
+    return None
+
   color_node = colors[index]
 
   # Get the link - this should extract embedded nodes too (need to test/check)
