@@ -23,8 +23,12 @@ You must be in Object Mode to view the panel.
 
 ### OSX Install
 
-You will need Homebrew installed on OSX to do the following. Installing Homebrew is simple and safe:
+You will need Homebrew installed on OSX to do the following. 
+
+Installing Homebrew is simple and safe:
+
 Source: https://brew.sh/
+
 What to do. Run this in a Terminal: ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
 
 There are a couple of little "gotchas" that may make running on OSX fail during sync. 
@@ -48,10 +52,13 @@ location: <unknown location>:-1
 ```
 
 It they are then you need to open a terminal window and apply the following:
+
 ``` chmod +x /Users/{you user folder}/Library/Application\ Support/Blender/{Blender version number}/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit```
+
 *Note:* Only do this, if you see an error relating to running luajit.
 
 2. Libpng is needed for data conversion. You may need to install libpng. 
+
 If you see this error in Blender when exporting (look at the Information window when installing)
 ```
 Traceback (most recent call last):
@@ -67,8 +74,11 @@ location: <unknown location>:-1
 ```
 
 To do so:
+
 Open a Terminal window and type:
+
 ```brew install libpng```
+
 *Note:* This needs an internet connection and Homebrew installed
 
 If you have any problems please contact me on Discord: dlannan#1808
