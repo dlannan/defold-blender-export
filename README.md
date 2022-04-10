@@ -29,7 +29,8 @@ Installing Homebrew is simple and safe:
 
 Source: https://brew.sh/
 
-What to do. Run this in a Terminal: ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
+What to do. Run this in a Terminal: 
+```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
 
 There are a couple of little "gotchas" that may make running on OSX fail during sync. 
 1. As mentioned above, the execution persmission may be broken on OSX (I have recently checked in one with new persmissions). 
