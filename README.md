@@ -33,7 +33,7 @@ What to do. Run this in a Terminal:
 ```/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"```
 
 There are a couple of little "gotchas" that may make running on OSX fail during sync. 
-### 1.The execution persmission may be broken on OSX 
+### 1. The execution persmission may be broken on OSX 
 
 I have recently checked in one with new persmissions, so I hope this shouldnt occur.
 If you see this error:
@@ -60,7 +60,9 @@ The permissions are likely incorrect for luajit then you need to open a terminal
 
 *Note:* Only do this, if you see an error relating to running luajit.
 
-### 2. Libpng is needed for data conversion. You may need to install libpng. 
+### 2. Libpng is needed for data conversion. 
+
+You may need to install libpng. 
 
 If you see this error in Blender when exporting (look at the Information window when installing)
 ```
