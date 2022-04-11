@@ -54,7 +54,7 @@ PermissionError: [Errno 13] Permission denied: '/Users/{USERNAME}/Library/Applic
 location: <unknown location>:-1
 ```
 
-It the permissions are incorrect then you need to open a terminal window and apply the following:
+The permissions are likely incorrect for luajit then you need to open a terminal window and apply the following:
 
 ``` chmod +x /Users/{you user folder}/Library/Application\ Support/Blender/{Blender version number}/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit```
 
