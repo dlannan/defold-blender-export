@@ -294,9 +294,10 @@ def addTexture( matname, textures, name, color_node, index, texture_path, contex
 
   if imgnode != None:
     img = imgnode.filepath_from_user()
-    splitname = os.path.splitext(os.path.basename(img))
+    basename = os.path.basename(img)
+    splitname = os.path.splitext(basename)
     print("[ IMG PATH ] " + str(img))
-    print("[ IMG BASE PATH ] " + str(os.path.basename(img)))
+    print("[ IMG BASE PATH ] " + str(basename))
     if splitname[1] != '.png' and splitname[1] != '.PNG':
       pngimg = os.path.join(texture_path , splitname[0] + ".png")
       if(os.path.exists(pngimg) == False):
@@ -306,7 +307,7 @@ def addTexture( matname, textures, name, color_node, index, texture_path, contex
       img = pngimg
 
     if os.path.exists(img) == False:
-      img = os.path.join(texture_path , os.path.basename(img))
+      img = os.path.join(texture_path , basename)
       imgnode.filepath = img
       imgnode.save()
     
@@ -389,6 +390,8 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           if mat is not None and mat.use_nodes and bsdf_node_name in mat.node_tree.nodes:
               bsdf = mat.node_tree.nodes[bsdf_node_name] 
 
+              # material names are cleaned here
+              mat.name = re.sub(r'[^\w]', ' ', mat.name)
           #if( len(obj.material_slots) > 0 ):
           #  mat = obj.material_slots[0].material        
           #  if mat and mat.node_tree:

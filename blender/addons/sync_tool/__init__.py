@@ -300,16 +300,26 @@ class WM_OT_SyncTool(Operator):
 
         # Data is written for each stream. 
         platform_luajits = {
-            "Linux": "luajit/linux/luajit",
-            "Windows": "luajit/win/luajit.exe",
-            "Darwin": "luajit/darwin/luajit"
+            "Linux": {
+                "path": "luajit/linux/",
+                "exe": "luajit"
+            },
+            "Windows": {
+                "path": "luajit/win/",
+                "exe": "luajit.exe"
+            },
+            "Darwin": {
+                "path": "luajit/darwin/",
+                "exe": "luajit"
+            }
         }
         this_platform = platform.system()
 
         prog_text = "Generating Defold data..."
         defoldCmds.update_progress(context, 10, prog_text)
-        luajit_cmd = os.path.abspath(dir + '/defoldsync/' + platform_luajits[this_platform] )
+        defolddir = dir + '/defoldsync/'
 
+        luajit_cmd = os.path.abspath(defolddir + platform_luajits[this_platform]["path"] + platform_luajits[this_platform]["exe"] )
         subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
         prog_text = "Process Complete."
         defoldCmds.update_progress(context, 100, prog_text)

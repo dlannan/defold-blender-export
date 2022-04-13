@@ -21,6 +21,8 @@
 ------------------------------------------------------------------------------------------------------------
 
 local dirpath = arg[1]
+GDIR_PATH   = dirpath
+
 print("Lua generation started...")
 
 package.path = package.path..";"..dirpath.."/?.lua"

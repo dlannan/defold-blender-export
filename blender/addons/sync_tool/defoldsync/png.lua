@@ -1,8 +1,9 @@
 local ffi = require("ffi")
 
+-- '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit' '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/main.lua' '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/sync_tool'
 
 local libs = ffi_luajit_libs or {
-   OSX     = { x86 = "libpng.dylib", x64 = "libpng.dylib" },
+   OSX     = { x86 = GDIR_PATH.."/defoldsync/luajit/darwin/libpng16.16.dylib", x64 = GDIR_PATH.."/defoldsync/luajit/darwin/libpng16.16.dylib" },
    Windows = { x64 = "libpng16-16.dll" },
    Linux   = { x64 = "libpng.so", arm = "libpng.so" },
    BSD     = { x86 = "libpng.so",  x64 = "libpng.so" },
@@ -10,6 +11,7 @@ local libs = ffi_luajit_libs or {
    Other   = { x86 = "libpng.so",  x64 = "libpng.so" },
 }
 
+--print("PNG LIB: "..tostring(ffi_png_lib).."   "..libs[ ffi.os ][ ffi.arch ])
 local png  = ffi.load( ffi_PNG_lib or ffi_png_lib or libs[ ffi.os ][ ffi.arch ]  or "png" )
 
 ffi.cdef[[
