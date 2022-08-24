@@ -69,9 +69,9 @@ gendata.folders = {
 }
 
 gendata.images = {
-	white 	= "temp.png",
-	black 	= "tempBlack.png",
-	norm 	= "tempNormal.png",
+	white 	    = "temp.png",
+	black 	    = "tempBlack.png",
+	norm 	    = "tempNormal.png",
 }
 
 gendata.files = {
@@ -421,6 +421,7 @@ end
 
 local function makefile( fpath, fdata )
 
+    -- Make sure file path has proper escape codes for the platform
     local fh = io.open(fpath, "w")
     fh:write(fdata)
     fh:close()
@@ -447,10 +448,10 @@ local function makefolders( collectionname, base, config )
     local collectionpath = base..PATH_SEPARATOR..collectionname
 
     -- Make the base path
-    os.execute(CMD_MKDIR.." "..collectionpath)
+    os.execute(CMD_MKDIR..' "'..collectionpath..'"')
     -- Make the folders that files will be generated in 
     for k,v in pairs(gendata.folders) do 
-        os.execute(CMD_MKDIR.." "..collectionpath..PATH_SEPARATOR..v)
+        os.execute(CMD_MKDIR..' "'..collectionpath..PATH_SEPARATOR..v..'"')
     end
 end
 
@@ -617,10 +618,14 @@ local function makemeshfile(name, filepath, mesh )
     end
     meshdata = string.gsub(meshdata, "MESH_TEXTURE_FILES", texture_file_list)
 
-    local bufferfilepath = makebufferfile( name, filepath, mesh )
-    meshdata = string.gsub(meshdata, "BUFFER_FILE_PATH", localpathname(bufferfilepath))
-    makefile( meshfilepath, meshdata )
-
+    if( mesh.gltf) then
+        meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".gltf"
+        os.execute(CMD_COPY..' "'..mesh.gltf..'" "'..meshfilepath..'"')
+    else 
+        local bufferfilepath = makebufferfile( name, filepath, mesh )
+        meshdata = string.gsub(meshdata, "BUFFER_FILE_PATH", localpathname(bufferfilepath))
+        makefile( meshfilepath, meshdata )
+    end 
     -- Return meshfile path and mesh info (for model data)
     return meshfilepath, { matfile = materialfile, texfiles = texture_file_list }
 end

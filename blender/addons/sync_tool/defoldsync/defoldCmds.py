@@ -460,14 +460,40 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           thisobj["normals"]  = normals
         
         meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
+
+        if( config.stream_mesh_type == "GLTF" ):
+          thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + '.gltf') 
+          bpy.ops.export_scene.gltf(filepath=thisobj["gltf"], 
+                  export_skins=True,
+                  export_format="GLTF_EMBEDDED",
+                  export_yup=True,
+                  export_texture_dir="textures",
+                  export_texcoords=True,
+                  export_normals=True,
+                  export_cameras=False,
+                  export_lights=False,
+                  use_active_collection=True,
+                  use_renderable=True,
+                  use_selection=True,
+                  export_def_bones=True,
+                  export_animations=True,
+                  use_visible=True,
+                  check_existing=False)
+            
+          thisobj["normals"] = {}
+          thisobj["tris"] = {}
+          thisobj["vertices"] = {}
+
         with open( meshfile, 'w') as f:
           f.write(json.dumps(thisobj))
+
+        meshfile = meshfile.replace('\\','\\\\')
+
         # with open(meshfile, 'w') as fh:
         #   fh.write('return {\n')
         #   fh.write( '   mesh = ' + dump_lua(thisobj) + '\n' )
         #   fh.write('}\n')
-        meshfile = meshfile.replace('\\','\\\\')
-
+        
         fhandle.write('["' + thisobj["name"] + '"] = "' + meshfile + '", \n')
         #dataobjs[ thisobj["name"] ] = thisobj 
 
@@ -518,24 +544,44 @@ def sceneAnimations(context, f, temppath, config, animobjs):
 
           bpy.context.view_layer.objects.active = armature       
 
-      animfile = temppath + meshobj.name + ".dae"
-      bpy.ops.wm.collada_export(filepath=animfile, 
-              triangulate = True,
-              include_armatures=True,
-              include_children=False,
-              export_global_forward_selection='Z',
-              export_global_up_selection='-Y',
-              export_animation_type_selection='sample',
-              export_animation_transformation_type_selection='matrix',
-              #keep_keyframes=True,
-              apply_global_orientation=True,
-              selected=True,
-              deform_bones_only=True,
-              include_animations=True,
-              #include_all_actions=True,
-              filter_collada=True, 
-              filter_folder=True, 
-              filemode=8)
+      if( config.stream_mesh_type == "GLTF" ):
+        animfile = temppath + meshobj.name + ".gltf"
+        bpy.ops.export_scene.gltf(filepath=animfile, 
+                export_skins=True,
+                export_format="GLTF_EMBEDDED",
+                export_yup=True,
+                export_texture_dir="textures",
+                export_texcoords=True,
+                export_normals=True,
+                export_cameras=False,
+                export_lights=False,
+                use_active_collection=True,
+                use_renderable=True,
+                use_selection=True,
+                export_def_bones=True,
+                export_animations=True,
+                use_visible=True,
+                check_existing=False)
+
+      else:
+        animfile = temppath + meshobj.name + ".dae"
+        bpy.ops.wm.collada_export(filepath=animfile, 
+                triangulate = True,
+                include_armatures=True,
+                include_children=False,
+                export_global_forward_selection='Z',
+                export_global_up_selection='-Y',
+                export_animation_type_selection='sample',
+                export_animation_transformation_type_selection='matrix',
+                #keep_keyframes=True,
+                apply_global_orientation=True,
+                selected=True,
+                deform_bones_only=True,
+                include_animations=True,
+                #include_all_actions=True,
+                filter_collada=True, 
+                filter_folder=True, 
+                filemode=8)
 
       animfile = os.path.normpath(animfile)
       animfile = animfile.replace("\\", "\\\\")

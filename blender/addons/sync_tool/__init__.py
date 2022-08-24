@@ -129,6 +129,15 @@ class SyncProperties(PropertyGroup):
         default = True
         )
 
+    stream_mesh_type: EnumProperty(
+        name="Mesh Type",
+        description="Select the type of mesh to use.",
+        items=[ 
+                ('Collada', "Collada (anims only)", ""),
+                ('GLTF', "GLTF (mesh and anims)", ""),
+               ]
+    )
+
     stream_object: BoolProperty(
         name="Stream Objects",
         description="Enable Object Stream",
@@ -285,8 +294,10 @@ class WM_OT_SyncTool(Operator):
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
             f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
+            f.write('   stream_mesh_type = "' + str(mytool.stream_mesh_type).lower() + '",\n')
             f.write('   stream_anim      = ' + str(mytool.stream_anim).lower() + ',\n')
             f.write('   stream_anim_name = "' + animname + '",\n')
+
             f.write('}\n')
 
         # Run with library demo
@@ -330,6 +341,7 @@ class WM_OT_SyncTool(Operator):
             print("Stream Info:", mytool.stream_info)
             print("Stream Objects:", mytool.stream_object)
             print("Stream Meshes:", mytool.stream_mesh)
+            print("Stream Mesh Type:", mytool.stream_mesh_type)
             print("Stream Anims:", mytool.stream_anim)
             print("Host:", mytool.sync_host)
             print("Project Folder:", mytool.sync_proj)
@@ -365,6 +377,10 @@ class OBJECT_PT_CustomPanel(Panel):
         row.prop(mytool, "sync_mode", text="")
         row = box.row() 
         row.prop(mytool, "sync_shader", text="") 
+
+        row = box.row()
+        row.prop(mytool, "stream_mesh_type")
+
         row = box.row()
         row.prop(mytool, "sync_mat_params")
         row = box.row()
