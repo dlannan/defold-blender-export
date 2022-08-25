@@ -40,10 +40,10 @@
 #  https://gist.github.com/p2or/2947b1aa89141caae182526a8fc2bc5as
 
 bl_info = {
-    "name": "Sync Tool",
+    "name": "Defender",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (1, 0, 8),
+    "version": (1, 1, 0),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
@@ -82,7 +82,7 @@ if "bpy" in locals():
 
 import addon_utils
 for mod in addon_utils.modules():
-    if(mod.bl_info.get("name") == "Sync Tool"):
+    if(mod.bl_info.get("name") == "Defender"):
         dir = os.path.dirname(mod.__file__)
 
 # dir = os.path.dirname(bpy.data.filepath)
@@ -135,6 +135,7 @@ class SyncProperties(PropertyGroup):
         items=[ 
                 ('Collada', "Collada (anims only)", ""),
                 ('GLTF', "GLTF (mesh and anims)", ""),
+                ('GLB', "GLB (binary mesh and anims)", ""),
                ]
     )
 
@@ -209,7 +210,7 @@ class SyncProperties(PropertyGroup):
 
     sync_shader: EnumProperty(
         name="Shader:",
-        description="Sync Tool Shader Type",
+        description="Defender Shader Type",
         items=[ 
                 ('Model Material', "Builtin Model Material Shader", ""),
                 ('PBR Simple', "PBR Material Shader", ""),
@@ -236,7 +237,7 @@ class SyncProperties(PropertyGroup):
         
     sync_mode: EnumProperty(
         name="Dropdown:",
-        description="Sync Tool Operation Mode",
+        description="Defender Operation Mode",
         items=[ ('Sync Build', "Sync Build", ""),
                 ('Debug', "Debug", ""),
                ]
@@ -278,7 +279,7 @@ class WM_OT_SyncTool(Operator):
         if (mytool.stream_anim_name != None):
             animname = str(mytool.stream_anim_name.name)
 
-        # Write all the sync tool properties to a config file
+        # Write all the Defender properties to a config file
         with open(  os.path.abspath(dir + '/defoldsync/config.lua'), 'w') as f:
             f.write('-- Lua generated config - do not edit.\n')
             f.write('return {\n')
@@ -337,7 +338,7 @@ class WM_OT_SyncTool(Operator):
 
         # print the values to the console
         if( str(mytool.sync_mode) == 'Debug' ):
-            print("Sync Tool\n---------")
+            print("Defender\n---------")
             print("Stream Info:", mytool.stream_info)
             print("Stream Objects:", mytool.stream_object)
             print("Stream Meshes:", mytool.stream_mesh)
@@ -355,7 +356,7 @@ class WM_OT_SyncTool(Operator):
 # ------------------------------------------------------------------------
 
 class OBJECT_PT_CustomPanel(Panel):
-    bl_label = "Sync Tool"
+    bl_label = "Defender"
     bl_idname = "OBJECT_PT_custom_panel"
     bl_space_type = "VIEW_3D"   
     bl_region_type = "UI"

@@ -327,6 +327,8 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
   objcount = len(scene.objects)
   objcurr = 0
 
+  mode = config.stream_mesh_type
+
   animActionObjs = []
   for obj in scene.objects:
 
@@ -361,25 +363,28 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           verts_local = [v for v in obj.data.vertices.values()]
           # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
 
-          if(config.sync_mat_facenormals == True):
-            for v in verts_local:
-              verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
-          else:
-            for v in verts_local:
-              verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
-              normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
+          # Gltf and Glb are stored in file. No need for this
+          if( mode == "Collada" ):
+            if(config.sync_mat_facenormals == True):
+              for v in verts_local:
+                verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+            else:
+              for v in verts_local:
+                verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+                normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
 
           thisobj["vertices"] = verts
 
           vert_uv_map = {}
-          for i, face in enumerate(me.loop_triangles):
-              verts_indices = face.vertices[:]
-              for ti in range(0, 3):
-                  idx = verts_indices[ti]
-                  if not me.uv_layers.active:
-                    me.uv_layers.new()
-                  uv = me.uv_layers.active.data[face.loops[ti]].uv
-                  vert_uv_map.setdefault(idx, []).append((face.loops[ti], uv))
+          if( mode == "Collada" ):
+            for i, face in enumerate(me.loop_triangles):
+                verts_indices = face.vertices[:]
+                for ti in range(0, 3):
+                    idx = verts_indices[ti]
+                    if not me.uv_layers.active:
+                      me.uv_layers.new()
+                    uv = me.uv_layers.active.data[face.loops[ti]].uv
+                    vert_uv_map.setdefault(idx, []).append((face.loops[ti], uv))
 
           textures = {}
 
@@ -422,38 +427,39 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           tris = []
           nidx = 0
 
-          for i, face in enumerate(me.loop_triangles):
-            verts_indices = face.vertices[:]
+          if( mode == "Collada" ):
+            for i, face in enumerate(me.loop_triangles):
+              verts_indices = face.vertices[:]
 
-            triobj = {}
-            thistri = []
-            facenormal = face.normal
+              triobj = {}
+              thistri = []
+              facenormal = face.normal
 
-            for ti in range(0, 3):
-              idx = verts_indices[ti]
-              nidx = idx
+              for ti in range(0, 3):
+                idx = verts_indices[ti]
+                nidx = idx
 
-              # override normals if using facenormals
-              if(config.sync_mat_facenormals == True):
-                normals.append( { "x": facenormal.x, "y": facenormal.y, "z": facenormal.z } )
-                nidx = nidx + 1
-                #print(idx, normal.x, normal.y, normal.z)
+                # override normals if using facenormals
+                if(config.sync_mat_facenormals == True):
+                  normals.append( { "x": facenormal.x, "y": facenormal.y, "z": facenormal.z } )
+                  nidx = nidx + 1
+                  #print(idx, normal.x, normal.y, normal.z)
 
-              if(uv_layer):
-                uv = uv_layer[face.loops[ti]].uv
-              
-              tridata = { 
-                "vertex": idx,
-                "normal": nidx,
-                "uv": { "x": uv.x, "y": uv.y }
-              }
+                if(uv_layer):
+                  uv = uv_layer[face.loops[ti]].uv
+                
+                tridata = { 
+                  "vertex": idx,
+                  "normal": nidx,
+                  "uv": { "x": uv.x, "y": uv.y }
+                }
 
-              # if( len(uvs) > 1 and config.sync_mat_uv2 == True):
-              #   tridata["uv2"] = { "x": uvs[1].x, "y": uvs[1].y }
-              thistri.append( tridata )
+                # if( len(uvs) > 1 and config.sync_mat_uv2 == True):
+                #   tridata["uv2"] = { "x": uvs[1].x, "y": uvs[1].y }
+                thistri.append( tridata )
 
-            triobj["tri"] = thistri
-            tris.append(triobj)
+              triobj["tri"] = thistri
+              tris.append(triobj)
 
           thisobj["tris"] = tris
           #normals_world = [obj.matrix_world @ n_local for n_local in normals]
@@ -461,24 +467,29 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
         
         meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
 
-        if( config.stream_mesh_type == "GLTF" ):
-          thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + '.gltf') 
+        if( mode == "GLTF" or mode == "GLB" ):
+          thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".gltf")
+          gltffiletype = "GLTF_SEPARATE"
+          if( mode == "GLB" ):
+            thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".glb")
+            gltffiletype = "GLB"
+
           bpy.ops.export_scene.gltf(filepath=thisobj["gltf"], 
-                  export_skins=True,
-                  export_format="GLTF_EMBEDDED",
-                  export_yup=True,
-                  export_texture_dir="textures",
-                  export_texcoords=True,
-                  export_normals=True,
-                  export_cameras=False,
-                  export_lights=False,
-                  use_active_collection=True,
-                  use_renderable=True,
-                  use_selection=True,
-                  export_def_bones=True,
-                  export_animations=True,
-                  use_visible=True,
-                  check_existing=False)
+                    export_skins=True,
+                    export_format=gltffiletype,
+                    #export_image_format='NONE',
+                    #export_yup=True,
+                    export_texture_dir="textures",
+                    export_texcoords=True,
+                    export_normals=True,
+                    export_cameras=False,
+                    export_lights=False,
+                    use_renderable=True,
+                    use_selection=True,
+                    export_def_bones=True,
+                    export_animations=True,
+                    use_visible=True,
+                    check_existing=False)
             
           thisobj["normals"] = {}
           thisobj["tris"] = {}
@@ -544,25 +555,28 @@ def sceneAnimations(context, f, temppath, config, animobjs):
 
           bpy.context.view_layer.objects.active = armature       
 
-      if( config.stream_mesh_type == "GLTF" ):
+      if( config.stream_mesh_type == "GLTF" or config.stream_mesh_type == "GLB" ):
         animfile = temppath + meshobj.name + ".gltf"
+        animfiletype = "GLTF_SEPARATE"
+        if( config.stream_mesh_type == "GLB" ):
+          animfile = temppath + meshobj.name + ".glb"
+          animfiletype = "GLB"
         bpy.ops.export_scene.gltf(filepath=animfile, 
-                export_skins=True,
-                export_format="GLTF_EMBEDDED",
-                export_yup=True,
-                export_texture_dir="textures",
-                export_texcoords=True,
-                export_normals=True,
-                export_cameras=False,
-                export_lights=False,
-                use_active_collection=True,
-                use_renderable=True,
-                use_selection=True,
-                export_def_bones=True,
-                export_animations=True,
-                use_visible=True,
-                check_existing=False)
-
+                  export_skins=True,
+                  export_format=animfiletype,
+                  #export_image_format='NONE',
+                  #export_yup=True,
+                  export_texture_dir="textures",
+                  export_texcoords=True,
+                  export_normals=True,
+                  export_cameras=False,
+                  export_lights=False,
+                  use_renderable=True,
+                  use_selection=True,
+                  export_def_bones=True,
+                  export_animations=True,
+                  use_visible=True,
+                  check_existing=False)
       else:
         animfile = temppath + meshobj.name + ".dae"
         bpy.ops.wm.collada_export(filepath=animfile, 

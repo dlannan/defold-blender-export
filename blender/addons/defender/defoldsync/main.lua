@@ -49,6 +49,9 @@ if(string.len(project_path) == 0) then project_path = "./Sample" end
 project_path = project_path:gsub("%.", "%%%.")
 
 if(config.sync_mode == "Sync Build") then
+    if( config.stream_mesh_type == "gltf" or config.stream_mesh_type == "glb") then 
+        gen.gltf = true 
+    end 
     gen.makefolders( collection_name, project_path, config )
     gen.makescene( collection_name, data["OBJECTS"], data["MESHES"], data["ANIMS"])
 end

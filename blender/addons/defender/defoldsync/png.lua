@@ -1,6 +1,6 @@
 local ffi = require("ffi")
 
--- '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/luajit/darwin/luajit' '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/main.lua' '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/sync_tool'
+-- '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/defender/defoldsync/luajit/darwin/luajit' '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/sync_tool/defoldsync/main.lua' '/Users/davidlannan/Library/Application Support/Blender/2.83/scripts/addons/defender'
 
 local libs = ffi_luajit_libs or {
    OSX     = { x86 = GDIR_PATH.."/defoldsync/luajit/darwin/libpng16.16.dylib", x64 = GDIR_PATH.."/defoldsync/luajit/darwin/libpng16.16.dylib" },

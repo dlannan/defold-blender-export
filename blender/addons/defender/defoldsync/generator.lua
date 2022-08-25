@@ -273,6 +273,25 @@ local gopscript = [[
 
 ------------------------------------------------------------------------------------------------------------
 
+local gcollectionroot_rot_mesh = [[
+    rotation {
+        x: -0.70710677
+        y: 0.0
+        z: 0.0
+        w: 0.70710677
+    }
+]]
+
+local gcollectionroot_rot_gltf = [[
+    rotation {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+    }
+]]
+
+
 local gcollectionroot = [[
 embedded_instances {
     id: "__root"
@@ -283,12 +302,7 @@ ROOT_CHILDREN
         y: 0.0
         z: 0.0
     }
-    rotation {
-        x: -0.70710677
-        y: 0.0
-        z: 0.0
-        w: 0.70710677
-    }
+ROOT_ROTATION
     scale3 {
         x: 1.0
         y: 1.0
@@ -362,10 +376,10 @@ embedded_instances {
     "  id: \"camera\"\n"
     "  type: \"camera\"\n"
     "  data: \"aspect_ratio: 1.0\\n"
-    "fov: 0.7854\\n"
-    "near_z: 0.1\\n"
-    "far_z: 1000.0\\n"
-    "auto_aspect_ratio: 0\\n"
+    "  fov: 0.7854\\n"
+    "  near_z: 0.1\\n"
+    "  far_z: 1000.0\\n"
+    "  auto_aspect_ratio: 0\\n"
     "\"\n"
     "  position {\n"
     "    x: 0.0\n"
@@ -619,7 +633,9 @@ local function makemeshfile(name, filepath, mesh )
     meshdata = string.gsub(meshdata, "MESH_TEXTURE_FILES", texture_file_list)
 
     if( mesh.gltf) then
-        meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".gltf"
+        local gltf_ext = string.sub( mesh.gltf, -4, -1 )
+        print("extension: "..gltf_ext)
+        meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..gltf_ext
         os.execute(CMD_COPY..' "'..mesh.gltf..'" "'..meshfilepath..'"')
     else 
         local bufferfilepath = makebufferfile( name, filepath, mesh )
@@ -700,7 +716,8 @@ local function makegofile( name, filepath, go )
             if(fh) then
                 local fdata = fh:read("*all")
                 fh:close()
-                local mesh = json.decode( fdata )
+                local mesh = {}
+                mesh = json.decode( fdata )
                 local meshfile, mdata = makemeshfile(name, filepath, mesh)
                 meshdata = mdata 
                 meshfilepath = localpathname(meshfile)
@@ -867,6 +884,11 @@ local function makecollection( collectionname, objects, objlist )
 
     -- Add the root instance 
     local newcollection = string.gsub(gcollectionroot, "ROOT_CHILDREN", rootchildren)
+    if( gendata.gltf ) then 
+        newcollection = string.gsub(newcollection, "ROOT_ROTATION", gcollectionroot_rot_gltf)
+    else 
+        newcollection = string.gsub(newcollection, "ROOT_ROTATION", gcollectionroot_rot_mesh)
+    end 
     newcollection = string.gsub(newcollection, "COLLECTION_SCRIPT", rootscript)
     colldata = colldata.."\n"..newcollection
     
