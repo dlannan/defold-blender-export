@@ -88,6 +88,26 @@ gendata.files = {
 local pbrsimple = require("defoldsync.material-pbrsimple")
 
 ------------------------------------------------------------------------------------------------------------
+
+local grotation_mesh = [[
+    rotation {
+        x: -0.70710677
+        y: 0.0
+        z: 0.0
+        w: 0.70710677
+    }
+]]
+
+local grotation_gltf = [[
+    rotation {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+    }
+]]
+
+------------------------------------------------------------------------------------------------------------
 -- Dataset for each file type (defaults)
 
 local bufferfiledata = [[
@@ -272,25 +292,6 @@ local gopscript = [[
 ]]
 
 ------------------------------------------------------------------------------------------------------------
-
-local gcollectionroot_rot_mesh = [[
-    rotation {
-        x: -0.70710677
-        y: 0.0
-        z: 0.0
-        w: 0.70710677
-    }
-]]
-
-local gcollectionroot_rot_gltf = [[
-    rotation {
-        x: 0.0
-        y: 0.0
-        z: 0.0
-        w: 1.0
-    }
-]]
-
 
 local gcollectionroot = [[
 embedded_instances {
@@ -634,7 +635,6 @@ local function makemeshfile(name, filepath, mesh )
 
     if( mesh.gltf) then
         local gltf_ext = string.sub( mesh.gltf, -4, -1 )
-        print("extension: "..gltf_ext)
         meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..gltf_ext
         os.execute(CMD_COPY..' "'..mesh.gltf..'" "'..meshfilepath..'"')
     else 
@@ -691,9 +691,11 @@ local function makegofile( name, filepath, go )
     local meshdata = nil
 
     local animname, animfile = nil, nil 
-    if(go.animated and gendata.anims) then
+    if(go.animated and gendata.anims) or gendata.gltf then
         animname = go.name
-        animfile = gendata.anims[animname]
+        animfile = "gltf"
+        if(gendata.anims) then animfile = gendata.anims[animname] end 
+
         if(animname and animfile) then 
             godata = gomodelfiledata
         else 
@@ -719,6 +721,7 @@ local function makegofile( name, filepath, go )
                 local mesh = {}
                 mesh = json.decode( fdata )
                 local meshfile, mdata = makemeshfile(name, filepath, mesh)
+                if( animfile == "gltf" ) then animfile = localpathname( meshfile ) end
                 meshdata = mdata 
                 meshfilepath = localpathname(meshfile)
             end
@@ -856,7 +859,11 @@ local function makecollection( collectionname, objects, objlist )
 
         local position = "x:0.0\n\ty:0.0\n\tz:0.0"
         if(v.location) then 
-            position = "x:"..v.location.x.."\n\ty:"..v.location.y.."\n\tz:"..v.location.z
+            if(gendata.gltf) then 
+                position = "x:"..v.location.x.."\n\ty:"..v.location.z.."\n\tz:"..(-v.location.y)
+            else 
+                position = "x:"..v.location.x.."\n\ty:"..v.location.y.."\n\tz:"..v.location.z
+            end
         end 
         objdata = string.gsub(objdata, "GO_POSITION", position)
 
@@ -885,9 +892,9 @@ local function makecollection( collectionname, objects, objlist )
     -- Add the root instance 
     local newcollection = string.gsub(gcollectionroot, "ROOT_CHILDREN", rootchildren)
     if( gendata.gltf ) then 
-        newcollection = string.gsub(newcollection, "ROOT_ROTATION", gcollectionroot_rot_gltf)
+        newcollection = string.gsub(newcollection, "ROOT_ROTATION", grotation_gltf)
     else 
-        newcollection = string.gsub(newcollection, "ROOT_ROTATION", gcollectionroot_rot_mesh)
+        newcollection = string.gsub(newcollection, "ROOT_ROTATION", grotation_mesh)
     end 
     newcollection = string.gsub(newcollection, "COLLECTION_SCRIPT", rootscript)
     colldata = colldata.."\n"..newcollection

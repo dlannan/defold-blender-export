@@ -328,6 +328,9 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
   objcurr = 0
 
   mode = config.stream_mesh_type
+  #Deselect any selected object
+  for o in context.selected_objects:
+    o.select_set(False)
 
   animActionObjs = []
   for obj in scene.objects:
@@ -468,8 +471,16 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
         meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
 
         if( mode == "GLTF" or mode == "GLB" ):
+
+          # Select just this object to export
+          for o in context.selected_objects:
+            o.select_set(False)
+          
+          obj.select_set(True)
+          context.view_layer.objects.active = obj
+
           thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".gltf")
-          gltffiletype = "GLTF_SEPARATE"
+          gltffiletype = "GLTF_EMBEDDED"
           if( mode == "GLB" ):
             thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".glb")
             gltffiletype = "GLB"
@@ -482,6 +493,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                     export_texture_dir="textures",
                     export_texcoords=True,
                     export_normals=True,
+                    export_colors=True,
                     export_cameras=False,
                     export_lights=False,
                     use_renderable=True,
@@ -569,6 +581,7 @@ def sceneAnimations(context, f, temppath, config, animobjs):
                   export_texture_dir="textures",
                   export_texcoords=True,
                   export_normals=True,
+                  export_colors=True,
                   export_cameras=False,
                   export_lights=False,
                   use_renderable=True,
