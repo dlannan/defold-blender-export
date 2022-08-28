@@ -860,7 +860,7 @@ local function makecollection( collectionname, objects, objlist )
         local position = "x:0.0\n\ty:0.0\n\tz:0.0"
         if(v.location) then 
             if(gendata.gltf) then 
-                position = "x:"..v.location.x.."\n\ty:"..v.location.z.."\n\tz:"..(-v.location.y)
+                position = "x:"..v.location.x.."\n\ty:"..v.location.y.."\n\tz:"..v.location.z
             else 
                 position = "x:"..v.location.x.."\n\ty:"..v.location.y.."\n\tz:"..v.location.z
             end
