@@ -745,9 +745,15 @@ local function makegofile( name, filepath, go )
             godata = string.gsub(godata, "MESH_TEXTURE_FILES", texfiles)
         end 
 
-        godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
-        godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
-        godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
+        if(gendata.anim) then 
+            godata = string.gsub(godata, "MODEL_SKELETON_FILE", animfile)
+            godata = string.gsub(godata, "MODEL_ANIM_FILE", animfile)
+            godata = string.gsub(godata, "MODEL_ANIM_NAME", animname)
+        else
+            godata = string.gsub(godata, "MODEL_SKELETON_FILE", "")
+            godata = string.gsub(godata, "MODEL_ANIM_FILE", "")
+            godata = string.gsub(godata, "MODEL_ANIM_NAME", "")
+        end
     end 
 
     makefile( gofilepath, godata )
