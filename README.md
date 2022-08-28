@@ -1,4 +1,8 @@
-# defold-blender-export
+# Defender
+
+Update: 
+Sync-Tool is now called Defender - defold-blender-export. Thanks to Dziq and Klear for their ideas!
+
 A Blender export system for the Defold game engine.
 
 Note a big thanks to raetia and astrochilli for helping debugging the OSX capabilities. More info can be found here:
