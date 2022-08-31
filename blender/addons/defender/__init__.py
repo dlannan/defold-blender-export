@@ -98,19 +98,11 @@ data_changed = False
 
 # ------------------------------------------------------------------------
 
-class ImageLayerData(bpy.types.PropertyGroup):
-    name = StringProperty(name="Layer Name", default="new layer")
-    is_visible = BoolProperty(name="vis tog", default=True)
-    #pixels =  []
-    #position = []
+class MyCollectionProperty(bpy.types.PropertyGroup):
+    id = IntProperty()
+    lineitem = StringProperty()
 
-
-class LayersData(bpy.types.PropertyGroup):
-    layers = CollectionProperty(type = ImageLayerData)
-
-
-bpy.utils.register_class(ImageLayerData)
-bpy.utils.register_class(LayersData)
+bpy.utils.register_class(MyCollectionProperty)
 
 # ------------------------------------------------------------------------
 #    Scene Properties
@@ -270,11 +262,7 @@ class SyncProperties(PropertyGroup):
 
     sync_progress_label: StringProperty()
 
-    sync_errors: PointerProperty(
-        name = "Error Output", 
-        type =  LayersData,  
-        description = "Errors reported during export" 
-        )
+    sync_errors: CollectionProperty( type=MyCollectionProperty )
 
 # ------------------------------------------------------------------------
 #    Operators
@@ -288,6 +276,9 @@ class WM_OT_SyncTool(Operator):
     def execute(self, context):
         scene = context.scene
         mytool = scene.sync_tool
+
+        text = mytool.sync_errors.add()
+        text.lineitem = "Test"
 
         dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
        
@@ -459,15 +450,8 @@ class OBJECT_PT_CustomPanel(Panel):
 
         box = layout.box()
         row = box.row()
+
         row.prop( mytool, "sync_errors" )
-
-        image =  bpy.data.images.new( "name", 10, 10, alpha = True )
-        layers = image.ldata.layers 
-        d1 = layers.add()
-        d1["position"] = [5,1,2,3]
-        d2 = layers.add()
-        d2["position"] = [0,1,2,3]
-
 
 # ------------------------------------------------------------------------
 #    Registration
