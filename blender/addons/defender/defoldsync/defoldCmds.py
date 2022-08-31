@@ -83,6 +83,19 @@ def isAnimated( obj ):
         return True
   return False
 
+# ------------------------------------------------------------------------
+# Message box for errors or warnings.
+
+def ShowMessageBox(mytool, message = "", title = "Message Box", icon = 'INFO'):
+
+    def draw(self, context):
+        self.layout.label(text=message)
+
+    bpy.context.window.cursor_warp(bpy.context.window.width/2, (bpy.context.window.height/2) + 60 + mytool.msgcount * 70);
+    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+
+    mytool.msgcount = mytool.msgcount + 1
+
 
 # ------------------------------------------------------------------------
 # update progress bar 
@@ -143,6 +156,12 @@ def sceneObjects(context, f, config):
   for coll in bpy.data.collections:
     objcount += len(coll.objects)
   objcurr = 0
+
+  # No collections in the list!! Need a collection!
+  if( len(bpy.data.collections) == 0 ):
+    ShowMessageBox( config, "No Collection found. Please add a collection.", "Defender Error", 'ERROR' )
+    f.write('} \n')
+    return
 
   for coll in bpy.data.collections:
 
@@ -396,29 +415,34 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
           bsdf_node_name = "Principled BSDF"
           if mat is not None and mat.use_nodes and bsdf_node_name in mat.node_tree.nodes:
-              bsdf = mat.node_tree.nodes[bsdf_node_name] 
+            bsdf = mat.node_tree.nodes[bsdf_node_name] 
 
-              # material names are cleaned here
-              mat.name = re.sub(r'[^\w]', ' ', mat.name)
-          #if( len(obj.material_slots) > 0 ):
-          #  mat = obj.material_slots[0].material        
-          #  if mat and mat.node_tree:
-              # Get the nodes in the node tree
-              #nodes = mat.node_tree.nodes
-              # Get a principled node
-              #bsdf = nodes.get("Principled BSDF") 
-              # Get the slot for 'base color'
-              if(bsdf is not None):
-                print("[ BSDF ] : bsdf material type used.")
-                addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
-                addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
-                addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
-                addTexture( mat.name, textures, "emissive_color", bsdf.inputs, "Emission", texture_path, context )
-                addTexture( mat.name, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, context )
-                addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
-                addTexture( mat.name, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
-              else:
-                print("[ ERROR ] : Uknown material type used.")
+            # material names are cleaned here
+            mat.name = re.sub(r'[^\w]', ' ', mat.name)
+
+        #if( len(obj.material_slots) > 0 ):
+        #  mat = obj.material_slots[0].material        
+        #  if mat and mat.node_tree:
+            # Get the nodes in the node tree
+            #nodes = mat.node_tree.nodes
+            # Get a principled node
+            #bsdf = nodes.get("Principled BSDF") 
+            # Get the slot for 'base color'
+            if(bsdf is not None):
+              print("[ BSDF ] : bsdf material type used.")
+              addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
+              addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
+              addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
+              addTexture( mat.name, textures, "emissive_color", bsdf.inputs, "Emission", texture_path, context )
+              addTexture( mat.name, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, context )
+              addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
+              addTexture( mat.name, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
+            else:
+              print("[ ERROR ] : Uknown material type used.")
+              ShowMessageBox( config, "Unknown material type used.", "Defender Error", "ERROR")
+          else:
+            print("[ ERROR ] : Uknown material type used.")
+            ShowMessageBox( config, "Unknown material type used.", "Defender Error", "ERROR")
 
           if(len(textures) > 0):
             thisobj["textures"] = textures
@@ -696,7 +720,7 @@ def getData( context, clientcmds, dir, config):
       # Object transforms and hierarchy
       if(cmd == 'scene'):
         f.write('OBJECTS = ')
-        sceneObjects(context, f, config)
+        sceneObjects(context, f, config) 
         f.write(', \n')
 
       # Mesh data 

@@ -61,6 +61,7 @@ from bpy.props import (StringProperty,
                        IntProperty,
                        FloatProperty,
                        FloatVectorProperty,
+                       CollectionProperty,
                        EnumProperty,
                        PointerProperty,
                        )
@@ -94,6 +95,22 @@ if not dir in sys.path:
 from defoldsync import defoldCmds
 
 data_changed = False
+
+# ------------------------------------------------------------------------
+
+class ImageLayerData(bpy.types.PropertyGroup):
+    name = StringProperty(name="Layer Name", default="new layer")
+    is_visible = BoolProperty(name="vis tog", default=True)
+    #pixels =  []
+    #position = []
+
+
+class LayersData(bpy.types.PropertyGroup):
+    layers = CollectionProperty(type = ImageLayerData)
+
+
+bpy.utils.register_class(ImageLayerData)
+bpy.utils.register_class(LayersData)
 
 # ------------------------------------------------------------------------
 #    Scene Properties
@@ -253,6 +270,11 @@ class SyncProperties(PropertyGroup):
 
     sync_progress_label: StringProperty()
 
+    sync_errors: PointerProperty(
+        name = "Error Output", 
+        type =  LayersData,  
+        description = "Errors reported during export" 
+        )
 
 # ------------------------------------------------------------------------
 #    Operators
@@ -306,6 +328,8 @@ class WM_OT_SyncTool(Operator):
         commands    = [ "scene", "meshes" ]
         if(mytool.stream_anim == True):
             commands.append("anims")
+
+        mytool.msgcount = 0 
 
         # get the data from the objects in blender
         defoldCmds.getData(context, commands, dir, mytool)
@@ -362,7 +386,6 @@ class OBJECT_PT_CustomPanel(Panel):
     bl_region_type = "UI"
     bl_category = "Defold"
     bl_context = "objectmode"   
-
 
     @classmethod
     def poll(self,context):
@@ -430,7 +453,21 @@ class OBJECT_PT_CustomPanel(Panel):
 
 #        if mytool.progress: 
         row = layout.row()
-        row.prop(mytool, "sync_progress", text=mytool.sync_progress_label)
+        row.prop( mytool, "sync_progress", text=mytool.sync_progress_label )
+
+        layout.separator()
+
+        box = layout.box()
+        row = box.row()
+        row.prop( mytool, "sync_errors" )
+
+        image =  bpy.data.images.new( "name", 10, 10, alpha = True )
+        layers = image.ldata.layers 
+        d1 = layers.add()
+        d1["position"] = [5,1,2,3]
+        d2 = layers.add()
+        d2["position"] = [0,1,2,3]
+
 
 # ------------------------------------------------------------------------
 #    Registration
