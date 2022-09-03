@@ -84,17 +84,18 @@ def isAnimated( obj ):
   return False
 
 # ------------------------------------------------------------------------
-# Message box for errors or warnings.
+# Add errors or warnings to the Errors Panel.
 
-def ShowMessageBox(mytool, message = "", title = "Message Box", icon = 'INFO'):
+def ClearErrors( mytool ):
+  mytool.sync_errors_str.clear()
 
-    def draw(self, context):
-        self.layout.label(text=message)
+# ------------------------------------------------------------------------
+# Add errors or warnings to the Errors Panel.
 
-    bpy.context.window.cursor_warp(bpy.context.window.width/2, (bpy.context.window.height/2) + 60 + mytool.msgcount * 70);
-    bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+def ErrorLine(mytool, message = "", title="", level=""):
 
-    mytool.msgcount = mytool.msgcount + 1
+  mytool.sync_errors_str.append( "[" + str(title) + "] " + str(message) )
+  mytool.msgcount = len(mytool.sync_errors_str)
 
 
 # ------------------------------------------------------------------------
@@ -159,7 +160,7 @@ def sceneObjects(context, f, config):
 
   # No collections in the list!! Need a collection!
   if( len(bpy.data.collections) == 0 ):
-    ShowMessageBox( config, "No Collection found. Please add a collection.", "Defender Error", 'ERROR' )
+    ErrorLine( config, "No Collection found. Please add a collection.", "Scene", 'ERROR' )
     f.write('} \n')
     return
 
@@ -439,10 +440,10 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
               addTexture( mat.name, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
             else:
               print("[ ERROR ] : Uknown material type used.")
-              ShowMessageBox( config, "Unknown material type used.", "Defender Error", "ERROR")
+              ErrorLine( config, mat.name + ": Unknown material type used.",  mat.name, "ERROR")
           else:
             print("[ ERROR ] : Uknown material type used.")
-            ShowMessageBox( config, "Unknown material type used.", "Defender Error", "ERROR")
+            ErrorLine( config, ":Unknown material type used.",  mat.name, "ERROR")
 
           if(len(textures) > 0):
             thisobj["textures"] = textures
@@ -694,6 +695,8 @@ def getData( context, clientcmds, dir, config):
       shutil.rmtree(temppath, ignore_errors=True)
   except OSError as e:
       print("Error: %s : %s" % (dir_path, e.strerror))
+
+  ClearErrors( config )
 
   # Make temp folder if it doesnt exist
   os.makedirs( temppath, 511, True )

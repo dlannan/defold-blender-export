@@ -96,13 +96,6 @@ from defoldsync import defoldCmds
 
 data_changed = False
 
-# ------------------------------------------------------------------------
-
-class MyCollectionProperty(bpy.types.PropertyGroup):
-    id = IntProperty()
-    lineitem = StringProperty()
-
-bpy.utils.register_class(MyCollectionProperty)
 
 # ------------------------------------------------------------------------
 #    Scene Properties
@@ -126,6 +119,8 @@ def update_lightglobal(self, context):
 
 class SyncProperties(PropertyGroup):
 
+    sync_errors_str = []
+
     stream_info: BoolProperty(
         name="Stream Info",
         description="Enable Info Stream",
@@ -146,7 +141,7 @@ class SyncProperties(PropertyGroup):
                 ('GLTF', "GLTF (mesh and anims)", ""),
                 ('GLB', "GLB (binary mesh and anims)", ""),
                ]
-    )
+        )
 
     stream_object: BoolProperty(
         name="Stream Objects",
@@ -262,7 +257,7 @@ class SyncProperties(PropertyGroup):
 
     sync_progress_label: StringProperty()
 
-    sync_errors: CollectionProperty( type=MyCollectionProperty )
+    sync_errors: StringProperty()
 
 # ------------------------------------------------------------------------
 #    Operators
@@ -276,9 +271,6 @@ class WM_OT_SyncTool(Operator):
     def execute(self, context):
         scene = context.scene
         mytool = scene.sync_tool
-
-        text = mytool.sync_errors.add()
-        text.lineitem = "Test"
 
         dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
        
@@ -347,9 +339,19 @@ class WM_OT_SyncTool(Operator):
         defolddir = dir + '/defoldsync/'
 
         luajit_cmd = os.path.abspath(defolddir + platform_luajits[this_platform]["path"] + platform_luajits[this_platform]["exe"] )
-        subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
-        prog_text = "Process Complete."
-        defoldCmds.update_progress(context, 100, prog_text)
+        #Check execution permissions
+        perm = os.access(luajit_cmd, os.X_OK) # Check for execution access
+
+        if(perm):
+            subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
+            prog_text = "Process Complete."
+            defoldCmds.update_progress(context, 100, prog_text)
+        else:
+            mytool.sync_errors_str.append("[Execution Persmissions Error]")
+            mytool.sync_errors_str.append("    File: " + luajit_cmd)
+        
+        if(len(mytool.sync_errors_str) > 0):
+            defoldCmds.update_progress(context, 0, "Process Error.")
 
         # print the values to the console
         if( str(mytool.sync_mode) == 'Debug' ):
@@ -447,11 +449,32 @@ class OBJECT_PT_CustomPanel(Panel):
         row.prop( mytool, "sync_progress", text=mytool.sync_progress_label )
 
         layout.separator()
+        
+        text = ""
+        if(len(mytool.sync_errors_str) > 0):
+            row = layout.row()
+            row.label( text='Errors:' )
+            box = layout.box()
 
-        box = layout.box()
-        row = box.row()
+            linecount = 0
+            for i in mytool.sync_errors_str:
+                # Only draw 8 lines max
+                if(linecount > 8):
+                    break
+                row = box.row()
+                row.label( text=str(i) )
 
-        row.prop( mytool, "sync_errors" )
+            #Write out log to a log file
+            with open( bpy.path.abspath("//defender.log"), 'w' ) as f:
+                f.write("Defender Error file.\n")
+                f.write( "    Defender version: " + str(bl_info.version) + "\n" )
+                f.write( "    Blender version: " + str(bl_info.blender) + "\n" )
+                f.write("\n")
+
+                for i in mytool.sync_errors_str:
+                    f.write( str(i) + "\n" )
+                f.write("\n")
+                f.write("Defender Error Report Info:")
 
 # ------------------------------------------------------------------------
 #    Registration
