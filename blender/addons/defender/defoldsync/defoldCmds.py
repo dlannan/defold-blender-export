@@ -440,10 +440,10 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
               addTexture( mat.name, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
             else:
               print("[ ERROR ] : Uknown material type used.")
-              ErrorLine( config, mat.name + ": Unknown material type used.",  mat.name, "ERROR")
+              ErrorLine( config, " Unknown material type used: ",  str(mat.name), "ERROR")
           else:
             print("[ ERROR ] : Uknown material type used.")
-            ErrorLine( config, ":Unknown material type used.",  mat.name, "ERROR")
+            ErrorLine( config, " Unknown material type used.",  str(mat.name), "ERROR")
 
           if(len(textures) > 0):
             thisobj["textures"] = textures

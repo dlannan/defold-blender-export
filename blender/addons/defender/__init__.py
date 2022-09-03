@@ -43,7 +43,7 @@ bl_info = {
     "name": "Defender",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (1, 1, 0),
+    "version": (1, 1, 1),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
@@ -464,17 +464,53 @@ class OBJECT_PT_CustomPanel(Panel):
                 row = box.row()
                 row.label( text=str(i) )
 
+            dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
+        
+            projpath    = os.path.realpath(bpy.path.abspath(mytool.sync_proj))
+            # Convert \ in path to \\
+            projpath    = projpath.replace('\\','\\\\')
+
+            prm = mytool.sync_mat_params  
+            lv = mytool.sync_light_vector  
+            animname = ""
+            if (mytool.stream_anim_name != None):
+                animname = str(mytool.stream_anim_name.name)
+
+            this_platform = platform.system()
+
             #Write out log to a log file
-            with open( bpy.path.abspath("//defender.log"), 'w' ) as f:
-                f.write("Defender Error file.\n")
-                f.write( "    Defender version: " + str(bl_info.version) + "\n" )
-                f.write( "    Blender version: " + str(bl_info.blender) + "\n" )
+            with open( bpy.path.abspath("//defender-"  + mytool.sync_scene + ".log"), 'w' ) as f:
+                f.write("Defender Error file\n")
+                f.write("-------------------\n")
+                f.write( "    Platform: " + str(  platform.system() ) + "  "  + str( platform.release()) + "  " +  str(platform.version()) + "\n" )
+                f.write( "    Defender version: " + str(bl_info["version"]) + "\n" )
+                f.write( "    Blender version: " + str(bl_info["blender"]) + "\n" )
                 f.write("\n")
 
+                f.write("Defender Errors\n")
+                f.write("---------------\n")
                 for i in mytool.sync_errors_str:
-                    f.write( str(i) + "\n" )
+                    f.write( "    " + str(i) + "\n" )
+    
                 f.write("\n")
-                f.write("Defender Error Report Info:")
+                f.write("Defender Error Report Info\n")
+                f.write("--------------------------\n")
+                f.write('    sync_mode        = "' + str(mytool.sync_mode) + '",\n')
+                f.write('    sync_proj        = "' + projpath + '",\n')
+                f.write('    sync_scene       = "' + mytool.sync_scene + '",\n')
+                f.write('    sync_shader      = "' + str(mytool.sync_shader) + '",\n')
+                f.write('    sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
+                f.write('    sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
+                f.write('    sync_mat_params   = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
+                f.write('    sync_mat_facenormals = ' + str(mytool.sync_mat_facenormals).lower() + ',\n')
+                f.write('    sync_mat_uv2     = ' + str(mytool.sync_mat_uv2).lower() + ',\n')
+                f.write('    stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
+                f.write('    stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
+                f.write('    stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
+                f.write('    stream_mesh_type = "' + str(mytool.stream_mesh_type).lower() + '",\n')
+                f.write('    stream_anim      = ' + str(mytool.stream_anim).lower() + ',\n')
+                f.write('    stream_anim_name = "' + animname + '",\n')
+
 
 # ------------------------------------------------------------------------
 #    Registration
