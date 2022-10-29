@@ -95,6 +95,7 @@ gendata.files = {
 ------------------------------------------------------------------------------------------------------------
 -- This will be used to allow custom materials and shaders (coming soon...)
 local pbrsimple = require("defoldsync.material-pbrsimple")
+local pbrlightmap = require("defoldsync.material-pbrlightmap")
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -632,6 +633,9 @@ local function makemeshfile(name, filepath, mesh )
 
     if(gendata.config.sync_shader == "PBR Simple") then 
         materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
+        if( mesh.matname and string.endswith(mesh.matname, "_LightMap")) then 
+            materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-lightmap.material"
+        end
         meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
     else 
         meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
@@ -794,12 +798,10 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function setupmaterials( project_path )
-    -- Make the default pbr material, and shaders
-    local material_path = project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR
-    local material_vp_path = material_path.."pbr-simple.vp"
-    local material_fp_path = material_path.."pbr-simple.fp"
-    local matstr = pbrsimple.material:gsub("MATERIAL_VP", localpathname(material_vp_path))
+local function genmaterial( material_path, vpname, fpname, matname, pbrmaterial )
+    local material_vp_path = material_path..vpname
+    local material_fp_path = material_path..fpname
+    local matstr = pbrmaterial.material:gsub("MATERIAL_VP", localpathname(material_vp_path))
     matstr = matstr:gsub("MATERIAL_FP", localpathname(material_fp_path))
 
     local lv = gendata.config.sync_light_vec
@@ -810,16 +812,27 @@ local function setupmaterials( project_path )
     local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 1.0'
     matstr = matstr:gsub("MATERIAL_PARAMS", mat_params) 
 
-    makefile( material_path.."pbr-simple.material", matstr)
+    makefile( material_path..matname, matstr)
 
-    pbrsimple.vp = pbrsimple.vp:gsub("MATERIAL_VP_LIGHTDIR", pbrsimple.vp_lightdir_global)
-    makefile( material_vp_path, pbrsimple.vp )
-    makefile( material_fp_path, pbrsimple.fp )
+    pbrmaterial.vp = pbrmaterial.vp:gsub("MATERIAL_VP_LIGHTDIR", pbrmaterial.vp_lightdir_global)
+    makefile( material_vp_path, pbrmaterial.vp )
+    makefile( material_fp_path, pbrmaterial.fp )
     makefilebinary( material_path.."white.png", WHITE_PNG )
     makefilebinary( material_path.."normal.png", NORMAL_PNG )
     makefilebinary( material_path.."grey.png", GREY_PNG )
     makefilebinary( material_path.."black.png", BLACK_PNG )
 end 
+
+------------------------------------------------------------------------------------------------------------
+
+local function setupmaterials( project_path )
+    -- Make the default pbr material, and shaders
+    local material_path = project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR
+
+    -- Material types can be simple or lightmap now, generate both anyway
+    genmaterial( material_path, "pbr-simple.vp", "pbr-simple.fp", "pbr-simple.material", pbrsimple )
+    genmaterial( material_path, "pbr-lightmap.vp", "pbr-lightmap.fp", "pbr-lightmap.material", pbrlightmap )
+end
 
 ------------------------------------------------------------------------------------------------------------
 

@@ -397,18 +397,6 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                 normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
 
           thisobj["vertices"] = verts
-
-          vert_uv_map = {}
-          if( mode == "Collada" ):
-            for i, face in enumerate(me.loop_triangles):
-                verts_indices = face.vertices[:]
-                for ti in range(0, 3):
-                    idx = verts_indices[ti]
-                    if not me.uv_layers.active:
-                      me.uv_layers.new()
-                    uv = me.uv_layers.active.data[face.loops[ti]].uv
-                    vert_uv_map.setdefault(idx, []).append((face.loops[ti], uv))
-
           textures = {}
 
           if obj is not None and obj.type == 'MESH' and obj.active_material:   
@@ -420,6 +408,12 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
             # material names are cleaned here
             mat.name = re.sub(r'[^\w]', ' ', mat.name)
+
+          lightmap_enable = False
+          if(mat.name.endswith("_LightMap")):
+            lightmap_enable = True
+
+          thisobj["matname"] = mat.name
 
         #if( len(obj.material_slots) > 0 ):
         #  mat = obj.material_slots[0].material        
@@ -448,10 +442,6 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           if(len(textures) > 0):
             thisobj["textures"] = textures
 
-          uv_layer = None
-          if(me.uv_layers.active != None):
-            uv_layer = me.uv_layers.active.data
-
           tris = []
           nidx = 0
 
@@ -473,6 +463,10 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                   nidx = nidx + 1
                   #print(idx, normal.x, normal.y, normal.z)
 
+                uv_layer = None
+                if(me.uv_layers.active != None):
+                  uv_layer = me.uv_layers.active.data
+
                 if(uv_layer):
                   uv = uv_layer[face.loops[ti]].uv
                 
@@ -482,8 +476,11 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                   "uv": { "x": uv.x, "y": uv.y }
                 }
 
-                # if( len(uvs) > 1 and config.sync_mat_uv2 == True):
-                #   tridata["uv2"] = { "x": uvs[1].x, "y": uvs[1].y }
+                if( len(me.uv_layers) > 1 and (config.sync_mat_uv2 == True or lightmap_enable) ):
+                  uvs = [uv for uv in me.uv_layers if uv !=  me.uv_layers.active]
+                  uv = uvs[0].data[face.loops[ti]].uv
+                  tridata["uv2"] = { "x": uv.x, "y": uv.y }
+                
                 thistri.append( tridata )
 
               triobj["tri"] = thistri
