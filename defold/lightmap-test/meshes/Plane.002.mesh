@@ -1,0 +1,11 @@
+material: "/lightmap-test/materials/pbr-lightmap.material"
+vertices: "/lightmap-test/meshes/Plane.002.buffer"
+textures: "/lightmap-test/images/concrete.png"
+textures: "/lightmap-test/images/Plane.002AMRtexture.png"
+textures: "/lightmap-test/images/Plane.002_baked.png"
+textures: "/lightmap-test/materials/normal.png"
+textures: "/lightmap-test/materials/grey.png"
+
+primitive_type: PRIMITIVE_TRIANGLES
+position_stream: "position"
+normal_stream: "normal"

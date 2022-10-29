@@ -1,0 +1,11 @@
+material: "/lightmap-test/materials/pbr-lightmap.material"
+vertices: "/lightmap-test/meshes/Cube.buffer"
+textures: "/lightmap-test/images/concrete.png"
+textures: "/lightmap-test/images/CubeAMRtexture.png"
+textures: "/lightmap-test/images/Cube_baked.png"
+textures: "/lightmap-test/materials/normal.png"
+textures: "/lightmap-test/materials/grey.png"
+
+primitive_type: PRIMITIVE_TRIANGLES
+position_stream: "position"
+normal_stream: "normal"

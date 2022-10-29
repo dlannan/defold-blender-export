@@ -34,6 +34,10 @@ table.count = function( tbl )
     return count 
 end
 
+string.endswith = function( str, ending )
+    return ending == "" or str:sub(-#ending) == ending
+end
+
 ------------------------------------------------------------------------------------------------------------
 
 local PATH_SEPARATOR        = "/"
@@ -809,7 +813,7 @@ local function genmaterial( material_path, vpname, fpname, matname, pbrmaterial 
     matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
 
     local mp = gendata.config.sync_mat_params
-    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 1.0'
+    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 0.1'
     matstr = matstr:gsub("MATERIAL_PARAMS", mat_params) 
 
     makefile( material_path..matname, matstr)

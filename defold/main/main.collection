@@ -1,7 +1,7 @@
 name: "main"
 collection_instances {
   id: "Collection"
-  collection: "/explorer/Collection.collection"
+  collection: "/lightmap-test/Collection.collection"
   position {
     x: 0.0
     y: 0.0
@@ -35,6 +35,8 @@ embedded_instances {
   "    y: 0.0\n"
   "    z: 0.0\n"
   "    w: 1.0\n"
+  "  }\n"
+  "  property_decls {\n"
   "  }\n"
   "}\n"
   "embedded_components {\n"

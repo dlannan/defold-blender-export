@@ -409,12 +409,6 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
             # material names are cleaned here
             mat.name = re.sub(r'[^\w]', ' ', mat.name)
 
-          lightmap_enable = False
-          if(mat.name.endswith("_LightMap")):
-            lightmap_enable = True
-
-          thisobj["matname"] = mat.name
-
         #if( len(obj.material_slots) > 0 ):
         #  mat = obj.material_slots[0].material        
         #  if mat and mat.node_tree:
@@ -438,6 +432,12 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           else:
             print("[ ERROR ] : Uknown material type used.")
             ErrorLine( config, " Unknown material type used.",  str(mat.name), "ERROR")
+
+          lightmap_enable = False
+          if(mat.name.endswith("_LightMap")):
+            lightmap_enable = True
+
+          thisobj["matname"] = mat.name
 
           if(len(textures) > 0):
             thisobj["textures"] = textures
@@ -476,10 +476,10 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                   "uv": { "x": uv.x, "y": uv.y }
                 }
 
-                if( len(me.uv_layers) > 1 and (config.sync_mat_uv2 == True or lightmap_enable) ):
-                  uvs = [uv for uv in me.uv_layers if uv !=  me.uv_layers.active]
-                  uv = uvs[0].data[face.loops[ti]].uv
-                  tridata["uv2"] = { "x": uv.x, "y": uv.y }
+                if( len(me.uv_layers) > 1 and ((config.sync_mat_uv2 == True) or (lightmap_enable == True)) ):
+                  uvs = [uv for uv in obj.data.uv_layers if uv.active_render != True]
+                  uv1 = uvs[0].data[face.loops[ti]].uv
+                  tridata["uv2"] = { "x": uv1.x, "y": uv1.y }
                 
                 thistri.append( tridata )
 
