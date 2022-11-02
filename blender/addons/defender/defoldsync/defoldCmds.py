@@ -265,7 +265,7 @@ def makeBlockPNG(texture_path, matname, name, col):
 
 # ------------------------------------------------------------------------
 
-def getImageNode( colors, index, matname, name, texture_path ):
+def getImageNode( colors, index, mat, name, texture_path ):
 
   if(not index in colors):
     return None
@@ -280,20 +280,24 @@ def getImageNode( colors, index, matname, name, texture_path ):
       imgnode = link_node.image
       if imgnode and imgnode.type == 'IMAGE':
         return imgnode
-    elif link_node and link_node.type == 'MixRGB':
-      if link_node.mix == "Multiply":
-        color1node = link_node.inputs["Color1"]
-        color2node = link_node.inputs["Color2"]
+    elif link_node and link_node.type == 'MIX_RGB':
+      if link_node.blend_type == 'MULTIPLY':
+        color1node = link_node.inputs['Color1'].links[0].from_node
+        color2node = link_node.inputs['Color2'].links[0].from_node
+
         if index == 'Base Color':
           baseimg = False
           if color2node and color2node.type == 'TEX_IMAGE':
             imgnode = color2node.image 
-            if imgnode and imagenode.type == 'IMAGE':
+            if imgnode and imgnode.type == 'IMAGE':
               baseImg = imgnode 
           if color1node and color1node.type == 'TEX_IMAGE':
             lightnode = color1node.image 
             if lightnode and lightnode.type == 'IMAGE' and lightnode.name.endswith('_baked'):
-              colors['Emission'] = lightnode 
+
+              nodes = mat.node_tree.nodes
+              links = mat.node_tree.links
+              links.new(color1node.outputs[0],colors['Emission'])
 
           if baseimg:
             return baseimg
@@ -305,7 +309,7 @@ def getImageNode( colors, index, matname, name, texture_path ):
     # If alpha is default, then base color will use default settings in alpha channel
     if(name == "alpha_map" and col == 1.0):
       return None
-    return makeBlockPNG(texture_path, matname, name, [col, col, col, col])
+    return makeBlockPNG(texture_path, mat.name, name, [col, col, col, col])
 
   # if the node is a color vector. Make a tiny color png in temp
   # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
@@ -320,15 +324,15 @@ def getImageNode( colors, index, matname, name, texture_path ):
       link_node = link.from_node
       col = link_node.outputs[0].default_value
 
-    return makeBlockPNG(texture_path, matname, name, [col[0], col[1], col[2], alpha])
+    return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], alpha])
 
   return None 
 
 # ------------------------------------------------------------------------
 
-def addTexture( matname, textures, name, color_node, index, texture_path, context ):
+def addTexture( mat, textures, name, color_node, index, texture_path, context ):
 
-  imgnode = getImageNode( color_node, index, matname, name, texture_path )
+  imgnode = getImageNode( color_node, index, mat, name, texture_path )
 
   if imgnode != None:
     img = imgnode.filepath_from_user()
@@ -340,26 +344,45 @@ def addTexture( matname, textures, name, color_node, index, texture_path, contex
 
     if splitname[1] != '.png' and splitname[1] != '.PNG':
       pngimg = os.path.join(texture_path , splitname[0] + ".png")
-#      if(os.path.exists(pngimg) == False):
+      if(os.path.exists(pngimg) == False):
         
-      imgnode.file_format='PNG' 
-      image = bpy.data.images.load(img)
+        imgnode.file_format='PNG' 
+        image = bpy.data.images.load(img)
 
-      image_settings = bpy.context.scene.render.image_settings
-      image_settings.file_format = "PNG"
-      image.file_format='PNG'
-      image.save_render(pngimg)
-
+        image_settings = bpy.context.scene.render.image_settings
+        image_settings.file_format = "PNG"
+        image.file_format='PNG'
+        image.save_render(pngimg)
       img = pngimg
 
     # This is done for internal blender images (embedded)
     if os.path.exists(img) == False:
       img = os.path.join(texture_path , basename)
+      image_settings = bpy.context.scene.render.image_settings
+      image_settings.file_format = "PNG"
       imgnode.filepath = img
       imgnode.save()
     
     # If this is an image texture, with an active image append its name to the list
     textures[ name ] = img.replace('\\','\\\\')
+
+# ------------------------------------------------------------------------
+# Check if a lightmap looks like it has been set
+
+def HasLightmap( color_node ):
+
+  if(not "Emission" in color_node):
+    return False
+
+  node = color_node["Emission"]
+  link = node.links[0]
+  if link:
+    link_node = link.from_node
+    if link_node:
+      print("[EMISSION NAME] " + str(link_node.name))
+      if link_node.name.endswith("_Lightmap"):
+        return True 
+  return False
 
 # ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
@@ -446,13 +469,13 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
             # Get the slot for 'base color'
             if(bsdf is not None):
               print("[ BSDF ] : bsdf material type used.")
-              addTexture( mat.name, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
-              addTexture( mat.name, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
-              addTexture( mat.name, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
-              addTexture( mat.name, textures, "emissive_color", bsdf.inputs, "Emission", texture_path, context )
-              addTexture( mat.name, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, context )
-              addTexture( mat.name, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
-              addTexture( mat.name, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
+              addTexture( mat, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
+              addTexture( mat, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
+              addTexture( mat, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
+              addTexture( mat, textures, "emissive_color", bsdf.inputs, "Emission", texture_path, context )
+              addTexture( mat, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, context )
+              addTexture( mat, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
+              addTexture( mat, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
             else:
               print("[ ERROR ] : Uknown material type used.")
               ErrorLine( config, " Unknown material type used: ",  str(mat.name), "ERROR")
@@ -460,9 +483,10 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
             print("[ ERROR ] : Uknown material type used.")
             ErrorLine( config, " Unknown material type used.",  str(mat.name), "ERROR")
 
-          lightmap_enable = False
-          #if(mat.name.endswith("_LightMap")):
-          lightmap_enable = True
+
+          lightmap_enable = HasLightmap( bsdf.inputs )
+          if lightmap_enable:
+            mat.name = mat.name + "_LightMap"
 
           thisobj["matname"] = mat.name
 
