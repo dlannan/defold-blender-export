@@ -22,7 +22,8 @@
 
 modulesNames = ['DefoldSyncUI']
 
-import bpy, time, queue, re, os, json, shutil
+import bpy, time, queue, re, os, json, shutil, math
+from io import BytesIO
 
 # ------------------------------------------------------------------------
 
@@ -279,6 +280,23 @@ def getImageNode( colors, index, matname, name, texture_path ):
       imgnode = link_node.image
       if imgnode and imgnode.type == 'IMAGE':
         return imgnode
+    elif link_node and link_node.type == 'MixRGB':
+      if link_node.mix == "Multiply":
+        color1node = link_node.inputs["Color1"]
+        color2node = link_node.inputs["Color2"]
+        if index == 'Base Color':
+          baseimg = False
+          if color2node and color2node.type == 'TEX_IMAGE':
+            imgnode = color2node.image 
+            if imgnode and imagenode.type == 'IMAGE':
+              baseImg = imgnode 
+          if color1node and color1node.type == 'TEX_IMAGE':
+            lightnode = color1node.image 
+            if lightnode and lightnode.type == 'IMAGE' and lightnode.name.endswith('_baked'):
+              colors['Emission'] = lightnode 
+
+          if baseimg:
+            return baseimg
 
   # Handle metallic roughness and emission if they have just values set (make a little color texture)
   value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map"]
@@ -316,16 +334,25 @@ def addTexture( matname, textures, name, color_node, index, texture_path, contex
     img = imgnode.filepath_from_user()
     basename = os.path.basename(img)
     splitname = os.path.splitext(basename)
+
     print("[ IMG PATH ] " + str(img))
     print("[ IMG BASE PATH ] " + str(basename))
+
     if splitname[1] != '.png' and splitname[1] != '.PNG':
       pngimg = os.path.join(texture_path , splitname[0] + ".png")
-      if(os.path.exists(pngimg) == False):
-        image = bpy.data.images.load(img)
-        imgnode.file_format='PNG' 
-        image.save_render(pngimg)
+#      if(os.path.exists(pngimg) == False):
+        
+      imgnode.file_format='PNG' 
+      image = bpy.data.images.load(img)
+
+      image_settings = bpy.context.scene.render.image_settings
+      image_settings.file_format = "PNG"
+      image.file_format='PNG'
+      image.save_render(pngimg)
+
       img = pngimg
 
+    # This is done for internal blender images (embedded)
     if os.path.exists(img) == False:
       img = os.path.join(texture_path , basename)
       imgnode.filepath = img
@@ -434,8 +461,8 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
             ErrorLine( config, " Unknown material type used.",  str(mat.name), "ERROR")
 
           lightmap_enable = False
-          if(mat.name.endswith("_LightMap")):
-            lightmap_enable = True
+          #if(mat.name.endswith("_LightMap")):
+          lightmap_enable = True
 
           thisobj["matname"] = mat.name
 
