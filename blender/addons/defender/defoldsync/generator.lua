@@ -448,6 +448,12 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
+local function getextension( filepath )
+    return string.match( filepath, ".+%.(.+)" )
+end
+
+------------------------------------------------------------------------------------------------------------
+
 local function makefile( fpath, fdata )
 
     -- Make sure file path has proper escape codes for the platform
@@ -540,6 +546,20 @@ local function makebufferfile(name, filepath, mesh )
 
     makefile( bufferfilepath, bufferdata )
     return bufferfilepath
+end
+
+------------------------------------------------------------------------------------------------------------
+
+local function getGetGLTFBinFiles( sourcefilepath, filepath, name )
+    
+    -- Remove the extension from the sourcefilepath and replace with bin
+    local newsourcefilepath, ext = string.match(sourcefilepath, "(.+)%.(.+)")
+    if(ext == "gltf" or ext == "GLTF") then 
+        newsourcefilepath = newsourcefilepath..".bin"
+        local animfilepath = filepath..gendata.folders.animations..PATH_SEPARATOR..name..".bin"
+        print("---->", newsourcefilepath, animfilepath)
+        os.execute(CMD_COPY..' "'..newsourcefilepath..'" "'..animfilepath..'"')
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -654,9 +674,12 @@ local function makemeshfile(name, filepath, mesh )
     meshdata = string.gsub(meshdata, "MESH_TEXTURE_FILES", texture_file_list)
 
     if( mesh.gltf) then
-        local gltf_ext = string.sub( mesh.gltf, -4, -1 )
+        local gltf_ext = "."..getextension( mesh.gltf )
         meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..gltf_ext
         os.execute(CMD_COPY..' "'..mesh.gltf..'" "'..meshfilepath..'"')
+        
+        -- Check if there are bin files in the source path
+        getGetGLTFBinFiles( mesh.gltf, filepath, name )
     else 
         local bufferfilepath = makebufferfile( name, filepath, mesh )
         meshdata = string.gsub(meshdata, "BUFFER_FILE_PATH", localpathname(bufferfilepath))

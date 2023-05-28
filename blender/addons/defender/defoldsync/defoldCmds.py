@@ -155,8 +155,10 @@ def sceneObjects(context, f, config):
     
   prog_text = "Exporting objects..."
   objcount = 0
-  for coll in bpy.data.collections:
-    objcount += len(coll.objects)
+  #for coll in bpy.data.collections:
+  for coll in bpy.context.view_layer.layer_collection.children:
+    if coll.is_visible:
+      objcount += len(coll.collection.objects)
   objcurr = 0
 
   # No collections in the list!! Need a collection!
@@ -165,81 +167,83 @@ def sceneObjects(context, f, config):
     f.write('} \n')
     return
 
-  for coll in bpy.data.collections:
+  #for coll in bpy.data.collections:
+  for coll in bpy.context.view_layer.layer_collection.children:
 
-    # Add an object for the collection
-    #   - Probably should make this a collection in Defold?
+    if coll.is_visible:
+      # Add an object for the collection
+      #   - Probably should make this a collection in Defold?
 
-    f.write('["COLL_' + str(coll.name) + '"] = { \n')
+      f.write('["COLL_' + str(coll.name) + '"] = { \n')
 
-    for obj in coll.objects:
-    
-      update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
-      objcurr += 1
-
-      thisobj = {
-        "name": str(obj.name),
-        "type": str(obj.type)
-      }
-        
-      if(obj.parent != None):
-          thisobj["parent"] = {
-            "name": str(obj.parent.name),
-            "type": str(obj.parent_type)
-          }
-
-      local_coord = obj.matrix_local.translation #obj.location
-      thisobj["location"] = { 
-        "x": local_coord.x, 
-        "y": local_coord.y, 
-        "z": local_coord.z 
-      }
-
-      rot = obj.rotation_quaternion.to_euler()
-      quat = obj.rotation_quaternion
-
-      if( obj.rotation_mode != "QUATERNION"):
-        rot = obj.rotation_euler.copy()
-        quat = rot.to_quaternion()
+      for obj in coll.collection.objects:
       
-      thisobj["rotation"] = { 
-        "quat": { 
-          "x": quat.x,
-          "y": quat.y,
-          "z": quat.z,
-          "w": quat.w
-        },
-        "euler": {
-          "x": rot.x,
-          "y": rot.y,
-          "z": rot.z
+        update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
+        objcurr += 1
+
+        thisobj = {
+          "name": str(obj.name),
+          "type": str(obj.type)
         }
-      }
+          
+        if(obj.parent != None):
+            thisobj["parent"] = {
+              "name": str(obj.parent.name),
+              "type": str(obj.parent_type)
+            }
 
-      scl = obj.scale.copy()
-      thisobj["scaling"] = {
-        "x": scl.x,
-        "y": scl.y,
-        "z": scl.z
-      }
+        local_coord = obj.matrix_local.translation #obj.location
+        thisobj["location"] = { 
+          "x": local_coord.x, 
+          "y": local_coord.y, 
+          "z": local_coord.z 
+        }
 
-      # Store custom properties too 
-      if(len(obj.keys()) > 0):
-        props = {}
-        for K in obj.keys():
-            if(isinstance(obj[K], str)):
-              props[str(K)] = str(obj[K])
-              #print( K , "-" , obj[K] )
-        if(len(props) > 0):
-          thisobj["props"] = props
+        rot = obj.rotation_quaternion.to_euler()
+        quat = obj.rotation_quaternion
 
-      if( isAnimated(obj) == True ):
-        thisobj["animated"] = True
+        if( obj.rotation_mode != "QUATERNION"):
+          rot = obj.rotation_euler.copy()
+          quat = rot.to_quaternion()
+        
+        thisobj["rotation"] = { 
+          "quat": { 
+            "x": quat.x,
+            "y": quat.y,
+            "z": quat.z,
+            "w": quat.w
+          },
+          "euler": {
+            "x": rot.x,
+            "y": rot.y,
+            "z": rot.z
+          }
+        }
 
-      f.write('["' + str(obj.name) + '"] = ' + dump_lua(thisobj) + ', \n')
-      #thisobj["name"] ] = thisobj 
+        scl = obj.scale.copy()
+        thisobj["scaling"] = {
+          "x": scl.x,
+          "y": scl.y,
+          "z": scl.z
+        }
 
-    f.write('}, \n')
+        # Store custom properties too 
+        if(len(obj.keys()) > 0):
+          props = {}
+          for K in obj.keys():
+              if(isinstance(obj[K], str)):
+                props[str(K)] = str(obj[K])
+                #print( K , "-" , obj[K] )
+          if(len(props) > 0):
+            thisobj["props"] = props
+
+        if( isAnimated(obj) == True ):
+          thisobj["animated"] = True
+
+        f.write('["' + str(obj.name) + '"] = ' + dump_lua(thisobj) + ', \n')
+        #thisobj["name"] ] = thisobj 
+
+      f.write('}, \n')
 
   f.write('} \n')
 
@@ -375,13 +379,14 @@ def HasLightmap( color_node ):
     return False
 
   node = color_node["Emission"]
-  link = node.links[0]
-  if link:
-    link_node = link.from_node
-    if link_node:
-      print("[EMISSION NAME] " + str(link_node.name))
-      if link_node.name.endswith("_Lightmap"):
-        return True 
+  if node and len(node.links) > 0:
+    link = node.links[0]
+    if link:
+      link_node = link.from_node
+      if link_node:
+        print("[EMISSION NAME] " + str(link_node.name))
+        if link_node.name.endswith("_Lightmap"):
+          return True 
   return False
 
 # ------------------------------------------------------------------------
@@ -452,6 +457,8 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           if obj is not None and obj.type == 'MESH' and obj.active_material:   
             mat = obj.active_material
 
+          lightmap_enable = False
+
           bsdf_node_name = "Principled BSDF"
           if mat is not None and mat.use_nodes and bsdf_node_name in mat.node_tree.nodes:
             bsdf = mat.node_tree.nodes[bsdf_node_name] 
@@ -468,6 +475,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
             #bsdf = nodes.get("Principled BSDF") 
             # Get the slot for 'base color'
             if(bsdf is not None):
+
               print("[ BSDF ] : bsdf material type used.")
               addTexture( mat, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
               addTexture( mat, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
@@ -476,17 +484,17 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
               addTexture( mat, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, context )
               addTexture( mat, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
               addTexture( mat, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
+
+              lightmap_enable = HasLightmap( bsdf.inputs )
+              if lightmap_enable:
+                mat.name = mat.name + "_LightMap"
+
             else:
               print("[ ERROR ] : Uknown material type used.")
               ErrorLine( config, " Unknown material type used: ",  str(mat.name), "ERROR")
           else:
             print("[ ERROR ] : Uknown material type used.")
             ErrorLine( config, " Unknown material type used.",  str(mat.name), "ERROR")
-
-
-          lightmap_enable = HasLightmap( bsdf.inputs )
-          if lightmap_enable:
-            mat.name = mat.name + "_LightMap"
 
           thisobj["matname"] = mat.name
 
