@@ -23,6 +23,7 @@
 modulesNames = ['DefoldSyncUI']
 
 import bpy, time, queue, re, os, json, shutil, math
+from bpy_extras.io_utils import axis_conversion
 from io import BytesIO
 
 # ------------------------------------------------------------------------
@@ -151,6 +152,11 @@ def sceneObjects(context, f, config):
 
   f.write('{ \n')
 
+  # m = axis_conversion(from_forward='-Y', 
+  #         from_up='Z',
+  #         to_forward='Z',
+  #         to_up='Y').to_4x4()
+
   scene = context.scene
     
   prog_text = "Exporting objects..."
@@ -199,12 +205,13 @@ def sceneObjects(context, f, config):
           "z": local_coord.z 
         }
 
-        rot = obj.rotation_quaternion.to_euler()
-        quat = obj.rotation_quaternion
+        rot = obj.rotation_quaternion.to_euler('XYZ')
+#        quat = obj.rotation_quaternion
 
         if( obj.rotation_mode != "QUATERNION"):
           rot = obj.rotation_euler.copy()
-          quat = rot.to_quaternion()
+          rot.order = 'XYZ'
+        quat = rot.to_quaternion()
         
         thisobj["rotation"] = { 
           "quat": { 
@@ -226,6 +233,16 @@ def sceneObjects(context, f, config):
           "y": scl.y,
           "z": scl.z
         }
+
+        if( obj.type == "CAMERA" ):
+          cam = obj.data
+          thisobj["settings"] = {
+            "fov": cam.angle_y,
+            "near": cam.clip_start,
+            "far" : cam.clip_end,
+            "lens" : cam.lens,
+            "ortho_scale": cam.ortho_scale
+          }
 
         # Store custom properties too 
         if(len(obj.keys()) > 0):
@@ -570,7 +587,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                     export_skins=True,
                     export_format=gltffiletype,
                     #export_image_format='NONE',
-                    export_yup=True,
+                    #export_yup=True,
                     export_texture_dir="textures",
                     export_texcoords=True,
                     export_normals=True,
@@ -658,7 +675,7 @@ def sceneAnimations(context, f, temppath, config, animobjs):
                   export_skins=True,
                   export_format=animfiletype,
                   #export_image_format='NONE',
-                  export_yup=True,
+                  #export_yup=True,
                   export_texture_dir="textures",
                   export_texcoords=True,
                   export_normals=True,

@@ -103,6 +103,24 @@ local pbrlightmap = require("defoldsync.material-pbrlightmap")
 
 ------------------------------------------------------------------------------------------------------------
 
+local default_rotation = [[
+    rotation {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+    }
+]]
+
+local inv_rotation = [[
+    rotation {
+        x: 0.70710677
+        y: 0.0
+        z: 0.0
+        w: 0.70710677
+    }
+]]
+
 local grotation_mesh = [[
     rotation {
         x: -0.70710677
@@ -114,10 +132,10 @@ local grotation_mesh = [[
 
 local grotation_gltf = [[
     rotation {
-        x: 0.0
+        x: -0.70710677
         y: 0.0
         z: 0.0
-        w: 1.0
+        w: 0.70710677
     }
 ]]
 
@@ -205,12 +223,7 @@ embedded_components {
         y: 0.0
         z: 0.0
     }
-    rotation {
-        x: 0.0
-        y: 0.0
-        z: 0.0
-        w: 1.0
-    }
+    MESH_GO_ROTATION
 }
 GO_FILE_SCRIPT
 ]]
@@ -391,10 +404,10 @@ embedded_instances {
     "  id: \"camera\"\n"
     "  type: \"camera\"\n"
     "  data: \"aspect_ratio: 1.0\\n"
-    "  fov: 0.7854\\n"
-    "  near_z: 0.1\\n"
-    "  far_z: 1000.0\\n"
-    "  auto_aspect_ratio: 0\\n"
+    "  fov: GO_CAMERA_FOV\\n"
+    "  near_z: GO_CAMERA_NEAR\\n"
+    "  far_z: GO_CAMERA_FAR\\n"
+    "  auto_aspect_ratio: 1\\n"
     "\"\n"
     "  position {\n"
     "    x: 0.0\n"
@@ -420,6 +433,24 @@ GO_CHILDREN
     }
 }
 ]]
+
+------------------------------------------------------------------------------------------------------------
+
+local function rotatequat90( q, axis )
+
+    local r90x = { x= 0.70710677, y= 0.0, z= 0.0, w= 0.70710677 }
+    local r90y = { x= 0.0, y= 0.70710677, z= 0.0, w= 0.70710677 }
+    local r90z = { x= 0.0, y= 0.0, z= 0.70710677, w= 0.70710677 }
+    local r90 = r90x 
+    if(axis == 2) then r90 = r90y end 
+    if(axis == 3) then r90 = r90z end 
+
+    local x = q.x * r90.w + q.z * r90.y - q.y * r90.z
+    local y = q.y * r90.w + q.x * r90.z - q.z * r90.x
+    local z = q.z * r90.w + q.y * r90.x - q.x * r90.y
+    local w = q.x * r90.x + q.y * r90.y + q.z * r90.z
+    return { x=x, y=y, z=z, w=w }
+end
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -741,6 +772,11 @@ local function makegofile( name, filepath, go )
 
         if(animname and animfile) then 
             godata = gomodelfiledata
+            if( gendata.gltf ) then 
+                godata = string.gsub(godata, "MESH_GO_ROTATION", inv_rotation)            
+            else 
+                godata = string.gsub(godata, "MESH_GO_ROTATION", default_rotation)
+            end
         else 
             -- Fall back to mesh if anim isnt available
             go.type = "MESH"
@@ -897,6 +933,15 @@ local function makecollection( collectionname, objects, objlist )
 
         elseif(v.type == "CAMERA") then 
             objdata = gcollectioncamera
+            if(v.settings) then 
+                objdata = string.gsub(objdata, "GO_CAMERA_FOV", tostring(v.settings.fov))
+                objdata = string.gsub(objdata, "GO_CAMERA_NEAR", tostring(v.settings.near))
+                objdata = string.gsub(objdata, "GO_CAMERA_FAR", tostring(v.settings.far))
+            else 
+                objdata = string.gsub(objdata, "GO_CAMERA_FOV", tostring(0.7854))
+                objdata = string.gsub(objdata, "GO_CAMERA_NEAR", tostring(0.1))
+                objdata = string.gsub(objdata, "GO_CAMERA_FAR", tostring(1000.0))
+            end
         elseif(v.type == "LIGHT") then 
             objdata = gocollectiongeneric
         end 
