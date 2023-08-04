@@ -76,6 +76,10 @@ from bpy.types import (Panel,
 if "bpy" in locals():
     # ...so we need to reload our submodule(s) using importlib
     import importlib
+    if "defoldUtils" in locals():
+        importlib.reload(defoldUtils)
+    if "defoldMaterials" in locals():
+        importlib.reload(defoldMaterials)
     if "defoldCmds" in locals():
         importlib.reload(defoldCmds)
 
@@ -92,6 +96,8 @@ if not dir in sys.path:
 
 # ------------------------------------------------------------------------
 
+from defoldsync import defoldUtils
+from defoldsync import defoldMaterials
 from defoldsync import defoldCmds
 
 data_changed = False
