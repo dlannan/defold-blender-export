@@ -28,9 +28,12 @@ from defoldsync import defoldMaterials
 
 modulesNames = ['DefoldSyncUI']
 
-import bpy, time, queue, re, os, json, shutil, math
+import bpy, time, queue, re, os, json, shutil, math, mathutils
 from bpy_extras.io_utils import axis_conversion
 from io import BytesIO
+
+from math import radians
+from mathutils import Euler, Matrix
 
 # ------------------------------------------------------------------------
 # update progress bar 
@@ -119,10 +122,25 @@ def sceneObjects(context, f, config):
         update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
         objcurr += 1
 
+        # Force all scaling to unity - otherwise things are difficult to manage
+        objType = getattr(obj, 'type', '')
+        print(objType + "   " + obj.name)
+        if(objType not in ["LAMP", "LIGHT"]):
+          obj.select_set(True)
+          bpy.ops.object.transform_apply(scale=True)
+          obj.select_set(False)
+
         thisobj = {
           "name": str(obj.name),
           "type": str(obj.type)
         }
+
+        local_coord = obj.matrix_local.translation #obj.location
+
+        rot = obj.rotation_quaternion.to_euler('XYZ')
+        if( obj.rotation_mode != "QUATERNION"):
+          rot = obj.rotation_euler.copy()
+          rot.order = 'XYZ'
           
         if(obj.parent != None):
             thisobj["parent"] = {
@@ -130,19 +148,19 @@ def sceneObjects(context, f, config):
               "type": str(obj.parent_type)
             }
 
-        local_coord = obj.matrix_local.translation #obj.location
+        # This is a parent object in the collection. Adjust its location and rotation
+        else:
+          euler =  Matrix.Rotation( radians(-90), 4, 'X')
+          rot = (euler @ rot.to_matrix().to_4x4()).to_euler('XYZ')
+          local_coord = euler @ local_coord
+
         thisobj["location"] = { 
           "x": local_coord.x, 
           "y": local_coord.y, 
           "z": local_coord.z 
         }
 
-        rot = obj.rotation_quaternion.to_euler('XYZ')
 #        quat = obj.rotation_quaternion
-
-        if( obj.rotation_mode != "QUATERNION"):
-          rot = obj.rotation_euler.copy()
-          rot.order = 'XYZ'
         quat = rot.to_quaternion()
         
         thisobj["rotation"] = { 

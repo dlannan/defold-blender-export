@@ -20,6 +20,9 @@
 # SOFTWARE.
 # ------------------------------------------------------------------------
 
+import bpy, mathutils
+from mathutils import Matrix
+
 # ------------------------------------------------------------------------
 
 def to_srgb(c):
@@ -92,4 +95,3 @@ def ErrorLine(mytool, message = "", title="", level=""):
 
   mytool.sync_errors_str.append( "[" + str(title) + "] " + str(message) )
   mytool.msgcount = len(mytool.sync_errors_str)
-

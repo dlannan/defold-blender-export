@@ -201,8 +201,8 @@ def ConvertPrincipledBSDF( thisobj, mat, texture_path, context, config ):
         if lightmap_enable:
             mat.name = mat.name + "_LightMap"
     else:
-        print("[ ERROR ] : Uknown material type used.")
-        defoldUtils.ErrorLine( config, " Unknown material type used: ",  str(mat.name), "ERROR")
+        print("[ ERROR ] : Material type is not Principled BSDF.")
+        defoldUtils.ErrorLine( config, " Material type is not Principled BSDF: ",  str(mat.name), "ERROR")
 
     thisobj["matname"] = mat.name
 

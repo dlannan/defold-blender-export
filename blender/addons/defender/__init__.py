@@ -349,6 +349,7 @@ class WM_OT_SyncTool(Operator):
         perm = os.access(luajit_cmd, os.X_OK) # Check for execution access
 
         if(perm):
+            print("[Command] " + str(luajit_cmd) + " " + str(dirpath) + " " + str(os.path.abspath(dir)))
             subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
             prog_text = "Process Complete."
             defoldCmds.update_progress(context, 100, prog_text)

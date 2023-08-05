@@ -995,11 +995,7 @@ local function makecollection( collectionname, objects, objlist )
 
     -- Add the root instance 
     local newcollection = string.gsub(gcollectionroot, "ROOT_CHILDREN", rootchildren)
-    if( gendata.gltf ) then 
-        newcollection = string.gsub(newcollection, "ROOT_ROTATION", grotation_gltf)
-    else 
-        newcollection = string.gsub(newcollection, "ROOT_ROTATION", grotation_mesh)
-    end 
+    newcollection = string.gsub(newcollection, "ROOT_ROTATION", default_rotation)
     newcollection = string.gsub(newcollection, "COLLECTION_SCRIPT", rootscript)
     colldata = colldata.."\n"..newcollection
     
