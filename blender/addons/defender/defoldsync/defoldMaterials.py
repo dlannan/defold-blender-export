@@ -52,27 +52,30 @@ def makeBlockPNG(texture_path, matname, name, col):
 
 # ------------------------------------------------------------------------
 
-def getImageNode( colors, index, mat, name, texture_path ):
-
-  if(not index in colors):
-    return None
-
-  color_node = colors[index]
+def getImageNodeFromColor(color_node, mat, name, texture_path):
 
   # Get the link - this should extract embedded nodes too (need to test/check)
   if( color_node.is_linked ):
     link = color_node.links[0]
     link_node = link.from_node
+    # print(str(link_node.type))
+
     if link_node and link_node.type == 'TEX_IMAGE':
       imgnode = link_node.image
       if imgnode and imgnode.type == 'IMAGE':
         return imgnode
+    elif link_node and link_node.type == 'BSDF_DIFFUSE':
+       return getImageNode( link_node.inputs, "Color", mat, name, texture_path)
+    
+    elif link_node and link_node.type == 'BSDF_PRINCIPLED':
+       return getImageNode( link_node.inputs, "Base Color", mat, name, texture_path)
+      
     elif link_node and link_node.type == 'MIX_RGB':
       if link_node.blend_type == 'MULTIPLY':
         color1node = link_node.inputs['Color1'].links[0].from_node
         color2node = link_node.inputs['Color2'].links[0].from_node
 
-        if index == 'Base Color':
+        if index == 'Base Color' or index == 'Color':
           baseimg = False
           if color2node and color2node.type == 'TEX_IMAGE':
             imgnode = color2node.image 
@@ -84,13 +87,13 @@ def getImageNode( colors, index, mat, name, texture_path ):
 
               nodes = mat.node_tree.nodes
               links = mat.node_tree.links
-              links.new(color1node.outputs[0],colors['Emission'])
+              links.new(color1node.outputs[0], colors['Emission'])
 
           if baseimg:
             return baseimg
 
   # Handle metallic roughness and emission if they have just values set (make a little color texture)
-  value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map"]
+  value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map", "mix_color"]
   if(color_node.type == "VALUE") and (name in value_materials):
     col       = color_node.default_value
     # If alpha is default, then base color will use default settings in alpha channel
@@ -100,7 +103,7 @@ def getImageNode( colors, index, mat, name, texture_path ):
 
   # if the node is a color vector. Make a tiny color png in temp
   # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
-  if((color_node.type == "RGBA" or color_node.type == "RGB") and name == "base_color" ):
+  if((color_node.type == "RGBA" or color_node.type == "RGB") and (name == "base_color" or name == "mix_color") ):
 
     alpha     = 1.0 
     col       = color_node.default_value
@@ -115,12 +118,17 @@ def getImageNode( colors, index, mat, name, texture_path ):
 
   return None 
 
-# ------------------------------------------------------------------------
+def getImageNode( colors, index, mat, name, texture_path ):
 
-def addTexture( mat, textures, name, color_node, index, texture_path, context ):
+  if(not index in colors):
+    return None
 
-  imgnode = getImageNode( color_node, index, mat, name, texture_path )
+  color_node = colors[index]
+  return getImageNodeFromColor( color_node, mat, name, texture_path)
 
+
+def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
+  
   if imgnode != None:
     img = imgnode.filepath_from_user()
     basename = os.path.basename(img)
@@ -152,6 +160,13 @@ def addTexture( mat, textures, name, color_node, index, texture_path, context ):
     
     # If this is an image texture, with an active image append its name to the list
     textures[ name ] = img.replace('\\','\\\\')
+
+# ------------------------------------------------------------------------
+
+def addTexture( mat, textures, name, color_node, index, texture_path, context ):
+
+  imgnode = getImageNode( color_node, index, mat, name, texture_path )
+  addTextureImageNode(mat, textures, name, imgnode, texture_path, context )
 
 
 # ------------------------------------------------------------------------
@@ -188,7 +203,7 @@ def ConvertPrincipledBSDF( thisobj, mat, texture_path, context, config ):
     mat.name = re.sub(r'[^\w]', ' ', mat.name)
     if(bsdf is not None):
 
-        print("[ BSDF ] : bsdf material type used.")
+        print("[ Principled BSDF ] : Principled bsdf material type used.")
         addTexture( mat, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
         addTexture( mat, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
         addTexture( mat, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
@@ -212,6 +227,43 @@ def ConvertPrincipledBSDF( thisobj, mat, texture_path, context, config ):
     return thisobj
 
 # ------------------------------------------------------------------------
+# Convert Principled BSDF to Our PBR format
+
+def ConvertDiffuseBSDF( thisobj, mat, texture_path, context, config ):
+
+    textures = {}
+    lightmap_enable = False
+
+    diffusebsdf = mat.node_tree.nodes["Diffuse BSDF"] 
+
+    # material names are cleaned here
+    mat.name = re.sub(r'[^\w]', ' ', mat.name)
+    if(diffusebsdf is not None):
+
+        print("[ Diffuse BSDF ] : Diffuse bsdf material type used.")
+        addTexture( mat, textures, "base_color", diffusebsdf.inputs, "Base Color", texture_path, context )
+        addTexture( mat, textures, "metallic_color", diffusebsdf.inputs, "Metallic", texture_path, context )
+        addTexture( mat, textures, "roughness_color", diffusebsdf.inputs, "Roughness", texture_path, context )
+        addTexture( mat, textures, "emissive_color", diffusebsdf.inputs, "Emission", texture_path, context )
+        addTexture( mat, textures, "emissive_strength", diffusebsdf.inputs, "Emission Strength", texture_path, context )
+        addTexture( mat, textures, "normal_map", diffusebsdf.inputs, "Normal", texture_path, context )
+        addTexture( mat, textures, "alpha_map", diffusebsdf.inputs, "Alpha", texture_path, context )
+
+        lightmap_enable = HasLightmap( diffusebsdf.inputs )
+        if lightmap_enable:
+            mat.name = mat.name + "_LightMap"
+    else:
+        print("[ ERROR ] : Material type is not Diffuse BSDF.")
+        defoldUtils.ErrorLine( config, " Material type is not Diffuse BSDF: ",  str(mat.name), "ERROR")
+
+    thisobj["matname"] = mat.name
+
+    if(len(textures) > 0):
+        thisobj["textures"] = textures
+
+    return thisobj
+
+# ------------------------------------------------------------------------
 # Convert Emission Surface Shader to Our PBR format
 
 def ConvertEmissionShader( thisobj, mat, texture_path, context, config ):
@@ -225,7 +277,7 @@ def ConvertEmissionShader( thisobj, mat, texture_path, context, config ):
     mat.name = re.sub(r'[^\w]', ' ', mat.name)
     if(emission is not None):
 
-        print("[ BSDF ] : bsdf material type used.")
+        print("[ Emission ] : Emission material type used.")
 #        addTexture( mat, textures, "base_color", emission.inputs, "Base Color", texture_path, context )
 #        addTexture( mat, textures, "metallic_color", emission.inputs, "Metallic", texture_path, context )
 #        addTexture( mat, textures, "roughness_color", emission.inputs, "Roughness", texture_path, context )
@@ -249,30 +301,125 @@ def ConvertEmissionShader( thisobj, mat, texture_path, context, config ):
     return thisobj
 
 # ------------------------------------------------------------------------
+# Convert Mix Shader to Our PBR format
+
+def ConvertMixShader( thisobj, mat, texture_path, context, config ):
+
+    textures = {}
+    lightmap_enable = False
+
+    mixshader = mat.node_tree.nodes["Mix Shader"] 
+
+    # material names are cleaned here
+    mat.name = re.sub(r'[^\w]', ' ', mat.name)
+    if(mixshader is not None):
+
+        print("[ Mix Shader ] : Mix Shader material type used.")
+        # Check inputs. Only support two inputs of supported types.
+
+        if(len(mixshader.inputs) == 3):
+
+            node_count = 0
+            for node in mixshader.inputs:
+                print("[ Mix Shader ] Node Name: " + str(node.name))
+
+                if(node.name == "Fac"):
+                   print("[ Mix Shader ] Fac: " + str(node.default_value ))
+                   thisobj["mix_shader_factor"] = node.default_value 
+
+                if(node.name == "Shader"):
+                    pbr_name = "mix_color"
+                    if(node_count == 0):
+                       pbr_name = "base_color"
+                    imgnode = getImageNodeFromColor( node, mat, pbr_name, texture_path )
+                    addTextureImageNode( mat, textures, pbr_name, imgnode, texture_path, context )
+                    node_count = node_count + 1
+
+            # addTexture( mat, textures, "metallic_color", mixshader.outputs, "Metallic", texture_path, context )
+            # addTexture( mat, textures, "roughness_color", mixshader.outputs, "Roughness", texture_path, context )
+            # addTexture( mat, textures, "emissive_color", mixshader.outputs, "Color", texture_path, context )
+            # addTexture( mat, textures, "emissive_strength", mixshader.outputs, "Strength", texture_path, context )
+            # addTexture( mat, textures, "normal_map", mixshader.outputs, "Normal", texture_path, context )
+            # addTexture( mat, textures, "alpha_map", mixshader.outputs, "Alpha", texture_path, context )
+        else:
+            print("[ ERROR ] : Material Mix Shader only supports two inputs.")
+            defoldUtils.ErrorLine( config, " Material Mix Shader only supports two inputs: ",  str(mat.name), "ERROR")
+
+    else:
+        print("[ ERROR ] : Material is not Mix Shader type.")
+        defoldUtils.ErrorLine( config, " Material is not Mix Shader type: ",  str(mat.name), "ERROR")
+
+    thisobj["matname"] = mat.name
+
+    if(len(textures) > 0):
+        thisobj["textures"] = textures
+
+    return thisobj
+
+# ------------------------------------------------------------------------
+# Convert Mix Shader to Our PBR format
+
+def ConvertColorRampShader( thisobj, mat, texture_path, context, config ):
+
+    textures = {}
+    lightmap_enable = False
+
+    colorramp = mat.node_tree.nodes["ColorRamp"] 
+
+    # material names are cleaned here
+    mat.name = re.sub(r'[^\w]', ' ', mat.name)
+    if(colorramp is not None):
+
+        print("[ ColorRamp Shader ] : ColorRamp Shader material type used.")
+        addTexture( mat, textures, "base_color", colorramp.outputs, "Base Color", texture_path, context )
+        addTexture( mat, textures, "metallic_color", colorramp.outputs, "Metallic", texture_path, context )
+        addTexture( mat, textures, "roughness_color", colorramp.outputs, "Roughness", texture_path, context )
+        addTexture( mat, textures, "emissive_color", colorramp.outputs, "Color", texture_path, context )
+        addTexture( mat, textures, "emissive_strength", colorramp.outputs, "Strength", texture_path, context )
+        addTexture( mat, textures, "normal_map", colorramp.outputs, "Normal", texture_path, context )
+        addTexture( mat, textures, "alpha_map", colorramp.outputs, "Alpha", texture_path, context )
+
+        lightmap_enable = HasLightmap( colorramp.outputs )
+        if lightmap_enable:
+            mat.name = mat.name + "_LightMap"
+    else:
+        print("[ ERROR ] : Material is not ColorRamp Shader type.")
+        defoldUtils.ErrorLine( config, " Material is not ColorRamp Shader type: ",  str(mat.name), "ERROR")
+
+    thisobj["matname"] = mat.name
+
+    if(len(textures) > 0):
+        thisobj["textures"] = textures
+
+    return thisobj
+
+# ------------------------------------------------------------------------
 # Check material type and convert to something we can export to PBR
 
-node_convert_list = [
-    ("Principled BSDF", ConvertPrincipledBSDF, ""),
-    ("Emission", ConvertEmissionShader, ""),
-]
-
-# node_convert_list["Mix Shader"] = {}
-# node_convert_list["Mix Shader"]["mat_type"] = "Mix Shader"
-# node_convert_list["Mix Shader"]["Convert"] = ConvertMixShader
-
-# node_convert_list["ColorRamp"] = {}
-# node_convert_list["ColorRamp"]["mat_type"] = "ColorRamp"
-# node_convert_list["ColorRamp"]["Convert"] = ConvertColorRampShader
+node_convert_list = {
+    "Principled BSDF": ConvertPrincipledBSDF,
+    "Diffuse BSDF": ConvertDiffuseBSDF,
+    "Emission": ConvertEmissionShader,
+    "Mix Shader": ConvertMixShader, 
+    "ColorRamp": ConvertColorRampShader,
+}
 
 def ProcessMaterial( thisobj, mat, texture_path, context, config ):
 
     if mat is not None and mat.use_nodes:
+        print("[MATNAME] "+mat.name)
+            
+        outnode = mat.node_tree.nodes["Material Output"]
 
-        for conv in node_convert_list:
-            node_type = conv[0]
-            if node_type in mat.node_tree.nodes:
-                return conv[1]( thisobj, mat, texture_path, context, config )
-        
+        if outnode is not None:
+            surf = outnode.inputs["Surface"]
+
+            if(surf.is_linked == True):
+                out_surface_name = surf.links[0].from_node.name
+
+                if out_surface_name in node_convert_list:
+                    return node_convert_list[out_surface_name]( thisobj, mat, texture_path, context, config )
+                
         print("[ ERROR ] : Material type is not supported.")
         defoldUtils.ErrorLine( config, "  Material type is not supported..",  str(mat.name), "ERROR")
 

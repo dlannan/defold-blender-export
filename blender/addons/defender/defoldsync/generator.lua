@@ -635,6 +635,18 @@ local function processaomaetalroughness( filepath, mesh )
     return outputfile
 end
 
+------------------------------------------------------------------------------------------------------------
+
+local function processalbedomixshader( filepath, mesh )
+    local source1file = getBlenderTexture( filepath, mesh, "base_color", 'white.png')
+    local source2file = getBlenderTexture( filepath, mesh, "mix_color", 'black.png')
+    local factor = tonumber(mesh.mix_shader_factor)
+    local outputfile = filepath..gendata.folders.images..PATH_SEPARATOR..mesh.name.."AMixtexture.png"
+    materialSimple.genAlbedoMixShaderMap( outputfile, source1file, source2file, factor, 1024 )
+    outputfile = localpathname(filepath)..gendata.folders.images.."/"..mesh.name.."AMixtexture.png"
+
+    return outputfile
+end
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -664,7 +676,13 @@ local function maketexturefile( filepath, mesh )
 
     local texturefiles = {}
     if(gendata.config.sync_shader == "PBR Simple") then 
-        table.insert( texturefiles, processalbedoalpha(filepath, mesh ) )
+        -- If a mix shader has been set, then process albedo differently.
+        if(mesh.textures["mix_color"]) then 
+            table.insert( texturefiles, processalbedomixshader(filepath, mesh) )
+        else 
+            table.insert( texturefiles, processalbedoalpha(filepath, mesh ) )
+        end 
+
         -- Build an AO, metallic and roughness map
         table.insert( texturefiles, processaomaetalroughness(filepath, mesh) )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )

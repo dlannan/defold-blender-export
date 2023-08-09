@@ -124,7 +124,6 @@ def sceneObjects(context, f, config):
 
         # Force all scaling to unity - otherwise things are difficult to manage
         objType = getattr(obj, 'type', '')
-        print(objType + "   " + obj.name)
         if(objType not in ["LAMP", "LIGHT"]):
           obj.select_set(True)
           bpy.ops.object.transform_apply(scale=True)

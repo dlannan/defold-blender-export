@@ -40,6 +40,46 @@
 
 local png = require("defoldsync.png")
 local str = tostring
+
+------------------------------------------------------------------------------------------------------------
+-- Helper to mix pngs together. Use the source textures and mix source1 with source2 by factor X
+-- Params:
+--   target - target texture that will be the target for the merge texture
+--   source1 - source texture to mix
+--   source2 - second source texture to mix
+--   Factor - 0->1 factor proportion of source1. Source2 proportion is 1-factor
+--
+-- Note: Textures will attempt to merge different sizes by scaling. 
+--       It is faster if they are the same size.
+
+local function mixTextures( target, source1, source2, factor )
+
+    local in1 = source1 
+    local in2 = source2
+    local scalex = target.info_ptr.width / in1.info_ptr.width
+    local scaley = target.info_ptr.height / in1.info_ptr.height 
+
+    local targetchannels = target.info_ptr.channels
+    local amp1 = factor * 1000.0
+    local amp2 = (1.0 - factor) * 1000.0
+
+    for y = 0, target.info_ptr.height-1 do 
+        local sy = math.floor(y / scaley)
+        local srcrow1 = in1.row_pointers[sy]
+        local srcrow2 = in2.row_pointers[sy]
+        local dstrow = target.row_pointers[y]
+        for x = 0, target.info_ptr.width-1 do
+            local srcpixel1 = srcrow1 + math.floor(x / scalex) * in1.info_ptr.channels
+            local srcpixel2 = srcrow2 + math.floor(x / scalex) * in2.info_ptr.channels
+            local dstpixel = dstrow + x * targetchannels
+            for rgb = 0, 2 do 
+                dstpixel[rgb] = math.floor((srcpixel1[rgb] * amp1 + srcpixel2[rgb] * amp2) * 0.001)
+            end
+            dstpixel[3] = 0xff
+        end
+    end 
+end 
+
 ------------------------------------------------------------------------------------------------------------
 -- Helper to merge pngs together. Use the source texture to merge dest into it. 
 -- Params:
@@ -82,6 +122,15 @@ local function mergeTextures( target, merge, target_channel, merge_channel)
 end
 
 ------------------------------------------------------------------------------------------------------------
+-- Generate a Mix Texture from mix shader source files
+local function genAlbedoMixShaderMap( mergefile, base_color, mix_color, factor, outsize )
+
+    local outpng = png.create( mergefile, outsize, outsize, true )
+    mixTextures( outpng, png.load(base_color), png.load(mix_color), factor )  
+    png.save( mergefile, outpng )
+end
+
+------------------------------------------------------------------------------------------------------------
 -- Take in three textures and combine into one
 local function genAOMetallicRoughnessMap( mergefile, ao, metallic, roughness, outsize )
 
@@ -114,9 +163,10 @@ end
 ------------------------------------------------------------------------------------------------------------
 
 return {
-    genAMRMap           = genAOMetallicRoughnessMap,
-    genAlbedoAlphaMap   = genAlbedoAlphaMap,
-    genValueTexture     = genValueTexture,
+    genAMRMap               = genAOMetallicRoughnessMap,
+    genAlbedoAlphaMap       = genAlbedoAlphaMap,
+    genValueTexture         = genValueTexture,
+    genAlbedoMixShaderMap   = genAlbedoMixShaderMap,
 }
 
 ------------------------------------------------------------------------------------------------------------
