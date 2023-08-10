@@ -58,12 +58,19 @@ def getImageNodeFromColor(color_node, mat, name, texture_path):
   if( color_node.is_linked ):
     link = color_node.links[0]
     link_node = link.from_node
-    # print(str(link_node.type))
+    print(str(link_node.type))
 
     if link_node and link_node.type == 'TEX_IMAGE':
       imgnode = link_node.image
       if imgnode and imgnode.type == 'IMAGE':
         return imgnode
+
+    elif link_node and link_node.type == 'VALTORGB':
+        
+        position  = link_node.inputs["Fac"].default_value
+        col       = link_node.color_ramp.evaluate(position)
+        return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], 1.0])       
+
     elif link_node and link_node.type == 'BSDF_DIFFUSE':
        return getImageNode( link_node.inputs, "Color", mat, name, texture_path)
     
@@ -241,13 +248,9 @@ def ConvertDiffuseBSDF( thisobj, mat, texture_path, context, config ):
     if(diffusebsdf is not None):
 
         print("[ Diffuse BSDF ] : Diffuse bsdf material type used.")
-        addTexture( mat, textures, "base_color", diffusebsdf.inputs, "Base Color", texture_path, context )
-        addTexture( mat, textures, "metallic_color", diffusebsdf.inputs, "Metallic", texture_path, context )
+        addTexture( mat, textures, "base_color", diffusebsdf.inputs, "Color", texture_path, context )
         addTexture( mat, textures, "roughness_color", diffusebsdf.inputs, "Roughness", texture_path, context )
-        addTexture( mat, textures, "emissive_color", diffusebsdf.inputs, "Emission", texture_path, context )
-        addTexture( mat, textures, "emissive_strength", diffusebsdf.inputs, "Emission Strength", texture_path, context )
         addTexture( mat, textures, "normal_map", diffusebsdf.inputs, "Normal", texture_path, context )
-        addTexture( mat, textures, "alpha_map", diffusebsdf.inputs, "Alpha", texture_path, context )
 
         lightmap_enable = HasLightmap( diffusebsdf.inputs )
         if lightmap_enable:
@@ -357,43 +360,6 @@ def ConvertMixShader( thisobj, mat, texture_path, context, config ):
     return thisobj
 
 # ------------------------------------------------------------------------
-# Convert Mix Shader to Our PBR format
-
-def ConvertColorRampShader( thisobj, mat, texture_path, context, config ):
-
-    textures = {}
-    lightmap_enable = False
-
-    colorramp = mat.node_tree.nodes["ColorRamp"] 
-
-    # material names are cleaned here
-    mat.name = re.sub(r'[^\w]', ' ', mat.name)
-    if(colorramp is not None):
-
-        print("[ ColorRamp Shader ] : ColorRamp Shader material type used.")
-        addTexture( mat, textures, "base_color", colorramp.outputs, "Base Color", texture_path, context )
-        addTexture( mat, textures, "metallic_color", colorramp.outputs, "Metallic", texture_path, context )
-        addTexture( mat, textures, "roughness_color", colorramp.outputs, "Roughness", texture_path, context )
-        addTexture( mat, textures, "emissive_color", colorramp.outputs, "Color", texture_path, context )
-        addTexture( mat, textures, "emissive_strength", colorramp.outputs, "Strength", texture_path, context )
-        addTexture( mat, textures, "normal_map", colorramp.outputs, "Normal", texture_path, context )
-        addTexture( mat, textures, "alpha_map", colorramp.outputs, "Alpha", texture_path, context )
-
-        lightmap_enable = HasLightmap( colorramp.outputs )
-        if lightmap_enable:
-            mat.name = mat.name + "_LightMap"
-    else:
-        print("[ ERROR ] : Material is not ColorRamp Shader type.")
-        defoldUtils.ErrorLine( config, " Material is not ColorRamp Shader type: ",  str(mat.name), "ERROR")
-
-    thisobj["matname"] = mat.name
-
-    if(len(textures) > 0):
-        thisobj["textures"] = textures
-
-    return thisobj
-
-# ------------------------------------------------------------------------
 # Check material type and convert to something we can export to PBR
 
 node_convert_list = {
@@ -401,7 +367,6 @@ node_convert_list = {
     "Diffuse BSDF": ConvertDiffuseBSDF,
     "Emission": ConvertEmissionShader,
     "Mix Shader": ConvertMixShader, 
-    "ColorRamp": ConvertColorRampShader,
 }
 
 def ProcessMaterial( thisobj, mat, texture_path, context, config ):

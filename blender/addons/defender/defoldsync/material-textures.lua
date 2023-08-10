@@ -42,6 +42,17 @@ local png = require("defoldsync.png")
 local str = tostring
 
 ------------------------------------------------------------------------------------------------------------
+-- Helper to create a colorramp texture that matches Blenders ColorRamp (roughly)
+-- Params:
+--   target - target texture that will be the target for the merge texture
+--   ramp_values - the data needed to make the color ramp
+--
+
+local function genRampTexture( target, ramp_values )
+
+end
+
+------------------------------------------------------------------------------------------------------------
 -- Helper to mix pngs together. Use the source textures and mix source1 with source2 by factor X
 -- Params:
 --   target - target texture that will be the target for the merge texture

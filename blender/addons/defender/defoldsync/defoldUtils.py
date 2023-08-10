@@ -44,6 +44,13 @@ def toHex(r, g, b, a):
     )
 
 # ------------------------------------------------------------------------
+
+def dump(obj):
+   for attr in dir(obj):
+       if hasattr( obj, attr ):
+           print( "obj.%s = %s" % (attr, getattr(obj, attr)))
+
+# ------------------------------------------------------------------------
 def dump_lua(data):
     if type(data) is str:
         return f'"{data}"'
