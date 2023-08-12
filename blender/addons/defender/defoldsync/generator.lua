@@ -79,6 +79,7 @@ gendata.folders = {
     materials   = "materials",
     animations  = "animations",
     scripts     = "scripts",
+    shaders     = "shaders",
 }
 
 gendata.images = {
@@ -96,10 +97,15 @@ gendata.files = {
 	shaderfile 	= "pbr-simple.material",
 }
 
+gendata.materials = {
+
+}
+
 ------------------------------------------------------------------------------------------------------------
 -- This will be used to allow custom materials and shaders (coming soon...)
 local pbrsimple = require("defoldsync.material-pbrsimple")
 local pbrlightmap = require("defoldsync.material-pbrlightmap")
+local blender = require("defoldsync.material-blender")
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -487,6 +493,7 @@ end
 
 local function makefile( fpath, fdata )
 
+    print(fpath)
     -- Make sure file path has proper escape codes for the platform
     local fh = io.open(fpath, "w")
     fh:write(fdata)
@@ -597,9 +604,10 @@ end
 
 local function getBlenderTexture( filepath, mesh, texturename, default )
 
-    if(mesh.textures and mesh.textures[texturename]) then 
+    local textures = gendata.materials[mesh.material].textures
+    if(textures and textures[texturename]) then 
         -- copy to local folder first 
-        return mesh.textures[texturename]
+        return textures[texturename]
     else 
         return gendata.project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR..default
     end
@@ -609,13 +617,14 @@ end
 
 local function processtexturefile( filepath, mesh, source, default )
 
+    local textures = gendata.materials[mesh.material].textures
     local texfile = filepath..gendata.folders.materials..PATH_SEPARATOR..default
-    local outputfile = localpathname(gendata.project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR..default)
-    if(mesh.textures and mesh.textures[source]) then 
-        texfile = string.match(mesh.textures[source], "([^"..PATH_SEPARATOR.."]+)$")
+    local outputfile = nil --localpathname(gendata.project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR..default)
+    if(textures and textures[source]) then 
+        texfile = string.match(textures[source], "([^"..PATH_SEPARATOR.."]+)$")
         -- copy to local folder first 
         local targetfile = filepath..gendata.folders.images..PATH_SEPARATOR..texfile
-        os.execute(CMD_COPY..' "'..mesh.textures[source]..'" "'..targetfile..'"')
+        os.execute(CMD_COPY..' "'..textures[source]..'" "'..targetfile..'"')
         outputfile = localpathname(filepath)..gendata.folders.images.."/"..texfile
     end
     return outputfile
@@ -652,7 +661,8 @@ end
 
 local function processalbedoalpha( filepath, mesh )
 
-    if(mesh.textures == nil or mesh.textures["alpha_map"] == nil) then 
+    local textures = gendata.materials[mesh.material].textures
+    if(textures == nil or textures["alpha_map"] == nil) then 
         return processtexturefile(filepath, mesh, 'base_color', 'white.png')
     end 
 
@@ -674,17 +684,22 @@ end
 
 local function maketexturefile( filepath, mesh )
 
+    local textures = gendata.materials[mesh.material].textures
     local texturefiles = {}
     if(gendata.config.sync_shader == "PBR Simple") then 
         -- If a mix shader has been set, then process albedo differently.
-        if(mesh.textures["mix_color"]) then 
-            table.insert( texturefiles, processalbedomixshader(filepath, mesh) )
-        else 
-            table.insert( texturefiles, processalbedoalpha(filepath, mesh ) )
-        end 
+        -- if(textures ~= nil and textures["mix_color"]) then 
+        --     table.insert( texturefiles, processalbedomixshader(filepath, mesh) )
+        -- else 
+        --      table.insert( texturefiles, processalbedoalpha(filepath, mesh ) )
+        -- end 
 
         -- Build an AO, metallic and roughness map
-        table.insert( texturefiles, processaomaetalroughness(filepath, mesh) )
+        -- table.insert( texturefiles, processaomaetalroughness(filepath, mesh) )   
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'alpha_map', 'white.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_map', 'white.png') )
+        table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_map', 'white.png') )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'reflection_map', 'grey.png') )
@@ -704,21 +719,16 @@ local function makemeshfile(name, filepath, mesh )
     local meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".mesh"
     local materialfile = "/builtins/materials/model.material"
 
-    if(gendata.config.sync_shader == "PBR Simple") then 
-        materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
-        if( mesh.matname and string.endswith(mesh.matname, "_LightMap")) then 
-            materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-lightmap.material"
-        end
-        meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
-    else 
-        meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
-    end 
+    materialfile = localpathname(filepath)..gendata.folders.materials.."/blender_"..mesh.material..".material"
+    meshdata = string.gsub(meshdata, "MATERIAL_FILE_PATH", materialfile)
 
     -- If a texture file is found, copy it, then assign it
     local alltextures = maketexturefile( filepath, mesh )
     local texture_file_list = ""
-    for k,v in pairs(alltextures) do 
-        texture_file_list = texture_file_list..'textures: "'..v..'"\n'
+    if(alltextures) then 
+        for k,v in pairs(alltextures) do 
+            texture_file_list = texture_file_list..'textures: "'..v..'"\n'
+        end
     end
     meshdata = string.gsub(meshdata, "MESH_TEXTURE_FILES", texture_file_list)
 
@@ -775,6 +785,34 @@ local function makescriptfile( name, filepath, objs )
     makefile( scriptfilepath, scriptdata )
     return localpathname(filepath..gendata.folders.scripts..PATH_SEPARATOR..name..".script")
 end
+
+------------------------------------------------------------------------------------------------------------
+
+local function genmaterial( material_path, vpname, fpname, matname, pbrmaterial )
+    local material_vp_path = material_path..vpname
+    local material_fp_path = material_path..fpname
+    local matstr = pbrmaterial.material:gsub("MATERIAL_VP", localpathname(material_vp_path))
+    matstr = matstr:gsub("MATERIAL_FP", localpathname(material_fp_path))
+
+    local lv = gendata.config.sync_light_vec
+    local light_vector = '\tx: '..lv.x..'\n\ty: '..lv.y..'\n\tz: '..lv.z..'\n\tw: 1.0'
+    matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
+
+    local mp = gendata.config.sync_mat_params
+    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 0.1'
+    matstr = matstr:gsub("MATERIAL_PARAMS", mat_params) 
+    makefile( material_path..matname, matstr)
+
+    pbrmaterial.vp = pbrmaterial.vp:gsub("MATERIAL_VP_LIGHTDIR", pbrmaterial.vp_lightdir_global)
+    makefile( material_vp_path, pbrmaterial.vp )
+    makefile( material_fp_path, pbrmaterial.fp )
+    
+    makefilebinary( material_path.."white.png", WHITE_PNG )
+    makefilebinary( material_path.."normal.png", NORMAL_PNG )
+    makefilebinary( material_path.."grey.png", GREY_PNG )
+    makefilebinary( material_path.."black.png", BLACK_PNG )
+end 
+
 ------------------------------------------------------------------------------------------------------------
 
 local function makegofile( name, filepath, go )
@@ -822,6 +860,8 @@ local function makegofile( name, filepath, go )
                 if( animfile == "gltf" ) then animfile = localpathname( meshfile ) end
                 meshdata = mdata 
                 meshfilepath = localpathname(meshfile)
+                
+                -- TODO: SET MESH MATERIAL HERE
             end
 
             if(go.animated == nil) then
@@ -879,40 +919,59 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function genmaterial( material_path, vpname, fpname, matname, pbrmaterial )
-    local material_vp_path = material_path..vpname
-    local material_fp_path = material_path..fpname
-    local matstr = pbrmaterial.material:gsub("MATERIAL_VP", localpathname(material_vp_path))
-    matstr = matstr:gsub("MATERIAL_FP", localpathname(material_fp_path))
+local function setupmaterials( project_path, materials )
 
-    local lv = gendata.config.sync_light_vec
-    local light_vector = '\tx: '..lv.x..'\n\ty: '..lv.y..'\n\tz: '..lv.z..'\n\tw: 1.0'
-    matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
-
-    local mp = gendata.config.sync_mat_params
-    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 0.1'
-    matstr = matstr:gsub("MATERIAL_PARAMS", mat_params) 
-
-    makefile( material_path..matname, matstr)
-
-    pbrmaterial.vp = pbrmaterial.vp:gsub("MATERIAL_VP_LIGHTDIR", pbrmaterial.vp_lightdir_global)
-    makefile( material_vp_path, pbrmaterial.vp )
-    makefile( material_fp_path, pbrmaterial.fp )
-    makefilebinary( material_path.."white.png", WHITE_PNG )
-    makefilebinary( material_path.."normal.png", NORMAL_PNG )
-    makefilebinary( material_path.."grey.png", GREY_PNG )
-    makefilebinary( material_path.."black.png", BLACK_PNG )
-end 
-
-------------------------------------------------------------------------------------------------------------
-
-local function setupmaterials( project_path )
     -- Make the default pbr material, and shaders
     local material_path = project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR
+    local shaders_path = project_path..PATH_SEPARATOR..gendata.folders.shaders..PATH_SEPARATOR
 
     -- Material types can be simple or lightmap now, generate both anyway
     genmaterial( material_path, "pbr-simple.vp", "pbr-simple.fp", "pbr-simple.material", pbrsimple )
     genmaterial( material_path, "pbr-lightmap.vp", "pbr-lightmap.fp", "pbr-lightmap.material", pbrlightmap )
+
+    -- Go through all the materials assign fp shaders and gen material files.
+    for k,v in pairs(materials) do
+
+        -- Process the material json file.
+        local material = {}
+        local fh = io.open( v, "rb" )
+        if(fh) then
+            local fdata = fh:read("*all")
+            fh:close()
+            material = json.decode( fdata )
+        end 
+
+        local temp = {
+            vp_lightdir_local   = blender.vp_lightdir_local, 
+            vp_lightdir_global  = blender.vp_lightdir_global,
+            vp                  = blender.vp,
+            fp                  = blender.fp,
+            material            = "",
+            sampler             = "",
+        }
+
+        local matstr = string.rep(blender.material,1)
+        local all_samplers = ""
+        local texcount = tonumber(table.count(material.textures))
+
+        if material.textures and texcount > 0 then 
+            local texcount = 0
+            for texname, tex in pairs(material.textures) do
+                local sampler = string.rep(blender.sampler, 1)
+                sampler = sampler:gsub("MATERIAL_SAMPLER_NANE", "v_textures["..texcount.."]")
+                all_samplers = all_samplers..sampler.."\n"
+                texcount = texcount + 1
+            end
+        end
+        matstr = matstr:gsub("MATERIAL_SAMPLERS", all_samplers)
+        temp.material = matstr
+        temp.fp = material.shader
+
+        gendata.materials[k] = material
+
+        genmaterial( material_path, "blender_"..k..".vp", "blender_"..k..".fp", "blender_"..k..".material", temp )
+    end
+
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -1025,7 +1084,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function makescene( scenename, objects, meshes, anims )
+local function makescene( scenename, objects, meshes, anims, materials )
     if(objects == nil) then return end 
 
     gendata.meshes  = meshes
@@ -1034,7 +1093,7 @@ local function makescene( scenename, objects, meshes, anims )
     local project_path = gendata.base..PATH_SEPARATOR..scenename
     gendata.project_path = project_path
 
-    setupmaterials( project_path )
+    setupmaterials( project_path, materials )
 
     if(anims) then 
         setupanimations( anims ) 

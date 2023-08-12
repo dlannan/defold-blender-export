@@ -55,7 +55,7 @@ if(config.sync_mode == "Sync Build") then
     if( config.stream_anim ) then gen.anim = true end
     
     gen.makefolders( collection_name, project_path, config )
-    gen.makescene( collection_name, data["OBJECTS"], data["MESHES"], data["ANIMS"])
+    gen.makescene( collection_name, data["OBJECTS"], data["MESHES"], data["ANIMS"], data["MATERIALS"])
 end
 
 if(config.sync_mode == "Debug") then

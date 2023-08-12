@@ -76,6 +76,8 @@ from bpy.types import (Panel,
 if "bpy" in locals():
     # ...so we need to reload our submodule(s) using importlib
     import importlib
+    if "blenderNodeCompiler" in locals():
+        importlib.reload(blenderNodeCompiler)
     if "defoldUtils" in locals():
         importlib.reload(defoldUtils)
     if "defoldMaterials" in locals():
@@ -99,6 +101,7 @@ if not dir in sys.path:
 from defoldsync import defoldUtils
 from defoldsync import defoldMaterials
 from defoldsync import defoldCmds
+from defoldsync import blenderNodeCompiler
 
 data_changed = False
 
@@ -314,7 +317,7 @@ class WM_OT_SyncTool(Operator):
 
         # Run with library demo
         # result = subprocess.check_output(['luajit', '-l', 'demo', '-e', 'test("a", "b")'])
-        commands    = [ "scene", "meshes" ]
+        commands    = [ "scene", "meshes", "materials" ]
         if(mytool.stream_anim == True):
             commands.append("anims")
 

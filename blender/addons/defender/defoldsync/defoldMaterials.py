@@ -21,6 +21,7 @@
 # ------------------------------------------------------------------------
 
 from defoldsync import defoldUtils
+from defoldsync import blenderNodeCompiler as bNC
 
 # ------------------------------------------------------------------------
 
@@ -77,51 +78,51 @@ def getImageNodeFromColor(color_node, mat, name, texture_path):
     elif link_node and link_node.type == 'BSDF_PRINCIPLED':
        return getImageNode( link_node.inputs, "Base Color", mat, name, texture_path)
       
-    elif link_node and link_node.type == 'MIX_RGB':
-      if link_node.blend_type == 'MULTIPLY':
-        color1node = link_node.inputs['Color1'].links[0].from_node
-        color2node = link_node.inputs['Color2'].links[0].from_node
+    # elif link_node and link_node.type == 'MIX_RGB':
+    #   if link_node.blend_type == 'MULTIPLY':
+    #     color1node = link_node.inputs['Color1'].links[0].from_node
+    #     color2node = link_node.inputs['Color2'].links[0].from_node
 
-        if index == 'Base Color' or index == 'Color':
-          baseimg = False
-          if color2node and color2node.type == 'TEX_IMAGE':
-            imgnode = color2node.image 
-            if imgnode and imgnode.type == 'IMAGE':
-              baseImg = imgnode 
-          if color1node and color1node.type == 'TEX_IMAGE':
-            lightnode = color1node.image 
-            if lightnode and lightnode.type == 'IMAGE' and lightnode.name.endswith('_baked'):
+    #     if index == 'Base Color' or index == 'Color':
+    #       baseimg = False
+    #       if color2node and color2node.type == 'TEX_IMAGE':
+    #         imgnode = color2node.image 
+    #         if imgnode and imgnode.type == 'IMAGE':
+    #           baseImg = imgnode 
+    #       if color1node and color1node.type == 'TEX_IMAGE':
+    #         lightnode = color1node.image 
+    #         if lightnode and lightnode.type == 'IMAGE' and lightnode.name.endswith('_baked'):
 
-              nodes = mat.node_tree.nodes
-              links = mat.node_tree.links
-              links.new(color1node.outputs[0], colors['Emission'])
+    #           nodes = mat.node_tree.nodes
+    #           links = mat.node_tree.links
+    #           links.new(color1node.outputs[0], colors['Emission'])
 
-          if baseimg:
-            return baseimg
+    #       if baseimg:
+    #         return baseimg
 
   # Handle metallic roughness and emission if they have just values set (make a little color texture)
-  value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map", "mix_color"]
-  if(color_node.type == "VALUE") and (name in value_materials):
-    col       = color_node.default_value
-    # If alpha is default, then base color will use default settings in alpha channel
-    if(name == "alpha_map" and col == 1.0):
-      return None
-    return makeBlockPNG(texture_path, mat.name, name, [col, col, col, col])
+#   value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map", "mix_color"]
+#   if(color_node.type == "VALUE") and (name in value_materials):
+#     col       = color_node.default_value
+#     # If alpha is default, then base color will use default settings in alpha channel
+#     if(name == "alpha_map" and col == 1.0):
+#       return None
+#     return makeBlockPNG(texture_path, mat.name, name, [col, col, col, col])
 
   # if the node is a color vector. Make a tiny color png in temp
   # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
-  if((color_node.type == "RGBA" or color_node.type == "RGB") and (name == "base_color" or name == "mix_color") ):
+#   if((color_node.type == "RGBA" or color_node.type == "RGB") and (name == "base_color" or name == "mix_color") ):
 
-    alpha     = 1.0 
-    col       = color_node.default_value
+#     alpha     = 1.0 
+#     col       = color_node.default_value
     
-    # check if this is linked 
-    if( color_node.is_linked ):
-      link = color_node.links[0]
-      link_node = link.from_node
-      col = link_node.outputs[0].default_value
+#     # check if this is linked 
+#     if( color_node.is_linked ):
+#       link = color_node.links[0]
+#       link_node = link.from_node
+#       col = link_node.outputs[0].default_value
 
-    return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], alpha])
+#     return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], alpha])
 
   return None 
 
@@ -369,10 +370,17 @@ node_convert_list = {
     "Mix Shader": ConvertMixShader, 
 }
 
-def ProcessMaterial( thisobj, mat, texture_path, context, config ):
+def ProcessMaterial( mat, texture_path, context, config ):
+
+    matobj = {}
 
     if mat is not None and mat.use_nodes:
         print("[MATNAME] "+mat.name)
+
+        # Compile the shader, then assign it to the material
+        node_compiler = bNC.MaterialNodesCompiler(mat.node_tree)
+        shader = node_compiler.compile()
+        matobj["shader"] = shader
             
         outnode = mat.node_tree.nodes["Material Output"]
 
@@ -383,13 +391,13 @@ def ProcessMaterial( thisobj, mat, texture_path, context, config ):
                 out_surface_name = surf.links[0].from_node.name
 
                 if out_surface_name in node_convert_list:
-                    return node_convert_list[out_surface_name]( thisobj, mat, texture_path, context, config )
-                
-        print("[ ERROR ] : Material type is not supported.")
-        defoldUtils.ErrorLine( config, "  Material type is not supported..",  str(mat.name), "ERROR")
+                    matobj = node_convert_list[out_surface_name]( matobj, mat, texture_path, context, config )
+        else:
+            print("[ ERROR ] : Material type is not supported.")
+            defoldUtils.ErrorLine( config, "  Material type is not supported..",  str(mat.name), "ERROR")
 
     else:
         print("[ ERROR ] : Material type missing or not supported.")
         defoldUtils.ErrorLine( config, " Material type missing or not supported.",  str(mat.name), "ERROR")
 
-    return thisobj
+    return matobj
