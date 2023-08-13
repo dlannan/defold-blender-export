@@ -59,7 +59,7 @@ def getImageNodeFromColor(color_node, mat, name, texture_path):
   if( color_node.is_linked ):
     link = color_node.links[0]
     link_node = link.from_node
-    print(str(link_node.type))
+    # print(str(link_node.type))
 
     if link_node and link_node.type == 'TEX_IMAGE':
       imgnode = link_node.image
@@ -142,19 +142,35 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
     basename = os.path.basename(img)
     splitname = os.path.splitext(basename)
 
-    print("[ IMG PATH ] " + str(img))
-    print("[ IMG BASE PATH ] " + str(basename))
+    # print("[ IMG PATH ] " + str(img))
+    # print("[ IMG BASE PATH ] " + str(basename))
 
     if splitname[1] != '.png' and splitname[1] != '.PNG':
       pngimg = os.path.join(texture_path , splitname[0] + ".png")
       if(os.path.exists(pngimg) == False):
+
+        maxwidth = 1024
+        maxheight = 1024
         
         imgnode.file_format='PNG' 
         image = bpy.data.images.load(img)
+        imgsize = image.size
 
         image_settings = bpy.context.scene.render.image_settings
-        image_settings.file_format = "PNG"
-        image.file_format='PNG'
+        image_settings.color_mode = 'RGBA'        
+        image_settings.file_format = "PNG"  
+        image.file_format = 'PNG'
+        image.colorspace_settings.name = 'sRGB'
+        image.alpha_mode = 'CHANNEL_PACKED'
+
+        # Should have some sort of scaling check
+        imgscale = 1.0
+        if(imgsize[0] > maxwidth):
+           imgscale = maxwidth / imgsize[0]
+        elif(imgsize[1] > maxheight):
+           imgscale = maxheight / imgsize[1]
+
+        image.scale( int(imgsize[0] * imgscale), int(imgsize[1] * imgscale) )
         image.save_render(pngimg)
       img = pngimg
 
@@ -162,8 +178,12 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
     if os.path.exists(img) == False:
       img = os.path.join(texture_path , basename)
       image_settings = bpy.context.scene.render.image_settings
-      image_settings.file_format = "PNG"
+      image_settings.color_mode = 'RGBA'        
+      image_settings.file_format = "PNG"     
       imgnode.filepath = img
+      imgnode.colorspace_settings.name = 'Linear'
+      imgnode.alpha_mode = 'CHANNEL_PACKED'
+      imgnode.scale( 1024, 1024 )
       imgnode.save()
     
     # If this is an image texture, with an active image append its name to the list
@@ -191,7 +211,7 @@ def HasLightmap( color_node ):
     if link:
       link_node = link.from_node
       if link_node:
-        print("[EMISSION NAME] " + str(link_node.name))
+        # print("[EMISSION NAME] " + str(link_node.name))
         if link_node.name.endswith("_Lightmap"):
           return True 
   return False
@@ -211,7 +231,7 @@ def ConvertPrincipledBSDF( thisobj, mat, texture_path, context, config ):
     mat.name = re.sub(r'[^\w]', ' ', mat.name)
     if(bsdf is not None):
 
-        print("[ Principled BSDF ] : Principled bsdf material type used.")
+        # print("[ Principled BSDF ] : Principled bsdf material type used.")
         addTexture( mat, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
         addTexture( mat, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
         addTexture( mat, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
@@ -248,7 +268,7 @@ def ConvertDiffuseBSDF( thisobj, mat, texture_path, context, config ):
     mat.name = re.sub(r'[^\w]', ' ', mat.name)
     if(diffusebsdf is not None):
 
-        print("[ Diffuse BSDF ] : Diffuse bsdf material type used.")
+        # print("[ Diffuse BSDF ] : Diffuse bsdf material type used.")
         addTexture( mat, textures, "base_color", diffusebsdf.inputs, "Color", texture_path, context )
         addTexture( mat, textures, "roughness_color", diffusebsdf.inputs, "Roughness", texture_path, context )
         addTexture( mat, textures, "normal_map", diffusebsdf.inputs, "Normal", texture_path, context )
@@ -281,7 +301,7 @@ def ConvertEmissionShader( thisobj, mat, texture_path, context, config ):
     mat.name = re.sub(r'[^\w]', ' ', mat.name)
     if(emission is not None):
 
-        print("[ Emission ] : Emission material type used.")
+        # print("[ Emission ] : Emission material type used.")
 #        addTexture( mat, textures, "base_color", emission.inputs, "Base Color", texture_path, context )
 #        addTexture( mat, textures, "metallic_color", emission.inputs, "Metallic", texture_path, context )
 #        addTexture( mat, textures, "roughness_color", emission.inputs, "Roughness", texture_path, context )
@@ -318,17 +338,17 @@ def ConvertMixShader( thisobj, mat, texture_path, context, config ):
     mat.name = re.sub(r'[^\w]', ' ', mat.name)
     if(mixshader is not None):
 
-        print("[ Mix Shader ] : Mix Shader material type used.")
+        # print("[ Mix Shader ] : Mix Shader material type used.")
         # Check inputs. Only support two inputs of supported types.
 
         if(len(mixshader.inputs) == 3):
 
             node_count = 0
             for node in mixshader.inputs:
-                print("[ Mix Shader ] Node Name: " + str(node.name))
+                # print("[ Mix Shader ] Node Name: " + str(node.name))
 
                 if(node.name == "Fac"):
-                   print("[ Mix Shader ] Fac: " + str(node.default_value ))
+                   # print("[ Mix Shader ] Fac: " + str(node.default_value ))
                    thisobj["mix_shader_factor"] = node.default_value 
 
                 if(node.name == "Shader"):
@@ -379,23 +399,11 @@ def ProcessMaterial( mat, texture_path, context, config ):
 
         # Compile the shader, then assign it to the material
         node_compiler = bNC.MaterialNodesCompiler(mat.node_tree)
+        node_compiler.texture_path = texture_path
         shader = node_compiler.compile()
-        matobj["shader"] = shader
-            
-        outnode = mat.node_tree.nodes["Material Output"]
-
-        if outnode is not None:
-            surf = outnode.inputs["Surface"]
-
-            if(surf.is_linked == True):
-                out_surface_name = surf.links[0].from_node.name
-
-                if out_surface_name in node_convert_list:
-                    matobj = node_convert_list[out_surface_name]( matobj, mat, texture_path, context, config )
-        else:
-            print("[ ERROR ] : Material type is not supported.")
-            defoldUtils.ErrorLine( config, "  Material type is not supported..",  str(mat.name), "ERROR")
-
+        matobj["shader"] = shader       
+        matobj["textures"] = node_compiler.texture_paths
+        matobj["matname"] = mat.name
     else:
         print("[ ERROR ] : Material type missing or not supported.")
         defoldUtils.ErrorLine( config, " Material type missing or not supported.",  str(mat.name), "ERROR")

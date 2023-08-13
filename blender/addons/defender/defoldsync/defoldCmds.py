@@ -220,43 +220,29 @@ def sceneObjects(context, f, config):
 def sceneMaterials(context, fhandle, temppath, texture_path, config):
 
   fhandle.write('{ \n')
-  UVObj = type('UVObj', (object,), {})
-  
-  scene = context.scene
-  prog_text = "Exporting materials..."
-  objcount = len(scene.objects)
-  objcurr = 0
 
-  mode = config.stream_mesh_type
-  #Deselect any selected object
-  for o in context.selected_objects:
-    o.select_set(False)
+  prog_text = "Exporting materials..."
+  objcount = len(bpy.data.materials)
+  objcurr = 0
 
   materials = {}
 
-  for obj in scene.objects:
+  for mat in bpy.data.materials:
+    
+    update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
+    objcurr += 1
 
-      update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
-      objcurr += 1
+    if(mat.name not in materials):
+      print("[ MATERIAL ] :" + str(mat.name))
+      mat_obj = defoldMaterials.ProcessMaterial(mat, texture_path, context, config)
+      materials[mat.name] = mat_obj
+    
+      matfile = os.path.abspath(temppath + str(mat.name) + '.material')
+      with open( matfile, 'w') as f:
+        f.write(json.dumps(mat_obj))
 
-      # Only collect meshes in the scene
-      if(obj.type == "MESH"):
-       
-        if(obj.data):
-
-          if obj is not None and obj.type == 'MESH' and obj.active_material:   
-            mat = obj.active_material
-
-          if(mat.name not in materials):
-            mat_obj = defoldMaterials.ProcessMaterial(mat, texture_path, context, config)
-            materials[mat.name] = mat_obj
-          
-            matfile = os.path.abspath(temppath + str(mat.name) + '.material')
-            with open( matfile, 'w') as f:
-              f.write(json.dumps(mat_obj))
-
-            matfile = matfile.replace('\\','\\\\')        
-            fhandle.write('["' + mat.name + '"] = "' + matfile + '", \n')
+      matfile = matfile.replace('\\','\\\\')        
+      fhandle.write('["' + mat.name + '"] = "' + matfile + '", \n')
 
   fhandle.write('} \n')
 

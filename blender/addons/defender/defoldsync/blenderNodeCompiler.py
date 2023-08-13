@@ -1,4 +1,7 @@
 
+from defoldsync import defoldUtils
+from defoldsync import defoldMaterials
+
 class MaterialNodesCompiler:
 	"""
 	Limitations:
@@ -33,13 +36,15 @@ class MaterialNodesCompiler:
 		# note: it will not correct somehow magically bad glsl output, so even with forceValidTranslation there may be compiler errors
 		# set forceValidTranslation to False to make the compiler cry for translation errors
 		self.forceValidTranslation = True
-		self.debugOutputToConsole = True
+		self.debugOutputToConsole = False
 		self.finalOutputToConsole = False
 		self.compiler = 'glslc %INFILE% -o %OUTFILE%'
 		self.varPrefix = 'var'
 		self.floatFormat = '{0:.5f}'
 		self.inputs = {}
 		self.uniforms = {}
+		self.texture_paths = {}
+		self.texture_path = ""
 		self.inputs['v_position'] = {'location':0, 'type':'vec3', 'nodes':'NEW_GEOMETRY@Position'}
 		self.inputs['v_normal'] = {'location':1, 'type':'vec3', 'nodes':'NEW_GEOMETRY@Normal'}
 		self.inputs['v_objectNormal'] = {'location':2, 'type':'vec3', 'nodes':'TEX_COORD@Normal'}
@@ -83,6 +88,13 @@ class MaterialNodesCompiler:
 		self.functions['hsv2rgb'] = {'require':[], 'func':'vec3 hsv2rgb(vec3 c) {vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0); vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www); return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);}'}
 		self.functions['buildTransform'] = {'require':[], 'func':'mat4 buildTransform(vec3 l, vec3 r, vec3 s) {vec3 a=sin(r); vec3 b=cos(r); return mat4(vec4(b.y*b.z+a.x*a.z*s.x,b.y*a.z-a.x*a.y*b.z,b.x*a.y,0.0),vec4(-b.x*a.z,b.x*b.z*s.y,a.x,0.0),vec4(a.x*b.y*a.z-a.y*b.z,-a.y*a.z-a.x*b.y*b.z,b.x*b.y*s.z,0.0),vec4(l.xyz,1.0));}'}
 		self.functions['mapping'] = {'require':['buildTransform'], 'func':'vec3 mapping(vec3 vec, vec3 loc, vec3 rot, vec3 sca) {return (vec4(vec,1.0)*buildTransform(loc,rot,sca)).xyz;}'}
+		
+		self.functions['valtorgb_opti_constant'] = {'require':[], 'func': 'vec4 valtorgb_opti_constant(float fac, float edge, vec4 color1, vec4 color2){  vec4 outcol; outcol.rgb = (fac > edge) ? color2 : color1; outcol.a = outcol.a; return outcol;}'}
+		self.functions['valtorgb_opti_linear'] = {'require':[], 'func': 'vec4 valtorgb_opti_linear(float fac, vec2 mulbias, vec4 color1, vec4 color2){ vec4 outcol;  fac = clamp(fac * mulbias.x + mulbias.y, 0.0, 1.0); outcol = mix(color1, color2, fac); return outcol;}'}
+		self.functions['valtorgb_opti_ease'] = {'require':[], 'func': 'vec4 valtorgb_opti_ease(float fac, vec2 mulbias, vec4 color1, vec4 color2){vec4 outcol; fac = clamp(fac * mulbias.x + mulbias.y, 0.0, 1.0); fac = fac * fac * (3.0 - 2.0 * fac); outcol = mix(color1, color2, fac); return outcol;}'}
+		self.functions['valtorgb'] = {'require':[], 'func': 'vec4 valtorgb(float fac, sampler1DArray colormap, float layer){ vec4 outcol = texture(colormap, vec2(fac, layer)); return outcol;}'}
+		self.functions['valtorgb_nearest'] = {'require':[], 'func': 'vec4 valtorgb_nearest( float fac, sampler1DArray colormap, float layer){fac = clamp(fac, 0.0, 1.0);vec4 outcol = texelFetch(colormap, ivec2(fac * (textureSize(colormap, 0).x - 1), layer), 0); return outcol;}'}
+
 		for k,v in self.functions.items():
 			v['name'] = k
 			v['returnType'] = v['func'].split(' ',1)[0]
@@ -392,9 +404,37 @@ class MaterialNodesCompiler:
 		
 		# ValToRGB
 		if t=='VALTORGB':
-			fac = node.inputs['Fac'].default_value
-			return self.vecArrayType(node.color_ramp.evaluate( fac ), outType)
-		
+			fac = self.translateNodeInput(node, 'Fac', 'float', inputInfo)
+			fac_value = float(node.inputs['Fac'].default_value)
+			color_type = node.color_ramp.color_mode
+			interp_type = node.color_ramp.interpolation
+			color_band = [0, 1]
+			color_values = [ (0,0,0,0),  (0,0,0,1) ]
+			# Need to support other interp types
+			for col in node.color_ramp.elements:
+				# defoldUtils.dump(col)
+				if(col.position < fac_value):
+					color_band[0] = col.position
+					color_values[0] = col.color
+				if(col.position >= fac_value):
+					color_band[1] = col.position
+					color_values[1] = col.color
+
+			if(interp_type == "LINEAR"):
+				mul_bias = [1,0]
+				mul_bias[0] = 1.0 / (color_band[1] - color_band[0])
+				mul_bias[1] = -mul_bias[0] * color_band[0]
+				return self.useFunction('valtorgb_opti_linear', outType, [fac, self.vecArrayType(mul_bias, "vec2"), self.vecArrayType(color_values[0],"vec4"), self.vecArrayType(color_values[1], "vec4")])
+			if(interp_type == "CONSTANT"):
+				mul_bias = [1,0]
+				mul_bias[1] = max(color_band[0], color_band[1])
+				return self.useFunction('valtorgb_opti_constant', outType, [fac, self.vecArrayType(mul_bias, "vec2"), self.vecArrayType(color_values[0],"vec4"), self.vecArrayType(color_values[1], "vec4")])
+			if(interp_type == "EASE"):
+				mul_bias = [1,0]
+				mul_bias[0] = 1.0 / (color_band[1] - color_band[0])
+				mul_bias[1] = -mul_bias[0] * color_band[0]
+				return self.useFunction('valtorgb_opti_ease', outType, [fac, self.vecArrayType(mul_bias, "vec2"), self.vecArrayType(color_values[0],"vec4"), self.vecArrayType(color_values[1], "vec4")])
+			
 		# Map Range
 		if t=='MAP_RANGE':
 			val = self.translateNodeInput(node, 'Value', 'float', inputInfo)
@@ -484,17 +524,22 @@ class MaterialNodesCompiler:
 			if node.image.name not in self.textures:
 				self.textures.append(node.image.name)
 			texId = self.textures.index(node.image.name)
+
 			outputInfo['comment'] += ' ('+node.image.name+')'
 			vecSock = self.findSocket(node.inputs, 'Vector')
 			samp = self.translateShaderUniform('GLSL@Textures', outputInfo)
+			texStr = samp+'['+str(texId)+']'
+
+			defoldMaterials.addTextureImageNode(None, self.texture_paths, texStr, node.image, self.texture_path, None)
+
 			if vecSock.is_linked:
 				vector = self.translateNodeInput(node, 'Vector', 'vec2', inputInfo)
 			else:
 				vector = self.translateShaderInput('TEX_COORD', 'UV', 'vec2', outputInfo)
 			if outName=='Color':
-				return self.convertType('texture('+samp+'['+str(texId)+'],'+vector+')', 'vec4', outType)
+				return self.convertType('texture(' + texStr + ','+vector+')', 'vec4', outType)
 			elif outName=='Alpha':
-				return self.convertType('texture('+samp+'['+str(texId)+'],'+vector+').a', 'float', outType)
+				return self.convertType('texture(' + texStr + ','+vector+').a', 'float', outType)
 		
 		# Normal Map
 		if t=='NORMAL_MAP':

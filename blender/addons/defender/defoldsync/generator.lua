@@ -493,7 +493,6 @@ end
 
 local function makefile( fpath, fdata )
 
-    print(fpath)
     -- Make sure file path has proper escape codes for the platform
     local fh = io.open(fpath, "w")
     fh:write(fdata)
@@ -617,16 +616,20 @@ end
 
 local function processtexturefile( filepath, mesh, source, default )
 
-    local textures = gendata.materials[mesh.material].textures
-    local texfile = filepath..gendata.folders.materials..PATH_SEPARATOR..default
     local outputfile = nil --localpathname(gendata.project_path..PATH_SEPARATOR..gendata.folders.materials..PATH_SEPARATOR..default)
-    if(textures and textures[source]) then 
-        texfile = string.match(textures[source], "([^"..PATH_SEPARATOR.."]+)$")
-        -- copy to local folder first 
-        local targetfile = filepath..gendata.folders.images..PATH_SEPARATOR..texfile
-        os.execute(CMD_COPY..' "'..textures[source]..'" "'..targetfile..'"')
-        outputfile = localpathname(filepath)..gendata.folders.images.."/"..texfile
-    end
+    local textureobj = gendata.materials[mesh.material]
+    if(textureobj and textureobj.textures) then
+        local textures = textureobj.textures
+
+        local texfile = filepath..gendata.folders.materials..PATH_SEPARATOR..default
+        if(textures and textures[source]) then 
+            texfile = string.match(textures[source], "([^"..PATH_SEPARATOR.."]+)$")
+            -- copy to local folder first 
+            local targetfile = filepath..gendata.folders.images..PATH_SEPARATOR..texfile
+            os.execute(CMD_COPY..' "'..textures[source]..'" "'..targetfile..'"')
+            outputfile = localpathname(filepath)..gendata.folders.images.."/"..texfile
+        end
+    end 
     return outputfile
 end 
 
@@ -684,9 +687,11 @@ end
 
 local function maketexturefile( filepath, mesh )
 
-    local textures = gendata.materials[mesh.material].textures
     local texturefiles = {}
     if(gendata.config.sync_shader == "PBR Simple") then 
+        
+        -- local textures = gendata.materials[mesh.material].textures
+
         -- If a mix shader has been set, then process albedo differently.
         -- if(textures ~= nil and textures["mix_color"]) then 
         --     table.insert( texturefiles, processalbedomixshader(filepath, mesh) )
@@ -696,13 +701,22 @@ local function maketexturefile( filepath, mesh )
 
         -- Build an AO, metallic and roughness map
         -- table.insert( texturefiles, processaomaetalroughness(filepath, mesh) )   
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'alpha_map', 'white.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_map', 'white.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_map', 'white.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
-        table.insert( texturefiles, processtexturefile(filepath, mesh, 'reflection_map', 'grey.png') )
+        -- table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
+        -- table.insert( texturefiles, processtexturefile(filepath, mesh, 'alpha_map', 'white.png') )
+        -- table.insert( texturefiles, processtexturefile(filepath, mesh, 'metallic_map', 'white.png') )
+        -- table.insert( texturefiles, processtexturefile(filepath, mesh, 'roughness_map', 'white.png') )
+        -- table.insert( texturefiles, processtexturefile(filepath, mesh, 'emissive_color', 'black.png') )
+        -- table.insert( texturefiles, processtexturefile(filepath, mesh, 'normal_map', 'normal.png') )
+        -- table.insert( texturefiles, processtexturefile(filepath, mesh, 'reflection_map', 'grey.png') )
+
+        local textureobj = gendata.materials[mesh.material]
+        print("[ TEXTURE ] --------> ", textureobj, mesh.material)
+        if(textureobj and textureobj.textures) then 
+            for k, v in pairs(textureobj.textures) do 
+                print("[ TEXTURE ] --------> ", k, v)
+                table.insert( texturefiles, processtexturefile(filepath, mesh, k, 'white.png') )
+            end
+        end
     else 
         table.insert( texturefiles, processtexturefile(filepath, mesh, 'base_color', 'white.png') )
     end
@@ -941,35 +955,38 @@ local function setupmaterials( project_path, materials )
             material = json.decode( fdata )
         end 
 
-        local temp = {
-            vp_lightdir_local   = blender.vp_lightdir_local, 
-            vp_lightdir_global  = blender.vp_lightdir_global,
-            vp                  = blender.vp,
-            fp                  = blender.fp,
-            material            = "",
-            sampler             = "",
-        }
+        if(material.matname) then
 
-        local matstr = string.rep(blender.material,1)
-        local all_samplers = ""
-        local texcount = tonumber(table.count(material.textures))
+            local temp = {
+                vp_lightdir_local   = blender.vp_lightdir_local, 
+                vp_lightdir_global  = blender.vp_lightdir_global,
+                vp                  = blender.vp,
+                fp                  = blender.fp,
+                material            = "",
+                sampler             = "",
+            }
 
-        if material.textures and texcount > 0 then 
-            local texcount = 0
-            for texname, tex in pairs(material.textures) do
-                local sampler = string.rep(blender.sampler, 1)
-                sampler = sampler:gsub("MATERIAL_SAMPLER_NANE", "v_textures["..texcount.."]")
-                all_samplers = all_samplers..sampler.."\n"
-                texcount = texcount + 1
+            local matstr = string.rep(blender.material,1)
+            local all_samplers = ""
+            local texcount = tonumber(table.count(material.textures))
+
+            if material.textures and texcount > 0 then 
+                local texcount = 0
+                for texname, tex in pairs(material.textures) do
+                    local sampler = string.rep(blender.sampler, 1)
+                    sampler = sampler:gsub("MATERIAL_SAMPLER_NANE", texname)
+                    all_samplers = all_samplers..sampler.."\n"
+                    texcount = texcount + 1
+                end
             end
+            matstr = matstr:gsub("MATERIAL_SAMPLERS", all_samplers)
+            temp.material = matstr
+            temp.fp = material.shader
+
+            gendata.materials[k] = material
+
+            genmaterial( material_path, "blender_"..k..".vp", "blender_"..k..".fp", "blender_"..k..".material", temp )
         end
-        matstr = matstr:gsub("MATERIAL_SAMPLERS", all_samplers)
-        temp.material = matstr
-        temp.fp = material.shader
-
-        gendata.materials[k] = material
-
-        genmaterial( material_path, "blender_"..k..".vp", "blender_"..k..".fp", "blender_"..k..".material", temp )
     end
 
 end

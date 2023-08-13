@@ -64,15 +64,15 @@ local vp = [[
       vec3 vLightModelPosition = vec3(mtx_view * vec4(light.xyz, 1.0));
       vvLocalSurfaceToLightDirection = normalize(vLightModelPosition - p.xyz);
   
-      v_normal = normal;
-      v_objectNormal = normalize((mtx_normal * vec4(normal, 0.0)).xyz);
+      v_objectNormal = normal;
+      v_normal = normalize((mtx_normal * vec4(normal, 0.0)).xyz);
       //	v_objectNormal = normalize(gl_Normal) ; // use the actual normal from the actual geometry
   
       vec3 vLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
-      vvLocalReflectedSurfaceToViewerDirection = normalize(reflect(vLocalSurfaceToViewerDirection, v_objectNormal)) ;
+      vvLocalReflectedSurfaceToViewerDirection = normalize(reflect(vLocalSurfaceToViewerDirection, v_normal)) ;
 
       vec3 e = p.xyz;
-      vec3 n = v_objectNormal;
+      vec3 n = v_normal;
 
       vec3 r = reflect( e, n );
       float m = 2. * sqrt( pow( r.x, 2. ) + pow( r.y, 2. ) + pow( r.z + 1., 2. ) );
