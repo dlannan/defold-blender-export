@@ -160,8 +160,7 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
         image_settings.color_mode = 'RGBA'        
         image_settings.file_format = "PNG"  
         image.file_format = 'PNG'
-        image.colorspace_settings.name = 'sRGB'
-        image.alpha_mode = 'CHANNEL_PACKED'
+        image.colorspace_settings.name = 'Raw'
 
         # Should have some sort of scaling check
         imgscale = 1.0
@@ -181,7 +180,7 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
       image_settings.color_mode = 'RGBA'        
       image_settings.file_format = "PNG"     
       imgnode.filepath = img
-      imgnode.colorspace_settings.name = 'Linear'
+      imgnode.colorspace_settings.name = 'Raw'
       imgnode.alpha_mode = 'CHANNEL_PACKED'
       imgnode.scale( 1024, 1024 )
       imgnode.save()
