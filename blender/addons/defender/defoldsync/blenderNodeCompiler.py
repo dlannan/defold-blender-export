@@ -169,7 +169,9 @@ class MaterialNodesCompiler:
 		
 		#todo: vars that only have 1 use (len(self.vars[i]['required'])) don't need their own assignment to improve the glsl code
 		
-		o = '#version 440\n\n'
+		o = '\n\n'
+		#o = '#version 440\n\n'
+
 		# write material struct
 		o += 'struct material\n{\n'
 		for k,v in self.materialStruct.items():
@@ -178,23 +180,38 @@ class MaterialNodesCompiler:
 		
 		# write shader inputs
 		for k,v in self.inputs.items():
-			o += 'layout(location='+str(v['location'])+') in '+v['type']+' '+k+';\n'
+			# o += 'layout(location='+str(v['location'])+') in '+v['type']+' '+k+';\n'
+			o += 'varying '+v['type']+' '+k+';\n'
+
+		o += '// DEFOLD_CUSTOM_PBR_VARYINGS \n'
+		o += '\n'
+
 		# write shader uniforms
 		for k,v in self.uniforms.items():
+			# if '[]' in v['type']:
+			# 	t = v['type'].replace('[]', '')
+			# 	if v['key']=='GLSL@Textures' and len(self.textures)>0:
+			# 		o += 'layout(binding='+str(v['binding'])+') uniform '+t+' '+k+'['+str(len(self.textures))+'];\n'
+			# else:
+			# 	o += 'layout(binding='+str(v['binding'])+') uniform '+v['type']+' '+k+';\n'
 			if '[]' in v['type']:
 				t = v['type'].replace('[]', '')
 				if v['key']=='GLSL@Textures' and len(self.textures)>0:
-					o += 'layout(binding='+str(v['binding'])+') uniform '+t+' '+k+'['+str(len(self.textures))+'];\n'
+					o += 'uniform '+t+' '+k+'['+str(len(self.textures))+'];\n'
 			else:
-				o += 'layout(binding='+str(v['binding'])+') uniform '+v['type']+' '+k+';\n'
-		o += 'layout(location=0) out vec4 fragColor;\n'
+				o += 'uniform '+v['type']+' '+k+';\n'
+		# o += 'layout(location=0) out vec4 fragColor;\n'
 		o += '\n'
-		
+
+		# write pbr functions to generate completed fragColor
+		o += '// DEFOLD_CUSTOM_PBR_FUNCS \n'
+		o += '\n'
+
 		# write functions required
 		for f in self.useFunctions:
 			o += f['func']+'\n'
 		o += '\n'
-			
+
 		# write main function
 		o += 'void main()\n{\n'
 		line = len(o.split('\n'))
@@ -218,7 +235,8 @@ class MaterialNodesCompiler:
 			line += 1
 			
 		c = '\n'
-		c += 'fragColor = vec4(mat.color.xyz, mat.alpha);\n'
+		# c += 'gl_FragColor = vec4(mat.color.xyz, mat.alpha);\n'
+		c += 'gl_FragColor = getPbrColor(mat);\n'
 		
 		for l in c.split('\n'):
 			o += '\t'+l+'\n'

@@ -962,6 +962,8 @@ local function setupmaterials( project_path, materials )
                 vp_lightdir_global  = blender.vp_lightdir_global,
                 vp                  = blender.vp,
                 fp                  = blender.fp,
+                fp_pbr_funcs        = blender.fp_pbr_funcs,
+                fp_pbr_varyings     = blender.fp_pbr_varyings,
                 material            = "",
                 sampler             = "",
             }
@@ -981,7 +983,9 @@ local function setupmaterials( project_path, materials )
             end
             matstr = matstr:gsub("MATERIAL_SAMPLERS", all_samplers)
             temp.material = matstr
-            temp.fp = material.shader
+            local pbr_shader = material.shader:gsub("// DEFOLD_CUSTOM_PBR_VARYINGS ", temp.fp_pbr_varyings)
+            pbr_shader = pbr_shader:gsub("// DEFOLD_CUSTOM_PBR_FUNCS ", temp.fp_pbr_funcs)
+            temp.fp = pbr_shader
 
             gendata.materials[k] = material
 
