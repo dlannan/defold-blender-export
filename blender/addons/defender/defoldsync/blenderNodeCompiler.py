@@ -171,6 +171,8 @@ class MaterialNodesCompiler:
 		
 		o = '\n\n'
 		#o = '#version 440\n\n'
+		o = '#version 300 es\n'
+		o += 'precision highp float;\n\n'
 
 		# write material struct
 		o += 'struct material\n{\n'
@@ -197,7 +199,8 @@ class MaterialNodesCompiler:
 			if '[]' in v['type']:
 				t = v['type'].replace('[]', '')
 				if v['key']=='GLSL@Textures' and len(self.textures)>0:
-					o += 'uniform '+t+' '+k+'['+str(len(self.textures))+'];\n'
+					for texid  in range(0, len(self.textures)):
+						o += 'uniform '+t+' '+k+str(texid)+';\n'
 			else:
 				o += 'uniform '+v['type']+' '+k+';\n'
 		# o += 'layout(location=0) out vec4 fragColor;\n'
@@ -546,7 +549,7 @@ class MaterialNodesCompiler:
 			outputInfo['comment'] += ' ('+node.image.name+')'
 			vecSock = self.findSocket(node.inputs, 'Vector')
 			samp = self.translateShaderUniform('GLSL@Textures', outputInfo)
-			texStr = samp+'['+str(texId)+']'
+			texStr = samp+str(texId)
 
 			defoldMaterials.addTextureImageNode(None, self.texture_paths, texStr, node.image, self.texture_path, None)
 

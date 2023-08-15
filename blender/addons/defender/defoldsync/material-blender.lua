@@ -22,79 +22,6 @@
 local vp_lightdir_local = [[normalize(vLightModelPosition - p.xyz)]]
 local vp_lightdir_global = [[vec3(0.0, 2.0, 3.0)]]
 
-local vp = [[
-// Positions can be world or local space, since world and normal
-// matrices are identity for world vertex space materials.
-// If world vertex space is selected, you can remove the
-// normal matrix multiplication for optimal performance.
-
-attribute highp vec4 position;
-attribute mediump vec2 texcoord0;
-attribute mediump vec3 normal;
-
-uniform mediump mat4 mtx_worldview;
-uniform mediump mat4 mtx_view;
-uniform mediump mat4 mtx_proj;
-uniform mediump mat4 mtx_normal;
-uniform mediump vec4 light;
-
-//uniform mediump vec4 camPos;
-
-// Original work by Martia A Saunders
-// https://dominium.maksw.com/articles/physically-based-rendering-pbr/pbr-part-one/
-
-// attribute vec3 aVertexTangent;
-
-varying vec3 v_position;
-varying vec3 v_normal;
-varying vec3 v_objectNormal ;
-varying vec2 v_texCoord ;
-
-varying vec3 vvLocalSurfaceNormal ;
-varying vec3 vvLocalSurfaceToLightDirection;
-varying vec3 vvLocalReflectedSurfaceToViewerDirection;
-varying vec3 vvLocalSurfaceToViewerDirection;
-varying vec2 vuvCoord0 ;
-varying vec2 vN;
-
-void main()
-{
-    v_position = position.xyz;
-    vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
-    vec3 vViewModelPosition = normalize( mtx_view * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
-    vvLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
-
-    vec3 vLightModelPosition = vec3(mtx_view * vec4(light.xyz, 1.0));
-    vvLocalSurfaceToLightDirection = normalize(vLightModelPosition - p.xyz);
-
-    v_objectNormal = normal;
-    vvLocalSurfaceNormal = normalize((mtx_normal * vec4(normal, 0.0)).xyz);
-    v_normal = vvLocalSurfaceNormal;
-    //	vvLocalSurfaceNormal = normalize(gl_Normal) ; // use the actual normal from the actual geometry
-
-    vec3 vLocalSurfaceToViewerDirection = normalize(vViewModelPosition - p.xyz) ;
-    vvLocalReflectedSurfaceToViewerDirection = normalize(reflect(vLocalSurfaceToViewerDirection, vvLocalSurfaceNormal)) ;
-
-    vec3 e = p.xyz;
-    vec3 n = vvLocalSurfaceNormal;
-
-    vec3 r = reflect( e, n );
-    float m = 2. * sqrt( pow( r.x, 2. ) + pow( r.y, 2. ) + pow( r.z + 1., 2. ) );
-    vN = r.xy / m + .5;
-    
-    vuvCoord0 = texcoord0 ;
-    v_texCoord = texcoord0;
-    gl_Position = mtx_proj * p;
-}    
- 
-]]
-
-------------------------------------------------------------------------------------------------------------
-
-local fp = [[
-MATERIAL_FRAGMENT_SHADER
-]]
-
 ------------------------------------------------------------------------------------------------------------
 
 local sampler = [[
@@ -173,10 +100,10 @@ vertex_constants {
   }
 }
 fragment_constants {
-  name: "tint"
+  name: "exposure"
   type: CONSTANT_TYPE_USER
   value {
-    x: 1.0
+    x: 2.2
     y: 1.0
     z: 1.0
     w: 1.0
@@ -194,107 +121,195 @@ MATERIAL_SAMPLERS
 
 ]]
 
-local fp_pbr_varyings = [[
+------------------------------------------------------------------------------------------------------------
 
-varying vec3 vvLocalSurfaceNormal ;
-varying vec3 vvLocalSurfaceToLightDirection;
-varying vec3 vvLocalReflectedSurfaceToViewerDirection;
-varying vec2 vuvCoord0 ;
-varying vec3 vvLocalSurfaceToViewerDirection;
-varying vec2 vN;
+local vp = [[
+
+// Positions can be world or local space, since world and normal
+// matrices are identity for world vertex space materials.
+// If world vertex space is selected, you can remove the
+// normal matrix multiplication for optimal performance.
+
+attribute highp vec4 position;
+attribute mediump vec2 texcoord0;
+attribute mediump vec3 normal;
+
+uniform mediump mat4 mtx_worldview;
+uniform mediump mat4 mtx_view;
+uniform mediump mat4 mtx_proj;
+uniform mediump mat4 mtx_normal;
+uniform mediump vec4 light;
+
+varying vec3 v_position;
+varying vec3 v_cam_position;
+varying vec3 v_normal;
+varying vec3 v_objectNormal;
+varying vec2 v_texCoord;
+
+void main()
+{
+  vec4 p = mtx_worldview * vec4(position.xyz, 1.0);
+  v_position = p.xyz;
+  v_cam_position = (mtx_view * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  v_objectNormal = normal;
+  v_normal=normalize((mtx_normal * vec4(normal, 0.0)).xyz);
+  v_texCoord=texcoord0;  
+  gl_Position = mtx_proj * p;
+}    
+ 
 ]]
 
+------------------------------------------------------------------------------------------------------------
+
+local fp = [[
+MATERIAL_FRAGMENT_SHADER
+]]
+
+------------------------------------------------------------------------------------------------------------
+
+local fp_pbr_varyings = [[
+
+// Based on https://learnopengl.com/PBR/Theory
+// textures from https://freepbr.com/
+
+// lights
+uniform vec3 lightPositions[4];
+uniform vec3 lightColors[4];
+uniform vec4 exposure;
+varying vec3 v_cam_position;
+]]
+
+------------------------------------------------------------------------------------------------------------
+
 local fp_pbr_funcs = [[
-uniform sampler2D reflectionMap;
-uniform vec4 tint;
-uniform vec4 params;
-  
-const float cpi = 3.14159265358979323846264338327950288419716939937510f ;
+const float PI = 3.14159265359;
 
-float computeFresnelTerm(float fZero, vec3 vSurfaceToViewerDirection, vec3 vSurfaceNormal)
+vec3 getNormalFromMap(vec3 in_normal)
 {
-  float baseValue = 1.0 - dot(vSurfaceToViewerDirection, vSurfaceNormal);
-  float exponential = pow(baseValue, 5.0) ;
-  float fresnel = exponential + fZero * (1.0 - exponential) ;
+  vec3 Q1  = dFdx(v_cam_position - v_position);
+  vec3 Q2  = dFdy(v_cam_position - v_position);
+  vec2 st1 = dFdx(v_texCoord);
+  vec2 st2 = dFdy(v_texCoord);
 
-  return fresnel ;
+  vec3 N   = normalize(v_normal);
+  vec3 dp2perp = cross( Q2, N );
+  vec3 dp1perp = cross( N, Q1 );
+  vec3 T  = (dp2perp*st1.x + dp1perp*st2.x);
+  vec3 B  = (dp2perp*st1.y + dp1perp*st2.y);
+  float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
+  mat3 TBN = mat3(T *invmax, B *invmax, N);
+  return normalize(TBN * in_normal);
 }
-
-float chiGGX(float f)
+// ----------------------------------------------------------------------------
+float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
-  return f > 0.0 ? 1.0 : 0.0 ;
-}
+    float a = roughness*roughness;
+    float a2 = a*a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
 
-// APPROVED! Works as expected
-float computeGGXDistribution(vec3 vSurfaceNormal, vec3 vSurfaceToLightDirection, float fRoughness)
+    float nom   = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return nom / denom;
+}
+// ----------------------------------------------------------------------------
+float GeometrySchlickGGX(float NdotV, float roughness)
 {
-  float fNormalDotLight = clamp(dot(vSurfaceNormal, vSurfaceToLightDirection), 0.0, 1.0) ;
-  float fNormalDotLightSquared = fNormalDotLight * fNormalDotLight ;
-  float fRoughnessSquared = fRoughness * fRoughness ;
-  float fDen = fNormalDotLightSquared * fRoughnessSquared + (1.0 - fNormalDotLightSquared);
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
 
-  return clamp((chiGGX(fNormalDotLight) * fRoughnessSquared) / (cpi * fDen * fDen), 0.0, 1.0);
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+
+    return nom / denom;
 }
-
-float computeGGXPartialGeometryTerm(vec3 vSurfaceToViewerDirection, vec3 vSurfaceNormal, vec3 vLightViewHalfVector, float fRoughness)
+// ----------------------------------------------------------------------------
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 {
-  float fViewerDotLightViewHalf = clamp(dot(vSurfaceToViewerDirection, vLightViewHalfVector), 0.0, 1.0) ;
-  float fChi = chiGGX(fViewerDotLightViewHalf / clamp(dot(vSurfaceToViewerDirection, vSurfaceNormal), 0.0, 1.0));
-  fViewerDotLightViewHalf *= fViewerDotLightViewHalf;
-  float fTan2 = (1.0 - fViewerDotLightViewHalf) / fViewerDotLightViewHalf;
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
 
-  return (fChi * 2.0) / (1.0 + sqrt(1.0 + fRoughness * fRoughness * fTan2)) ;
+    return ggx1 * ggx2;
 }
-
+// ----------------------------------------------------------------------------
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+// ----------------------------------------------------------------------------
 vec4 getPbrColor(struct material mat)
 {
-  vec3 mappedNormal = mat.normal;
-  vec3 vNormalisedLocalSurfaceNormal = normalize((vvLocalSurfaceNormal + mappedNormal) * 0.5) ;
+    vec3 albedo     = mat.color.xyz;
+    float metallic  = mat.metallic;
+    float roughness = mat.roughness;
+    float ao        = mat.ior;
 
-  vec3 vNormalisedLocalSurfaceToLightDirection = normalize(vvLocalSurfaceToLightDirection) ;
-  vec3 vNormalisedLocalReflectedSurfaceToViewerDirection = normalize(vvLocalReflectedSurfaceToViewerDirection) ;
-  vec3 vNormalisedLocalSurfaceToViewerDirection = normalize(vvLocalSurfaceToViewerDirection) ;
+    vec3 N = getNormalFromMap(mat.normal);
+    vec3 V = normalize(v_cam_position - v_position);
 
-  vec3 vLocalLightViewHalfVector = normalize(vNormalisedLocalSurfaceToLightDirection + vNormalisedLocalSurfaceToViewerDirection) ;
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
 
-  float fLightIntensity = max(dot(vNormalisedLocalSurfaceToLightDirection, vNormalisedLocalSurfaceNormal), 0.0) ;
+    // reflectance equation
+    vec3 Lo = vec3(0.0);
+    for(int i = 0; i < 4; ++i)
+    {
+        float x = float(i) * 0.6 + 1.0;
+        vec3 lightpos = vec3(x, 1, 1);
+        vec3 lightColor = vec3(30.0);
 
-  float fMetalness = mat.metallic;
-  float fRoughness = mat.roughness;
+        // calculate per-light radiance
+        vec3 L = normalize(lightpos - v_position);
+        vec3 H = normalize(V + L);
+        float distance = length(lightpos - v_position);
+        float attenuation = 1.0 / (distance * distance);
+        vec3 radiance = lightColor * attenuation;
 
-  float distributionMicroFacet = computeGGXDistribution(vNormalisedLocalSurfaceNormal, vNormalisedLocalSurfaceToLightDirection, fRoughness) ;
-  float geometryMicroFacet = computeGGXPartialGeometryTerm(vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal, vLocalLightViewHalfVector, fRoughness) ;
-  float microFacetContribution = distributionMicroFacet * geometryMicroFacet ;
+        // Cook-Torrance BRDF
+        float NDF = DistributionGGX(N, H, roughness);
+        float G   = GeometrySmith(N, V, L, roughness);
+        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);
 
-  float fLightSourceFresnelTerm = computeFresnelTerm(0.5, vNormalisedLocalSurfaceToViewerDirection, vNormalisedLocalSurfaceNormal) ;
+        vec3 nominator    = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001; // 0.001 to prevent divide by zero.
+        vec3 specular = nominator / denominator;
 
-  vec4 rgbAlbedo = mat.color;
-  vec3 rgbEmissive = mat.emission.rgb;
+        // kS is equal to Fresnel
+        vec3 kS = F;
+        // for energy conservation, the diffuse and specular light can't
+        // be above 1.0 (unless the surface emits light); to preserve this
+        // relationship the diffuse component (kD) should equal 1.0 - kS.
+        vec3 kD = vec3(1.0) - kS;
+        // multiply kD by the inverse metalness such that only non-metals
+        // have diffuse lighting, or a linear blend if partly metal (pure metals
+        // have no diffuse light).
+        kD *= 1.0 - metallic;
 
-  vec3 rgbFragment = rgbAlbedo.rgb * (1.0 - fMetalness);
+        // scale light by NdotL
+        float NdotL = max(dot(N, L), 0.0);
 
-  vec3 rgbSourceReflection = texture2D( reflectionMap, vN ).rgb * fRoughness;
-  vec3 rgbReflection = vec3(fRoughness); //rgbSourceReflection ;
-  rgbReflection *= rgbAlbedo.rgb * fMetalness ;
-  rgbReflection *= fLightSourceFresnelTerm ;
-  rgbReflection = min(rgbReflection, rgbSourceReflection) ; // conservation of energy
+        // add to outgoing radiance Lo
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+    }
 
-  vec3 rgbSpecular = vec3(0.0) ;
-  if (fLightIntensity > 0.0)
-  {
-    rgbSpecular = vec3(params.z) ;
-    rgbSpecular *= microFacetContribution * fLightSourceFresnelTerm ;
-    rgbSpecular = min(vec3(1.0), rgbSpecular) ; // conservation of energy
-  }
+    // ambient lighting (note that the next IBL tutorial will replace
+    // this ambient lighting with environment lighting).
+    vec3 ambient = vec3(0.03) * albedo * ao;
 
-  float ambientLevel = fLightIntensity * (1.0 - params.x) + params.x;
-  rgbFragment += rgbSpecular;
-  rgbFragment *= ambientLevel;
-  rgbFragment += rgbReflection ;
-  rgbFragment += rgbEmissive ;
-  rgbFragment *= mat.alpha;
+    vec3 color = ambient + Lo;
 
-  return vec4(rgbFragment, rgbAlbedo.a);
+    // HDR tonemapping
+    color = color / (color + vec3(1.0));
+    // gamma correct
+    color = pow(color, vec3(1.0/exposure.x));
+
+    return vec4(color, mat.alpha);
 }  
 ]]
 
