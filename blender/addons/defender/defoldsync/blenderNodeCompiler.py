@@ -171,8 +171,7 @@ class MaterialNodesCompiler:
 		
 		o = '\n\n'
 		#o = '#version 440\n\n'
-		o = '#version 300 es\n'
-		o += 'precision highp float;\n\n'
+		#o += 'precision mediump float;\n\n'
 
 		# write material struct
 		o += 'struct material\n{\n'

@@ -130,15 +130,15 @@ local vp = [[
 // If world vertex space is selected, you can remove the
 // normal matrix multiplication for optimal performance.
 
-attribute highp vec4 position;
-attribute mediump vec2 texcoord0;
-attribute mediump vec3 normal;
+attribute vec4 position;
+attribute vec2 texcoord0;
+attribute vec3 normal;
 
-uniform mediump mat4 mtx_worldview;
-uniform mediump mat4 mtx_view;
-uniform mediump mat4 mtx_proj;
-uniform mediump mat4 mtx_normal;
-uniform mediump vec4 light;
+uniform mat4 mtx_worldview;
+uniform mat4 mtx_view;
+uniform mat4 mtx_proj;
+uniform mat4 mtx_normal;
+uniform vec4 light;
 
 varying vec3 v_position;
 varying vec3 v_cam_position;
