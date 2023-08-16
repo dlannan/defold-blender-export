@@ -399,6 +399,7 @@ def ProcessMaterial( mat, texture_path, context, config ):
         # Compile the shader, then assign it to the material
         node_compiler = bNC.MaterialNodesCompiler(mat.node_tree)
         node_compiler.texture_path = texture_path
+        node_compiler.blend_method = mat.blend_method
         shader = node_compiler.compile()
         matobj["shader"] = shader       
         matobj["textures"] = node_compiler.texture_paths

@@ -99,6 +99,7 @@ class MaterialNodesCompiler:
 			v['name'] = k
 			v['returnType'] = v['func'].split(' ',1)[0]
 		self.nodeTree = nodeTree
+		self.blend_method = "OPAQUE"
 	
 	def write_shader(self, output):
 		return output
@@ -294,6 +295,8 @@ class MaterialNodesCompiler:
 		
 		# Surface shader types (--> material)
 		if t.startswith('BSDF_') or t in ['EMISSION', 'HOLDOUT', 'EEVEE_SPECULAR', 'SUBSURFACE_SCATTERING']:
+			print("[ SURFACE TYPE ]" + str(t))
+
 			# trying to make a simple material from these different shaders
 			# startswith('BSDF_') matches BSDF volume shaders too, however they are not supported here
 			mat = {k: v['default'] for k,v in self.materialStruct.items()}
@@ -327,6 +330,9 @@ class MaterialNodesCompiler:
 			if t=='EMISSION':
 				emissionColor = self.convertType(mat['color'], self.materialStruct['color']['type'], self.materialStruct['emission']['type'])
 				mat['emission'] = emissionColor+'*'+self.translateNodeInput(node, 'Strength', self.materialStruct['emission']['type'], inputInfo)
+			if t=='BSDF_TRANSPARENT':
+				alphaColor = self.translateNodeInput(node, 'Color', self.materialStruct['color']['type'], inputInfo)
+				mat['alpha'] = '1.0-'+self.convertType(alphaColor, 'vec4', 'float')
 			return 'material('+(','.join([mat[k] for k in self.materialStruct]))+')'
 		
 		# Mix Shader and Add Shader
@@ -337,6 +343,7 @@ class MaterialNodesCompiler:
 			shadA = self.translateNodeInput(node, ['Shader', 0], 'material', inputInfo)
 			shadB = self.translateNodeInput(node, ['Shader', 1], 'material', inputInfo)
 			return self.useFunction('mixMaterial', outType, [shadA,shadB,fac])
+			
 		
 		# Groups (--> pass through nodes)
 		if t=='GROUP':
