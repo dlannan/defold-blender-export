@@ -61,6 +61,7 @@ class MaterialNodesCompiler:
 		self.materialStruct['normal'] = {'type':'vec3', 'default':'vec3(0.0,0.0,0.0)'}
 		self.materialDefault = 'material('+(','.join([v['default'] for k,v in self.materialStruct.items()]))+')'
 		self.functions = {}
+		self.functions['addMaterial'] = {'require':[], 'func':'material addMaterial(material a, material b) {return material('+(','.join([('(a.'+k+' + b.'+k+')') for k in self.materialStruct]))+');}'}
 		self.functions['mixMaterial'] = {'require':[], 'func':'material mixMaterial(material a, material b, float f) {return material('+(','.join([('mix(a.'+k+',b.'+k+',f)') for k in self.materialStruct]))+');}'}
 		self.functions['mapRange'] = {'require':[], 'func':'float mapRange(float v, float fromMin, float fromMax, float toMin, float toMax) {return toMin+(toMax-toMin)*((v-fromMin)/(fromMax-fromMin));}'}
 		self.functions['mapRangeClamp'] = {'require':['mapRange'], 'func':'float mapRangeClamp(float v, float fromMin, float fromMax, float toMin, float toMax) {return clamp(mapRange(v,fromMin,fromMax,toMin,toMax),toMin,toMax);}'}
@@ -340,13 +341,18 @@ class MaterialNodesCompiler:
 			return 'material('+(','.join([mat[k] for k in self.materialStruct]))+')'
 		
 		# Mix Shader and Add Shader
-		if t in ['MIX_SHADER','ADD_SHADER']:
+		if t == 'MIX_SHADER':
 			fac = '0.5'
 			if t=='MIX_SHADER':
 				fac = self.translateNodeInput(node, 'Fac', 'float', inputInfo)
 			shadA = self.translateNodeInput(node, ['Shader', 0], 'material', inputInfo)
 			shadB = self.translateNodeInput(node, ['Shader', 1], 'material', inputInfo)
 			return self.useFunction('mixMaterial', outType, [shadA,shadB,fac])
+		
+		if t == 'ADD_SHADER':
+			shadA = self.translateNodeInput(node, ['Shader', 0], 'material', inputInfo)
+			shadB = self.translateNodeInput(node, ['Shader', 1], 'material', inputInfo)
+			return self.useFunction('addMaterial', outType, [shadA,shadB])
 			
 		
 		# Groups (--> pass through nodes)
