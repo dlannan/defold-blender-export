@@ -83,6 +83,7 @@ class MaterialNodesCompiler:
 		self.functions['colorMixDivide'] = {'require':[], 'enum':'DIVIDE', 'func':'vec4 colorMixDivide(vec4 a, vec4 b, float f) {return mix(a,(1.0-a)/(b+0.0001),f);}'}
 		self.functions['brightnessContrast'] = {'require':[], 'func':'vec4 brightnessContrast(vec4 color, float bright, float cont) {return vec4((color.rgb-0.5)*cont+0.5+bright,color.a);}'}
 		self.functions['gamma'] = {'require':[], 'func':'vec4 gamma(vec4 color, float gamma) {return vec4(pow(color.rgb,vec3(1.0/gamma)),color.a);}'}
+		self.functions['invert'] = {'require':[], 'func':'vec4 invert(float fac, vec4 color) {return ((vec4(1.0) - color) * fac);}'}
 		self.functions['rgb2bw'] = {'require':[], 'func':'float rgb2bw(vec4 c) {return (c.r+c.g+c.b)/3.0;}'}
 		self.functions['rgb2hsv'] = {'require':[], 'func':'vec3 rgb2hsv(vec3 c) {vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0); vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g)); vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r)); float d = q.x - min(q.w, q.y); float e = 1.0e-10; return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);}'}
 		self.functions['hsv2rgb'] = {'require':[], 'func':'vec3 hsv2rgb(vec3 c) {vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0); vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www); return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);}'}
@@ -322,6 +323,9 @@ class MaterialNodesCompiler:
 				mat['alpha'] = '1.0-'+self.translateNodeInput(node, 'Transparency', self.materialStruct['alpha']['type'], inputInfo)
 			if 'normal' in mat and node.inputs.get('Normal') is not None:
 				mat['normal'] = self.translateNodeInput(node, 'Normal', self.materialStruct['normal']['type'], inputInfo)
+			if 'color' in mat and node.inputs.get('Transmission') is not None:
+				transmission = self.translateNodeInput(node, 'Transmission', 'float', inputInfo)
+				mat['alpha'] = '1.0-' + transmission
 			if t=='HOLDOUT':
 				mat = {k: v['default'] for k,v in self.materialStruct.items()}
 				mat['emission'] = self.convertType('vec4(0.0,0.0,0.0,0.0)', 'vec4', self.materialStruct['emission']['type'])
@@ -428,7 +432,13 @@ class MaterialNodesCompiler:
 		# Value
 		if t=='VALUE':
 			return self.floatFormat.format(outNode.default_value)
-		
+
+		# Invert
+		if t=='INVERT':
+			color = self.translateNodeInput(node, 'Color', 'vec4', inputInfo)
+			fac = self.translateNodeInput(node, 'Fac', 'float', inputInfo)			
+			return self.useFunction('invert', outType, [fac,color])
+
 		# ValToRGB
 		if t=='VALTORGB':
 			fac = self.translateNodeInput(node, 'Fac', 'float', inputInfo)

@@ -404,6 +404,7 @@ def ProcessMaterial( mat, texture_path, context, config ):
         matobj["shader"] = shader       
         matobj["textures"] = node_compiler.texture_paths
         matobj["matname"] = mat.name
+        matobj["blend_method"] = node_compiler.blend_method
     else:
         print("[ ERROR ] : Material type missing or not supported.")
         defoldUtils.ErrorLine( config, " Material type missing or not supported.",  str(mat.name), "ERROR")

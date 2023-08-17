@@ -813,7 +813,7 @@ local function genmaterial( material_path, vpname, fpname, matname, pbrmaterial 
     matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
 
     local mp = gendata.config.sync_mat_params
-    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 0.1'
+    local mat_params = '\tx: '..mp.x..'\n\ty: '..mp.y..'\n\tz: '..mp.z..'\n\tw: 2.2'
     matstr = matstr:gsub("MATERIAL_PARAMS", mat_params) 
     makefile( material_path..matname, matstr)
 
@@ -969,6 +969,12 @@ local function setupmaterials( project_path, materials )
             }
 
             local matstr = string.rep(blender.material,1)
+            local model_tag = "model"
+
+            -- Set the blending mode. This uses a custom render_script
+            if(material.blend_method == "BLEND") then model_tag = "model_transparent" end
+            matstr = string.gsub(matstr, "MATERIAL_MODEL_TAG", model_tag)
+
             local all_samplers = ""
             local texcount = tonumber(table.count(material.textures))
 

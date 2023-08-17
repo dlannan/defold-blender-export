@@ -38,7 +38,7 @@ samplers {
 
 local material = [[
 name: "pbr-simple"
-tags: "model"
+tags: "MATERIAL_MODEL_TAG"
 vertex_program: "MATERIAL_VP"
 fragment_program: "MATERIAL_FP"
 vertex_space: VERTEX_SPACE_WORLD
@@ -97,16 +97,6 @@ vertex_constants {
     y: 0.0
     z: 0.0
     w: 0.0
-  }
-}
-fragment_constants {
-  name: "exposure"
-  type: CONSTANT_TYPE_USER
-  value {
-    x: 2.2
-    y: 1.0
-    z: 1.0
-    w: 1.0
   }
 }
 fragment_constants {
@@ -173,9 +163,11 @@ local fp_pbr_varyings = [[
 // textures from https://freepbr.com/
 
 // lights
-uniform vec3 lightPositions[4];
-uniform vec3 lightColors[4];
-uniform vec4 exposure;
+uniform vec4 params;
+
+vec3 lightPositions[4];
+vec3 lightColors[4];
+
 varying vec3 v_cam_position;
 ]]
 
@@ -183,6 +175,16 @@ varying vec3 v_cam_position;
 
 local fp_pbr_funcs = [[
 const float PI = 3.14159265359;
+
+// Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+vec3 ACESToneMap(vec3 x) {
+  const float a = 2.51;
+  const float b = 0.03;
+  const float c = 2.43;
+  const float d = 0.59;
+  const float e = 0.14;
+  return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
 
 vec3 getNormalFromMap(vec3 in_normal)
 {
@@ -246,7 +248,7 @@ vec4 getPbrColor(struct material mat)
     vec3 albedo     = mat.color.xyz;
     float metallic  = mat.metallic;
     float roughness = mat.roughness;
-    float ao        = mat.ior;
+    float ao        = 1.0;
 
     vec3 N = getNormalFromMap(mat.normal);
     vec3 V = normalize(v_cam_position - v_position);
@@ -258,18 +260,24 @@ vec4 getPbrColor(struct material mat)
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
+
+    lightPositions[0] = vec3(-2.39, 2.07, 2.43 );
+    lightPositions[1] = vec3(-8.51, 3.88, 5.11 );
+    lightPositions[2] = vec3(-1.199, 0.180, 2.985 );
+    lightPositions[3] = vec3(-0.883, 2.097, 0.768 );
+    lightColors[0] = vec3(10);
+    lightColors[1] = vec3(30);
+    lightColors[2] = vec3(20);
+    lightColors[3] = vec3(20);    
+    
     for(int i = 0; i < 4; ++i)
     {
-        float x = float(i) * 0.6 + 1.0;
-        vec3 lightpos = vec3(x, 1, 1);
-        vec3 lightColor = vec3(30.0);
-
         // calculate per-light radiance
-        vec3 L = normalize(lightpos - v_position);
+        vec3 L = normalize(lightPositions[i] - v_position);
         vec3 H = normalize(V + L);
-        float distance = length(lightpos - v_position);
+        float distance = length(lightPositions[i] - v_position);
         float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = lightColor * attenuation;
+        vec3 radiance = lightColors[i] * attenuation;
 
         // Cook-Torrance BRDF
         float NDF = DistributionGGX(N, H, roughness);
@@ -300,14 +308,16 @@ vec4 getPbrColor(struct material mat)
 
     // ambient lighting (note that the next IBL tutorial will replace
     // this ambient lighting with environment lighting).
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 ambient = vec3(params.x) * albedo * ao;
 
     vec3 color = ambient + Lo;
 
     // HDR tonemapping
-    color = color / (color + vec3(1.0));
+    //color = color / (color + vec3(1.0));
+    color = ACESToneMap(color);
+
     // gamma correct
-    color = pow(color, vec3(1.0/exposure.x));
+    color = pow(color, vec3(1.0/params.w));
 
     return vec4(color, mat.alpha);
 }  
