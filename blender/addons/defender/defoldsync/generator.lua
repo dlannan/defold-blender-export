@@ -26,6 +26,7 @@
 local ffi                   = require("ffi")
 local json                  = require("defoldsync.json")
 local materialSimple        = require("defoldsync.material-textures")
+local tonemap               = require("defoldsync.material-tonemaps")
 
 table.count = function( tbl ) 
     local count = 0
@@ -991,6 +992,16 @@ local function setupmaterials( project_path, materials )
             temp.material = matstr
             local pbr_shader = material.shader:gsub("// DEFOLD_CUSTOM_PBR_VARYINGS ", temp.fp_pbr_varyings)
             pbr_shader = pbr_shader:gsub("// DEFOLD_CUSTOM_PBR_FUNCS ", temp.fp_pbr_funcs)
+
+            local tonemapname = gendata.config.sync_tonemap
+            local tmap = tonemap.maps.none
+            if tonemapname then
+                if tonemap.maps[tonemapname] then 
+                    tmap = tonemap.maps[tonemapname] 
+                end
+            end
+            pbr_shader = pbr_shader:gsub("MATERIAL_FRAGMENT_TONEMAP_SOURCE", tmap.src)
+            pbr_shader = pbr_shader:gsub("MATERIAL_FRAGMENT_TONEMAP_FUNC", tmap.func)
             temp.fp = pbr_shader
 
             gendata.materials[k] = material

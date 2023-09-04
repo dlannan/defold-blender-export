@@ -220,6 +220,22 @@ class SyncProperties(PropertyGroup):
         maxlen=1024,
         subtype='DIR_PATH'
         )
+    
+    sync_tonemap: EnumProperty(
+        name="Tonemap",
+        description="Select the Tonemap to use.",
+        items=[ 
+                ('none', "No Tonemapping", ""),
+                ('linear', "Linear Tonemapping", ""),
+                ('simpleReinhard', "Simple Reinhard Tonemapping", ""),
+                ('lumaReinhard', "Luma Reinhard Tonemapping", ""),
+                ('whitePreserve', "White Preserve Tonemapping", ""),
+                ('RomBinDaHouse', "RomBinDaHouse Tonemapping", ""),
+                ('ACESfilmic', "ACES Filmic Tonemapping", ""),
+                ('filmic', "Filmic Tonemapping", ""),
+                ('uncharted2', "Uncharted 2 Tonemapping", ""),
+               ]
+        )    
 
     sync_shader: EnumProperty(
         name="Shader:",
@@ -246,6 +262,12 @@ class SyncProperties(PropertyGroup):
         name="Second UVs",
         description="Export second set of UV's if found in the mesh.",
         default = False
+        )
+
+    sync_mat_texsize: IntProperty(
+        name="Max Texture Size",
+        description="Set the maximum allowed texture resolution size (default 1024).",
+        default = 1024
         )
         
     sync_mode: EnumProperty(
@@ -299,13 +321,15 @@ class WM_OT_SyncTool(Operator):
             f.write('return {\n')
             f.write('   sync_mode        = "' + str(mytool.sync_mode) + '",\n')
             f.write('   sync_proj        = "' + projpath + '",\n')
+            f.write('   sync_tonemap     = "' + str(mytool.sync_tonemap) + '",\n')
             f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
             f.write('   sync_shader      = "' + str(mytool.sync_shader) + '",\n')
             f.write('   sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
             f.write('   sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
-            f.write('   sync_mat_params   = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
+            f.write('   sync_mat_params  = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
             f.write('   sync_mat_facenormals = ' + str(mytool.sync_mat_facenormals).lower() + ',\n')
             f.write('   sync_mat_uv2     = ' + str(mytool.sync_mat_uv2).lower() + ',\n')
+            f.write('   sync_mat_texsize = ' + str(mytool.sync_mat_texsize) + ',\n')
             f.write('   stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
             f.write('   stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
             f.write('   stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')
@@ -373,6 +397,7 @@ class WM_OT_SyncTool(Operator):
             print("Stream Anims:", mytool.stream_anim)
             print("Host:", mytool.sync_host)
             print("Project Folder:", mytool.sync_proj)
+            print("Tonemap:", mytool.sync_tonemap)
             print("Scene Name:", mytool.sync_scene)
             print("Scene Pos:", mytool.root_position)
 
@@ -414,6 +439,8 @@ class OBJECT_PT_CustomPanel(Panel):
         row.prop(mytool, "sync_mat_facenormals")
         row = box.row()
         row.prop(mytool, "sync_mat_uv2")
+        row = box.row()
+        row.prop(mytool, "sync_mat_texsize")
 
         layout.separator()
 
@@ -426,6 +453,9 @@ class OBJECT_PT_CustomPanel(Panel):
         row = box.row()
         row.prop(mytool, "root_position")
         row = box.row()
+        row.prop(mytool, "sync_tonemap")
+        row = box.row()
+
         layout.separator()
 
         box = layout.box()
@@ -507,6 +537,7 @@ class OBJECT_PT_CustomPanel(Panel):
                 f.write("--------------------------\n")
                 f.write('    sync_mode        = "' + str(mytool.sync_mode) + '",\n')
                 f.write('    sync_proj        = "' + projpath + '",\n')
+                f.write('    sync_tonemap     = "' + str(mytool.sync_tonemap) + '",\n')
                 f.write('    sync_scene       = "' + mytool.sync_scene + '",\n')
                 f.write('    sync_shader      = "' + str(mytool.sync_shader) + '",\n')
                 f.write('    sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
@@ -514,6 +545,7 @@ class OBJECT_PT_CustomPanel(Panel):
                 f.write('    sync_mat_params   = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
                 f.write('    sync_mat_facenormals = ' + str(mytool.sync_mat_facenormals).lower() + ',\n')
                 f.write('    sync_mat_uv2     = ' + str(mytool.sync_mat_uv2).lower() + ',\n')
+                f.write('    sync_mat_texsize = ' + str(mytool.sync_mat_texsize) + ',\n')
                 f.write('    stream_info      = ' + str(mytool.stream_info).lower() + ',\n')
                 f.write('    stream_object    = ' + str(mytool.stream_object).lower() + ',\n')
                 f.write('    stream_mesh      = ' + str(mytool.stream_mesh).lower() + ',\n')

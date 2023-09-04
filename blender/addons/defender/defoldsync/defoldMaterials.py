@@ -135,7 +135,7 @@ def getImageNode( colors, index, mat, name, texture_path ):
   return getImageNodeFromColor( color_node, mat, name, texture_path)
 
 
-def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
+def addTextureImageNode( mat, textures, name, imgnode, texture_path, config ):
   
   if imgnode != None:
     img = imgnode.filepath_from_user()
@@ -145,12 +145,12 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
     # print("[ IMG PATH ] " + str(img))
     # print("[ IMG BASE PATH ] " + str(basename))
 
+    maxwidth = config.sync_mat_texsize or 1024
+    maxheight = config.sync_mat_texsize or 1024
+
     if splitname[1] != '.png' and splitname[1] != '.PNG':
       pngimg = os.path.join(texture_path , splitname[0] + ".png")
       if(os.path.exists(pngimg) == False):
-
-        maxwidth = 1024
-        maxheight = 1024
         
         imgnode.file_format='PNG' 
         image = bpy.data.images.load(img)
@@ -182,7 +182,7 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
       imgnode.filepath = img
       imgnode.colorspace_settings.name = 'Raw'
       imgnode.alpha_mode = 'CHANNEL_PACKED'
-      imgnode.scale( 1024, 1024 )
+      imgnode.scale( maxwidth, maxheight )
       imgnode.save()
     
     # If this is an image texture, with an active image append its name to the list
@@ -190,10 +190,10 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
 
 # ------------------------------------------------------------------------
 
-def addTexture( mat, textures, name, color_node, index, texture_path, context ):
+def addTexture( mat, textures, name, color_node, index, texture_path, config ):
 
   imgnode = getImageNode( color_node, index, mat, name, texture_path )
-  addTextureImageNode(mat, textures, name, imgnode, texture_path, context )
+  addTextureImageNode(mat, textures, name, imgnode, texture_path, config )
 
 
 # ------------------------------------------------------------------------
@@ -231,13 +231,13 @@ def ConvertPrincipledBSDF( thisobj, mat, texture_path, context, config ):
     if(bsdf is not None):
 
         # print("[ Principled BSDF ] : Principled bsdf material type used.")
-        addTexture( mat, textures, "base_color", bsdf.inputs, "Base Color", texture_path, context )
-        addTexture( mat, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, context )
-        addTexture( mat, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, context )
-        addTexture( mat, textures, "emissive_color", bsdf.inputs, "Emission", texture_path, context )
-        addTexture( mat, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, context )
-        addTexture( mat, textures, "normal_map", bsdf.inputs, "Normal", texture_path, context )
-        addTexture( mat, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, context )
+        addTexture( mat, textures, "base_color", bsdf.inputs, "Base Color", texture_path, config )
+        addTexture( mat, textures, "metallic_color", bsdf.inputs, "Metallic", texture_path, config )
+        addTexture( mat, textures, "roughness_color", bsdf.inputs, "Roughness", texture_path, config )
+        addTexture( mat, textures, "emissive_color", bsdf.inputs, "Emission", texture_path, config )
+        addTexture( mat, textures, "emissive_strength", bsdf.inputs, "Emission Strength", texture_path, config )
+        addTexture( mat, textures, "normal_map", bsdf.inputs, "Normal", texture_path, config )
+        addTexture( mat, textures, "alpha_map", bsdf.inputs, "Alpha", texture_path, config )
 
         lightmap_enable = HasLightmap( bsdf.inputs )
         if lightmap_enable:
@@ -268,9 +268,9 @@ def ConvertDiffuseBSDF( thisobj, mat, texture_path, context, config ):
     if(diffusebsdf is not None):
 
         # print("[ Diffuse BSDF ] : Diffuse bsdf material type used.")
-        addTexture( mat, textures, "base_color", diffusebsdf.inputs, "Color", texture_path, context )
-        addTexture( mat, textures, "roughness_color", diffusebsdf.inputs, "Roughness", texture_path, context )
-        addTexture( mat, textures, "normal_map", diffusebsdf.inputs, "Normal", texture_path, context )
+        addTexture( mat, textures, "base_color", diffusebsdf.inputs, "Color", texture_path, config )
+        addTexture( mat, textures, "roughness_color", diffusebsdf.inputs, "Roughness", texture_path, config )
+        addTexture( mat, textures, "normal_map", diffusebsdf.inputs, "Normal", texture_path, config )
 
         lightmap_enable = HasLightmap( diffusebsdf.inputs )
         if lightmap_enable:
@@ -304,8 +304,8 @@ def ConvertEmissionShader( thisobj, mat, texture_path, context, config ):
 #        addTexture( mat, textures, "base_color", emission.inputs, "Base Color", texture_path, context )
 #        addTexture( mat, textures, "metallic_color", emission.inputs, "Metallic", texture_path, context )
 #        addTexture( mat, textures, "roughness_color", emission.inputs, "Roughness", texture_path, context )
-        addTexture( mat, textures, "emissive_color", emission.inputs, "Color", texture_path, context )
-        addTexture( mat, textures, "emissive_strength", emission.inputs, "Strength", texture_path, context )
+        addTexture( mat, textures, "emissive_color", emission.inputs, "Color", texture_path, config )
+        addTexture( mat, textures, "emissive_strength", emission.inputs, "Strength", texture_path, config )
 #        addTexture( mat, textures, "normal_map", emission.inputs, "Normal", texture_path, context )
 #        addTexture( mat, textures, "alpha_map", emission.inputs, "Alpha", texture_path, context )
 
@@ -355,15 +355,15 @@ def ConvertMixShader( thisobj, mat, texture_path, context, config ):
                     if(node_count == 0):
                        pbr_name = "base_color"
                     imgnode = getImageNodeFromColor( node, mat, pbr_name, texture_path )
-                    addTextureImageNode( mat, textures, pbr_name, imgnode, texture_path, context )
+                    addTextureImageNode( mat, textures, pbr_name, imgnode, texture_path, config )
                     node_count = node_count + 1
 
-            # addTexture( mat, textures, "metallic_color", mixshader.outputs, "Metallic", texture_path, context )
-            # addTexture( mat, textures, "roughness_color", mixshader.outputs, "Roughness", texture_path, context )
-            # addTexture( mat, textures, "emissive_color", mixshader.outputs, "Color", texture_path, context )
-            # addTexture( mat, textures, "emissive_strength", mixshader.outputs, "Strength", texture_path, context )
-            # addTexture( mat, textures, "normal_map", mixshader.outputs, "Normal", texture_path, context )
-            # addTexture( mat, textures, "alpha_map", mixshader.outputs, "Alpha", texture_path, context )
+            # addTexture( mat, textures, "metallic_color", mixshader.outputs, "Metallic", texture_path, config )
+            # addTexture( mat, textures, "roughness_color", mixshader.outputs, "Roughness", texture_path, config )
+            # addTexture( mat, textures, "emissive_color", mixshader.outputs, "Color", texture_path, config )
+            # addTexture( mat, textures, "emissive_strength", mixshader.outputs, "Strength", texture_path, config )
+            # addTexture( mat, textures, "normal_map", mixshader.outputs, "Normal", texture_path, config )
+            # addTexture( mat, textures, "alpha_map", mixshader.outputs, "Alpha", texture_path, config )
         else:
             print("[ ERROR ] : Material Mix Shader only supports two inputs.")
             defoldUtils.ErrorLine( config, " Material Mix Shader only supports two inputs: ",  str(mat.name), "ERROR")
@@ -397,7 +397,7 @@ def ProcessMaterial( mat, texture_path, context, config ):
         print("[MATNAME] "+mat.name)
 
         # Compile the shader, then assign it to the material
-        node_compiler = bNC.MaterialNodesCompiler(mat.node_tree)
+        node_compiler = bNC.MaterialNodesCompiler(mat.node_tree, config)
         node_compiler.texture_path = texture_path
         node_compiler.blend_method = mat.blend_method
         shader = node_compiler.compile()

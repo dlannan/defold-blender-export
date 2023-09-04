@@ -145,7 +145,7 @@ void main()
   v_objectNormal = normal;
   v_normal=normalize((mtx_normal * vec4(normal, 0.0)).xyz);
   v_texCoord=texcoord0;  
-  v_light = light;
+  v_light = mtx_view * vec4(light.xyz, 1.0);
   gl_Position = mtx_proj * p;
 }    
  
@@ -172,6 +172,8 @@ vec3 lightColors[4];
 
 varying vec4 v_light;
 varying vec3 v_cam_position;
+
+float gamma = 2.2;
 ]]
 
 ------------------------------------------------------------------------------------------------------------
@@ -179,16 +181,7 @@ varying vec3 v_cam_position;
 local fp_pbr_funcs = [[
   const float cpi = 3.14159265358979323846264338327950288419716939937510f ;
 
-  // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
-  vec3 ACESToneMap(vec3 x) {
-    const float a = 2.51;
-    const float b = 0.03;
-    const float c = 2.43;
-    const float d = 0.59;
-    const float e = 0.14;
-    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
-  }
-  
+MATERIAL_FRAGMENT_TONEMAP_SOURCE  
   // ----------------------------------------------------------------------------
   
   vec3 getNormalFromMap(vec3 in_normal)
@@ -245,7 +238,7 @@ local fp_pbr_funcs = [[
   
   
   // ----------------------------------------------------------------------------
-  vec4 getPbrColor(struct material mat)
+  vec4 pbrProcess(struct material mat)
   {
       vec3 mappedNormal = mat.normal;  
       vec3 MN = normalize((v_normal + mappedNormal) * 0.5) ;
@@ -301,6 +294,13 @@ local fp_pbr_funcs = [[
   
       return vec4(rgbFragment, mat.alpha);
   }   
+
+  vec4 getPbrColor(struct material mat)
+  {
+    vec4 col = pbrProcess(mat);
+    MATERIAL_FRAGMENT_TONEMAP_FUNC
+    return col;
+  }
 ]]
 
 ------------------------------------------------------------------------------------------------------------

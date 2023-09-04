@@ -28,13 +28,14 @@ class MaterialNodesCompiler:
 		(Not listed nodes may be useable, but without full functionality)
 		
 	"""
-	def __init__(self, nodeTree):
+	def __init__(self, nodeTree, config):
 		# forceValidTranslation is default true
 		# if a node is not supported or somehow else an error occurs, the compiler would complain about the error
 		# however forceValidTranslation will give the compiler a default value instead to work with
 		# it also puts error information in comment tags in the translated output
 		# note: it will not correct somehow magically bad glsl output, so even with forceValidTranslation there may be compiler errors
 		# set forceValidTranslation to False to make the compiler cry for translation errors
+		self.config = config
 		self.forceValidTranslation = True
 		self.debugOutputToConsole = False
 		self.finalOutputToConsole = False
@@ -573,7 +574,7 @@ class MaterialNodesCompiler:
 			samp = self.translateShaderUniform('GLSL@Textures', outputInfo)
 			texStr = samp+str(texId)
 
-			defoldMaterials.addTextureImageNode(None, self.texture_paths, texStr, node.image, self.texture_path, None)
+			defoldMaterials.addTextureImageNode(None, self.texture_paths, texStr, node.image, self.texture_path, self.config)
 
 			if vecSock.is_linked:
 				vector = self.translateNodeInput(node, 'Vector', 'vec2', inputInfo)
