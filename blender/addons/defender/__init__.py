@@ -43,7 +43,7 @@ bl_info = {
     "name": "Defender",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (1, 3, 1),
+    "version": (1, 3, 2),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
@@ -353,6 +353,7 @@ class WM_OT_SyncTool(Operator):
             subprocess.check_output([luajit_cmd, dirpath, os.path.abspath(dir)])
             prog_text = "Process Complete."
             defoldCmds.update_progress(context, 100, prog_text)
+            bpy.ops.wm.revert_mainfile()
         else:
             mytool.sync_errors_str.append("[Execution Persmissions Error]")
             mytool.sync_errors_str.append("    File: " + luajit_cmd)
@@ -372,7 +373,7 @@ class WM_OT_SyncTool(Operator):
             print("Project Folder:", mytool.sync_proj)
             print("Scene Name:", mytool.sync_scene)
             print("Scene Pos:", mytool.root_position)
-
+        
         return {'FINISHED'}
 
 # ------------------------------------------------------------------------
