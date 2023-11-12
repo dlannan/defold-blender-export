@@ -43,7 +43,7 @@ bl_info = {
     "name": "Defender",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (1, 3, 2),
+    "version": (1, 3, 4),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
