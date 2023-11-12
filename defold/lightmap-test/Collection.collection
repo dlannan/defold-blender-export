@@ -1,175 +1,167 @@
 name: "COLLECTION_NAME"
+instances {
+  id: "Cube"
+  prototype: "/lightmap-test/gameobjects/Cube.go"
+  position {
+    x: -0.85902905
+    y: -0.7721783
+    z: 2.103262
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "Cube.001"
+  prototype: "/lightmap-test/gameobjects/Cube.001.go"
+  position {
+    x: 0.69179463
+    y: 0.19307661
+    z: 1.4182911
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "Plane.002"
+  prototype: "/lightmap-test/gameobjects/Plane.002.go"
+  position {
+    x: -7.2279835
+    y: 0.0
+    z: 0.9474847
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
 scale_along_z: 0
-
 embedded_instances {
-    id: "Camera"
-    data: "embedded_components {\n"
-    "  id: \"camera\"\n"
-    "  type: \"camera\"\n"
-    "  data: \"aspect_ratio: 1.0\\n"
-    "  fov: 0.7854\\n"
-    "  near_z: 0.1\\n"
-    "  far_z: 1000.0\\n"
-    "  auto_aspect_ratio: 0\\n"
-    "\"\n"
-    "  position {\n"
-    "    x: 0.0\n"
-    "    y: 0.0\n"
-    "    z: 0.0\n"
-    "  }\n"
-    "  rotation {\n"
-    "    x: 0.0\n"
-    "    y: 0.0\n"
-    "    z: 0.0\n"
-    "    w: 1.0\n"
-    "  }\n"
-    "}\n"
-
-    position {
-        x:7.3588914871216
-	y:-6.9257907867432
-	z:4.958309173584
-    }
-    rotation {
-        x:0.48353603482246
-	y:0.20870360732079
-	z:0.3368715941906
-	w:0.78048270940781
-    }
-    scale3 {
-        x:1
-	y:1
-	z:1
-    }
+  id: "Camera"
+  data: "embedded_components {\n"
+  "  id: \"camera\"\n"
+  "  type: \"camera\"\n"
+  "  data: \"aspect_ratio: 1.0\\n"
+  "fov: 0.7854\\n"
+  "near_z: 0.1\\n"
+  "far_z: 1000.0\\n"
+  "auto_aspect_ratio: 0\\n"
+  "orthographic_projection: 0\\n"
+  "orthographic_zoom: 1.0\\n"
+  "\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 7.3588915
+    y: -6.925791
+    z: 4.958309
+  }
+  rotation {
+    x: 0.48353603
+    y: 0.2087036
+    z: 0.3368716
+    w: 0.7804827
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
 }
-
 embedded_instances {
-    id: "Light"
-    data: ""
-
-    position {
-        x:4.0762453079224
-	y:1.0054539442062
-	z:5.9038619995117
-    }
-    rotation {
-        x:0.16907575726509
-	y:0.27217137813568
-	z:0.75588035583496
-	w:0.57094752788544
-    }
-    scale3 {
-        x:1
-	y:1
-	z:1
-    }
+  id: "Light"
+  data: ""
+  position {
+    x: 4.0762453
+    y: 1.005454
+    z: 5.903862
+  }
+  rotation {
+    x: 0.16907576
+    y: 0.27217138
+    z: 0.75588036
+    w: 0.5709475
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
 }
-
-instances {
-    id: "Cube"
-    prototype: "/lightmap-test/gameobjects/Cube.go"
-
-    position {
-        x:-0.85902905464172
-	y:-0.77217829227448
-	z:2.1032619476318
-    }
-    rotation {
-        x:0
-	y:0
-	z:0
-	w:1
-    }
-    scale3 {
-        x:1
-	y:1
-	z:1
-    }
-}
-
-instances {
-    id: "Cube.001"
-    prototype: "/lightmap-test/gameobjects/Cube.001.go"
-
-    position {
-        x:0.69179463386536
-	y:0.19307661056519
-	z:1.4182910919189
-    }
-    rotation {
-        x:0
-	y:0
-	z:0
-	w:1
-    }
-    scale3 {
-        x:1
-	y:1
-	z:1
-    }
-}
-
-instances {
-    id: "Plane.002"
-    prototype: "/lightmap-test/gameobjects/Plane.002.go"
-
-    position {
-        x:-7.2279834747314
-	y:0
-	z:0.94748467206955
-    }
-    rotation {
-        x:0
-	y:0
-	z:0
-	w:1
-    }
-    scale3 {
-        x:1
-	y:1
-	z:1
-    }
-}
-
 embedded_instances {
-    id: "__root"
-	children: "Camera"
-	children: "Light"
-	children: "Cube"
-	children: "Cube.001"
-	children: "Plane.002"
-
-    data: "components {\n"
-    "    id: \"Collection\"\n"
-    "    component: \"/lightmap-test/scripts/Collection.script\"\n" 
-    "    position {\n"
-    "        x: 0.0\n"
-    "        y: 0.0\n"
-    "        z: 0.0\n"
-    "    }\n"
-    "    rotation {\n"
-    "        x: 0.0\n"
-    "        y: 0.0\n"
-    "        z: 0.0\n"
-    "        w: 1.0\n"
-    "    }\n"
-    "}\n"
-
-    position {
-        x: 0.0
-        y: 0.0
-        z: 0.0
-    }
-    rotation {
-        x: -0.70710677
-        y: 0.0
-        z: 0.0
-        w: 0.70710677
-    }
-
-    scale3 {
-        x: 1.0
-        y: 1.0
-        z: 1.0
-    }
+  id: "__root"
+  children: "Camera"
+  children: "Cube"
+  children: "Cube.001"
+  children: "Light"
+  children: "Plane.002"
+  data: "components {\n"
+  "  id: \"Collection\"\n"
+  "  component: \"/lightmap-test/scripts/Collection.script\"\n"
+  "  position {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "  }\n"
+  "  rotation {\n"
+  "    x: 0.0\n"
+  "    y: 0.0\n"
+  "    z: 0.0\n"
+  "    w: 1.0\n"
+  "  }\n"
+  "  property_decls {\n"
+  "  }\n"
+  "}\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: -0.70710677
+    y: 0.0
+    z: 0.0
+    w: 0.70710677
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
 }

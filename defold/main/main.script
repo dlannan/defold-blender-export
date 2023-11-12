@@ -1,24 +1,33 @@
 local orbit 		= require("main.camera-orbit")
 
-function init(self)
-	msg.post(".", "acquire_input_focus")
-	msg.post("@render:", "use_camera_projection")
-	msg.post("/main#camera", "acquire_camera_focus")
+local scanlines = require("lumiere.effects.scanlines.scanlines")
+local lumiere = require("lumiere.lumiere")
 
+function init(self)
+		
+	msg.post(".", "acquire_input_focus")
+
+	-- use the blur and grain effect (in that order)
+	lumiere.use_effects({ scanlines })	
+	
+	msg.post("@render:", "use_camera_projection")
+	msg.post("/camera#camera", "acquire_camera_focus")	
+	
 	-- local pos = go.get_position("/Cameras/Original Camera")
 	-- local rot = go.get_rotation("/Cameras/Original Camera")
 	-- go.set_position(pos, "/main#camera")
 	-- go.set_rotation(rot, "/main#camera")
 
-	self.mesh 	= "/Collection/__root"  -- dont modify, this works for nearly all meshes
-	self.cam 	= orbit.init("/main#camera", self.mesh, 7.0 )
+	
+	self.mesh 	= "/Collection/Cube"  -- dont modify, this works for nearly all meshes
+	self.cam 	= orbit.init("/camera#camera", self.mesh, 10.0 )
 	self.gear 	= true
-	self.cam.cameraheight = 2.4
-	self.anim_time	= 15
+	-- self.cam.cameraheight = 2.0
+	--self.anim_time	= 15
 
 --	self.anim = "/Collection/Mira_24 - Default_0#Mira_24 - Default_0_mesh"
-	self.anim = "/Collection/Object_7#Object_7_mesh"
-	model.play_anim(self.anim, "Scene", go.PLAYBACK_LOOP_FORWARD)
+--	self.anim = "/Collection/Object_7#Object_7_mesh"
+	--model.play_anim(self.anim, "Scene", go.PLAYBACK_LOOP_FORWARD)
 end
 
 function final(self)

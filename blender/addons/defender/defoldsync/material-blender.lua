@@ -143,12 +143,11 @@ void main()
   v_position = p.xyz;
   v_cam_position = (mtx_view * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   v_objectNormal = normal;
-  v_normal=normalize((mtx_normal * vec4(normal, 0.0)).xyz);
+  v_normal=normal;//normalize((mtx_normal * vec4(normal, 0.0)).xyz);
   v_texCoord=texcoord0;  
-  v_light = mtx_view * vec4(light.xyz, 1.0);
+  v_light = light;
   gl_Position = mtx_proj * p;
-}    
- 
+}   
 ]]
 
 ------------------------------------------------------------------------------------------------------------
@@ -182,125 +181,124 @@ local fp_pbr_funcs = [[
   const float cpi = 3.14159265358979323846264338327950288419716939937510f ;
 
 MATERIAL_FRAGMENT_TONEMAP_SOURCE  
-  // ----------------------------------------------------------------------------
+    
+// ----------------------------------------------------------------------------
   
-  vec3 getNormalFromMap(vec3 in_normal)
-  {
-    vec3 Q1  = dFdx(v_cam_position - v_position);
-    vec3 Q2  = dFdy(v_cam_position - v_position);
-    vec2 st1 = dFdx(v_texCoord);
-    vec2 st2 = dFdy(v_texCoord);
-  
-    vec3 N   = normalize(v_normal);
-    vec3 dp2perp = cross( Q2, N );
-    vec3 dp1perp = cross( N, Q1 );
-    vec3 T  = (dp2perp*st1.x + dp1perp*st2.x);
-    vec3 B  = (dp2perp*st1.y + dp1perp*st2.y);
-    float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
-    mat3 TBN = mat3(T *invmax, B *invmax, N);
-    return normalize(TBN * in_normal);
-  }
-  
-  float computeFresnelTerm(float fZero, vec3 vSurfaceToViewerDirection, vec3 vSurfaceNormal)
-  {
-      float baseValue = 1.0 - dot(vSurfaceToViewerDirection, vSurfaceNormal);
-      float exponential = pow(baseValue, 5.0) ;
-      float fresnel = exponential + fZero * (1.0 - exponential) ;
-  
-      return fresnel ;
-  }
-  
-  float chiGGX(float f)
-  {
-      return f > 0.0 ? 1.0 : 0.0 ;
-  }
-  
-  // APPROVED! Works as expected
-  float computeGGXDistribution(vec3 vSurfaceNormal, vec3 vSurfaceToLightDirection, float fRoughness)
-  {
-      float fNormalDotLight = clamp(dot(vSurfaceNormal, vSurfaceToLightDirection), 0.0, 1.0) ;
-      float fNormalDotLightSquared = fNormalDotLight * fNormalDotLight ;
-      float fRoughnessSquared = fRoughness * fRoughness ;
-      float fDen = fNormalDotLightSquared * fRoughnessSquared + (1.0 - fNormalDotLightSquared);
-  
-      return clamp((chiGGX(fNormalDotLight) * fRoughnessSquared) / (cpi * fDen * fDen), 0.0, 1.0);
-  }
-  
-  float computeGGXPartialGeometryTerm(vec3 vSurfaceToViewerDirection, vec3 vSurfaceNormal, vec3 vLightViewHalfVector, float fRoughness)
-  {
-      float fViewerDotLightViewHalf = clamp(dot(vSurfaceToViewerDirection, vLightViewHalfVector), 0.0, 1.0) ;
-      float fChi = chiGGX(fViewerDotLightViewHalf / clamp(dot(vSurfaceToViewerDirection, vSurfaceNormal), 0.0, 1.0));
-      fViewerDotLightViewHalf *= fViewerDotLightViewHalf;
-      float fTan2 = (1.0 - fViewerDotLightViewHalf) / fViewerDotLightViewHalf;
-  
-      return (fChi * 2.0) / (1.0 + sqrt(1.0 + fRoughness * fRoughness * fTan2)) ;
-  }
-  
-  
-  // ----------------------------------------------------------------------------
-  vec4 pbrProcess(struct material mat)
-  {
-      vec3 mappedNormal = mat.normal;  
-      vec3 MN = normalize((v_normal + mappedNormal) * 0.5) ;
-  
-      vec3 N = getNormalFromMap(mat.normal);
-      vec3 V = normalize(v_cam_position - v_position);
-  
-      lightPositions[0] = v_light.xyz;
-      
-      // calculate per-light radiance
-      int i = 0;
-      vec3 L = normalize(lightPositions[i] - v_position);
-      vec3 H = normalize(V + L);
-      float distance = length(lightPositions[i] - v_position);
-      float attenuation = 1.0 / (distance * distance);
-      
-      float fLightIntensity = max(dot(L, MN), 0.0) ;
-  
-      float fMetalness = mat.metallic;
-      float fRoughness = max(0.001, mat.roughness);
-  
-      float distributionMicroFacet = computeGGXDistribution(MN, L, fRoughness) ;
-      float geometryMicroFacet = computeGGXPartialGeometryTerm(V, MN, H, fRoughness) ;
-      float microFacetContribution = distributionMicroFacet * geometryMicroFacet ;
-  
-      float fLightSourceFresnelTerm = computeFresnelTerm(0.5, V, MN) ;
-  
-      vec4 rgbAlbedo = mat.color * params.y;
-      vec3 rgbEmissive = mat.emission.rgb;
-  
-      vec3 rgbFragment = rgbAlbedo.rgb * (1.0 - fMetalness);
-  
-      // vec3 rgbSourceReflection = texture2D( reflectionMap, vN ).rgb * fRoughness;
-      // vec3 rgbReflection = rgbSourceReflection ;
-      // rgbReflection *= rgbAlbedo.rgb * fMetalness ;
-      // rgbReflection *= fLightSourceFresnelTerm ;
-      // rgbReflection = min(rgbReflection, rgbSourceReflection) ; // conservation of energy
-  
-      vec3 rgbSpecular = vec3(0.0) ;
-      if (fLightIntensity > 0.0)
-      {
-          rgbSpecular = vec3(params.z);
-          rgbSpecular *= microFacetContribution * fLightSourceFresnelTerm ;
-          rgbSpecular = min(vec3(1.0), rgbSpecular) ; // conservation of energy
-      }
-  
-      float ambientLevel = fLightIntensity * (1.0 - params.x) + params.x;
-      rgbFragment += rgbSpecular;
-      rgbFragment *= ambientLevel;
-      //rgbFragment += rgbReflection ;
-      rgbFragment += rgbEmissive ;
-      //rgbFragment *= amrtex.r;
-  
-      return vec4(rgbFragment, mat.alpha);
-  }   
+vec3 getNormalFromMap(vec3 in_normal)
+{
+  vec3 Q1  = dFdx(v_cam_position - v_position);
+  vec3 Q2  = dFdy(v_cam_position - v_position);
+  vec2 st1 = dFdx(v_texCoord);
+  vec2 st2 = dFdy(v_texCoord);
 
-  vec4 getPbrColor(struct material mat)
-  {
-    vec4 col = pbrProcess(mat);
-    MATERIAL_FRAGMENT_TONEMAP_FUNC
-    return col;
-  }
+  vec3 N   = normalize(v_normal);
+  vec3 dp2perp = cross( Q2, N );
+  vec3 dp1perp = cross( N, Q1 );
+  vec3 T  = (dp2perp*st1.x + dp1perp*st2.x);
+  vec3 B  = (dp2perp*st1.y + dp1perp*st2.y);
+  float invmax = inversesqrt( max( dot(T,T), dot(B,B) ) );
+  mat3 TBN = mat3(T *invmax, B *invmax, N);
+  return normalize(TBN * in_normal);
+}
+
+float computeFresnelTerm(float fZero, vec3 vSurfaceToViewerDirection, vec3 vSurfaceNormal)
+{
+    float baseValue = 1.0 - dot(vSurfaceToViewerDirection, vSurfaceNormal);
+    float exponential = pow(baseValue, 5.0) ;
+    float fresnel = exponential + fZero * (1.0 - exponential) ;
+
+    return fresnel ;
+}
+
+float chiGGX(float f)
+{
+    return f > 0.0 ? 1.0 : 0.0 ;
+}
+
+// APPROVED! Works as expected
+float computeGGXDistribution(vec3 vSurfaceNormal, vec3 vSurfaceToLightDirection, float fRoughness)
+{
+    float fNormalDotLight = clamp(dot(vSurfaceNormal, vSurfaceToLightDirection), 0.0, 1.0) ;
+    float fNormalDotLightSquared = fNormalDotLight * fNormalDotLight ;
+    float fRoughnessSquared = fRoughness * fRoughness ;
+    float fDen = fNormalDotLightSquared * fRoughnessSquared + (1.0 - fNormalDotLightSquared);
+
+    return clamp((chiGGX(fNormalDotLight) * fRoughnessSquared) / (cpi * fDen * fDen), 0.0, 1.0);
+}
+
+float computeGGXPartialGeometryTerm(vec3 vSurfaceToViewerDirection, vec3 vSurfaceNormal, vec3 vLightViewHalfVector, float fRoughness)
+{
+    float fViewerDotLightViewHalf = clamp(dot(vSurfaceToViewerDirection, vLightViewHalfVector), 0.0, 1.0) ;
+    float fChi = chiGGX(fViewerDotLightViewHalf / clamp(dot(vSurfaceToViewerDirection, vSurfaceNormal), 0.0, 1.0));
+    fViewerDotLightViewHalf *= fViewerDotLightViewHalf;
+    float fTan2 = (1.0 - fViewerDotLightViewHalf) / fViewerDotLightViewHalf;
+
+    return (fChi * 2.0) / (1.0 + sqrt(1.0 + fRoughness * fRoughness * fTan2)) ;
+}
+
+
+// ----------------------------------------------------------------------------
+vec4 pbrProcess(struct material mat)
+{ 
+    //vec3 N = getNormalFromMap(mat.normal);
+    vec3 MN = normalize((v_normal + mat.normal) * 0.5) ;
+    vec3 V = normalize(v_cam_position - v_position);
+
+    lightPositions[0] = v_light.xyz;
+    
+    // calculate per-light radiance
+    int i = 0;
+    vec3 L = normalize(lightPositions[i] - v_position);
+    vec3 H = normalize(V + L);
+    float distance = length(lightPositions[i] - v_position);
+    float attenuation = 1.0 / (distance * distance);
+    
+    float fLightIntensity = max(dot(L, MN), 0.0) * attenuation * v_light.w;
+
+    float fMetalness = mat.metallic;
+    float fRoughness = max(0.001, mat.roughness);
+
+    float distributionMicroFacet = computeGGXDistribution(MN, L, fRoughness) ;
+    float geometryMicroFacet = computeGGXPartialGeometryTerm(V, MN, H, fRoughness) ;
+    float microFacetContribution = distributionMicroFacet * geometryMicroFacet ;
+
+    float fLightSourceFresnelTerm = computeFresnelTerm(0.5, V, MN) ;
+
+    vec4 rgbAlbedo = mat.color * params.y;
+    vec3 rgbEmissive = mat.emission.rgb;
+
+    vec3 rgbFragment = rgbAlbedo.rgb * (1.0 - fMetalness);
+
+    // vec3 rgbSourceReflection = texture2D( reflectionMap, vN ).rgb * fRoughness;
+    // vec3 rgbReflection = rgbSourceReflection ;
+    // rgbReflection *= rgbAlbedo.rgb * fMetalness ;
+    // rgbReflection *= fLightSourceFresnelTerm ;
+    // rgbReflection = min(rgbReflection, rgbSourceReflection) ; // conservation of energy
+
+    vec3 rgbSpecular = vec3(0.0) ;
+    if (fLightIntensity > 0.0)
+    {
+        rgbSpecular = vec3(params.z);
+        rgbSpecular *= microFacetContribution * fLightSourceFresnelTerm ;
+        rgbSpecular = min(vec3(1.0), rgbSpecular) ; // conservation of energy
+    }
+
+    float ambientLevel = fLightIntensity * (1.0 - params.x) + params.x;
+    rgbFragment += rgbSpecular;
+    rgbFragment *= ambientLevel;
+    //rgbFragment += rgbReflection ;
+    rgbFragment += rgbEmissive ;
+    //rgbFragment *= amrtex.r;
+
+    return vec4(rgbFragment, mat.alpha);
+}    
+
+vec4 getPbrColor(struct material mat)
+{
+  vec4 col = pbrProcess(mat);
+MATERIAL_FRAGMENT_TONEMAP_FUNC
+  return col;
+}
 ]]
 
 ------------------------------------------------------------------------------------------------------------

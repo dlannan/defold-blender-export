@@ -810,7 +810,8 @@ local function genmaterial( material_path, vpname, fpname, matname, pbrmaterial 
     matstr = matstr:gsub("MATERIAL_FP", localpathname(material_fp_path))
 
     local lv = gendata.config.sync_light_vec
-    local light_vector = '\tx: '..lv.x..'\n\ty: '..lv.y..'\n\tz: '..lv.z..'\n\tw: 1.0'
+    local llevel = gendata.config.sync_light_level
+    local light_vector = '\tx: '..lv.x..'\n\ty: '..lv.y..'\n\tz: '..lv.z..'\n\tw: '..llevel
     matstr = matstr:gsub("MATERIAL_LIGHT_VECTOR", light_vector)
 
     local mp = gendata.config.sync_mat_params

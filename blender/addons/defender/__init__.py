@@ -117,6 +117,7 @@ def update_lightposition(self, context):
         mytool.sync_light_vector[0] = mytool.sync_light_obj.location.x
         mytool.sync_light_vector[1] = mytool.sync_light_obj.location.z
         mytool.sync_light_vector[2] = -mytool.sync_light_obj.location.y
+        mytool.sync_light_level = mytool.sync_light_obj.data.energy
 
 def update_lightglobal(self, context):
     scene = context.scene
@@ -184,6 +185,12 @@ class SyncProperties(PropertyGroup):
         name = "Light Position/Direction",
         description="Direction or Position of the Scene Light.",
         default=(0.0, -1.0, 0.0), 
+        ) 
+    
+    sync_light_level: FloatProperty(
+        name = "Light Level",
+        description="The power level of the light.",
+        default=300.0, 
         ) 
 
     sync_light_obj: PointerProperty(
@@ -326,6 +333,7 @@ class WM_OT_SyncTool(Operator):
             f.write('   sync_shader      = "' + str(mytool.sync_shader) + '",\n')
             f.write('   sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
             f.write('   sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
+            f.write('   sync_light_level = ' + str(mytool.sync_light_level) + ',\n')
             f.write('   sync_mat_params  = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
             f.write('   sync_mat_facenormals = ' + str(mytool.sync_mat_facenormals).lower() + ',\n')
             f.write('   sync_mat_uv2     = ' + str(mytool.sync_mat_uv2).lower() + ',\n')
@@ -466,6 +474,8 @@ class OBJECT_PT_CustomPanel(Panel):
         if(mytool.sync_light_mode == "Light Local"):
             row = box.row()
             row.prop(mytool, "sync_light_obj")
+        row = box.row()
+        row.prop(mytool, "sync_light_level")
 
         layout.separator()
 
@@ -542,6 +552,7 @@ class OBJECT_PT_CustomPanel(Panel):
                 f.write('    sync_shader      = "' + str(mytool.sync_shader) + '",\n')
                 f.write('    sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
                 f.write('    sync_light_vec   = { x = ' + str(lv[0]) + ', y = ' + str(lv[1]) + ', z = ' + str(lv[2]) + ' },\n')
+                f.write('    sync_light_level = ' + str(mytool.sync_light_level) + ',\n')
                 f.write('    sync_mat_params   = { x = ' + str(prm[0]) + ', y = ' + str(prm[1]) + ', z = ' + str(prm[2]) + ' },\n')
                 f.write('    sync_mat_facenormals = ' + str(mytool.sync_mat_facenormals).lower() + ',\n')
                 f.write('    sync_mat_uv2     = ' + str(mytool.sync_mat_uv2).lower() + ',\n')

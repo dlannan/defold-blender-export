@@ -1,5 +1,5 @@
 [bootstrap]
-main_collection = /main/main.collectionc
+main_collection = /main/main2.collectionc
 render = /main/main.renderc
 
 [script]
@@ -8,6 +8,8 @@ shared_state = 1
 [display]
 width = 960
 height = 640
+high_dpi = 1
+vsync = 0
 
 [android]
 input_method = HiddenInputField
@@ -17,6 +19,7 @@ title = empty
 
 [graphics]
 max_draw_calls = 2048
+verify_graphics_calls = 0
 
 [mesh]
 max_count = 512

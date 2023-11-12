@@ -1,7 +1,187 @@
 name: "main"
+instances {
+  id: "scanlines"
+  prototype: "/lumiere/effects/scanlines/scanlines.go"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+instances {
+  id: "lumiere"
+  prototype: "/lumiere/lumiere.go"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
 collection_instances {
-  id: "Collection"
-  collection: "/lightmap-test/Collection.collection"
+  id: "Accesories"
+  collection: "/junk-shop/Accesories.collection"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "Background"
+  collection: "/junk-shop/Background.collection"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "Cameras"
+  collection: "/junk-shop/Cameras.collection"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "Girl"
+  collection: "/junk-shop/Girl.collection"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "Lights & Camera"
+  collection: "/junk-shop/Lights & Camera.collection"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "Probes"
+  collection: "/junk-shop/Probes.collection"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "Robots"
+  collection: "/junk-shop/Robots.collection"
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+collection_instances {
+  id: "Shop"
+  collection: "/junk-shop/Shop.collection"
   position {
     x: 0.0
     y: 0.0
@@ -39,14 +219,57 @@ embedded_instances {
   "  property_decls {\n"
   "  }\n"
   "}\n"
-  "embedded_components {\n"
+  ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "effects"
+  children: "scanlines"
+  data: ""
+  position {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+  }
+  rotation {
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    w: 1.0
+  }
+  scale3 {
+    x: 1.0
+    y: 1.0
+    z: 1.0
+  }
+}
+embedded_instances {
+  id: "camera"
+  data: "embedded_components {\n"
   "  id: \"camera\"\n"
   "  type: \"camera\"\n"
   "  data: \"aspect_ratio: 1.0\\n"
-  "fov: 0.7854\\n"
+  "fov: 0.53097\\n"
   "near_z: 0.1\\n"
-  "far_z: 1000.0\\n"
+  "far_z: 100.0\\n"
   "auto_aspect_ratio: 1\\n"
+  "orthographic_projection: 0\\n"
+  "orthographic_zoom: 1.0\\n"
   "\"\n"
   "  position {\n"
   "    x: 0.0\n"
@@ -62,15 +285,15 @@ embedded_instances {
   "}\n"
   ""
   position {
-    x: 0.0
-    y: 0.0
-    z: 0.0
+    x: 4.714318
+    y: 0.75265193
+    z: 7.9304867
   }
   rotation {
-    x: 0.0
-    y: 0.0
-    z: 0.0
-    w: 1.0
+    x: 0.08704631
+    y: 0.29666242
+    z: -0.027148947
+    w: 0.9506194
   }
   scale3 {
     x: 1.0
