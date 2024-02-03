@@ -33,7 +33,7 @@ from bpy_extras.io_utils import axis_conversion
 from io import BytesIO
 
 from math import radians
-from mathutils import Euler, Matrix
+from mathutils import Euler, Matrix, Vector
 
 # ------------------------------------------------------------------------
 # update progress bar 
@@ -126,7 +126,9 @@ def sceneObjects(context, f, config):
         objType = getattr(obj, 'type', '')
         if(objType not in ["LAMP", "LIGHT"]):
           obj.select_set(True)
-          bpy.ops.object.transform_apply(scale=True)
+          # Make objects single users and apply scale
+          bpy.ops.object.make_single_user(object=True, obdata=True)
+          bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)          
           obj.select_set(False)
 
         thisobj = {
@@ -262,11 +264,11 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           # Get the vert data
           verts   = []
           normals = []
-          verts_local = [v for v in obj.data.vertices.values()]
           # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
 
           # Gltf and Glb are stored in file. No need for this
           if( mode == "Collada" ):
+            verts_local = [v for v in obj.data.vertices.values()]
             if(config.sync_mat_facenormals == True):
               for v in verts_local:
                 verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
@@ -364,7 +366,7 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
                     export_animations=True,
                     use_visible=True,
                     check_existing=False)
-            
+          
           thisobj["normals"] = {}
           thisobj["tris"] = {}
           thisobj["vertices"] = {}
@@ -382,7 +384,10 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
         fhandle.write('["' + thisobj["name"] + '"] = "' + meshfile + '", \n')
         #dataobjs[ thisobj["name"] ] = thisobj 
 
+        
+
   fhandle.write('} \n')
+  update_progress(context, 100, prog_text )
   return animActionObjs
 
 # ------------------------------------------------------------------------
