@@ -82,6 +82,8 @@ if "bpy" in locals():
         importlib.reload(defoldMaterials)
     if "defoldCmds" in locals():
         importlib.reload(defoldCmds)
+    if "defoldObjectProps" in locals():
+        importlib.reload(defoldObjectProps)
 
 # ------------------------------------------------------------------------
 
@@ -99,6 +101,7 @@ if not dir in sys.path:
 from defoldsync import defoldUtils
 from defoldsync import defoldMaterials
 from defoldsync import defoldCmds
+from defoldsync import defoldObjectProps
 
 data_changed = False
 
@@ -143,7 +146,6 @@ class SyncProperties(PropertyGroup):
         name="Mesh Type",
         description="Select the type of mesh to use.",
         items=[ 
-                ('Collada', "Collada (anims only)", ""),
                 ('GLTF', "GLTF (mesh and anims)", ""),
                 ('GLB', "GLB (binary mesh and anims)", ""),
                ]
@@ -158,6 +160,12 @@ class SyncProperties(PropertyGroup):
     stream_anim: BoolProperty(
         name="Export Animation",
         description="Enable Animation Stream",
+        default = False
+        )
+
+    stream_gamedata: BoolProperty(
+        name="Export Game Data",
+        description="Export attached game data",
         default = False
         )
 
@@ -265,7 +273,7 @@ class SyncProperties(PropertyGroup):
 
     sync_errors: StringProperty()
 
-# ------------------------------------------------------------------------
+# ----------    --------------------------------------------------------------
 #    Operators
 # ------------------------------------------------------------------------
 
@@ -309,6 +317,10 @@ class WM_OT_SyncTool(Operator):
             f.write('   stream_mesh_type = "' + str(mytool.stream_mesh_type).lower() + '",\n')
             f.write('   stream_anim      = ' + str(mytool.stream_anim).lower() + ',\n')
             f.write('   stream_anim_name = "' + animname + '",\n')
+
+            # Write out game data lua files to temp for processing.
+            if (mytool.stream_gamedata == True):
+                f.write('   stream_gamedata = "' + gamedata + '",\n')
 
             f.write('}\n')
 
@@ -536,12 +548,14 @@ def register():
         register_class(cls)
 
     bpy.types.Scene.sync_tool = PointerProperty(type=SyncProperties)
+    defoldObjectProps.register()
 
 def unregister():
     from bpy.utils import unregister_class
     for cls in reversed(classes):
         unregister_class(cls)
     del bpy.types.Scene.sync_tool
+    defoldObjectProps.unregister()
 
 
 if __name__ == "__main__":

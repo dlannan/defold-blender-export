@@ -264,18 +264,13 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           # Get the vert data
           verts   = []
           normals = []
+          verts_local = [v for v in obj.data.vertices.values()]
           # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
 
           # Gltf and Glb are stored in file. No need for this
-          if( mode == "Collada" ):
-            verts_local = [v for v in obj.data.vertices.values()]
-            if(config.sync_mat_facenormals == True):
-              for v in verts_local:
-                verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
-            else:
-              for v in verts_local:
-                verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
-                normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
+          for v in verts_local:
+            verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+            normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
 
           thisobj["vertices"] = verts
 
@@ -286,47 +281,6 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
 
           tris = []
           nidx = 0
-
-          if( mode == "Collada" ):
-            for i, face in enumerate(me.loop_triangles):
-              verts_indices = face.vertices[:]
-
-              triobj = {}
-              thistri = []
-              facenormal = face.normal
-
-              for ti in range(0, 3):
-                idx = verts_indices[ti]
-                nidx = idx
-
-                # override normals if using facenormals
-                if(config.sync_mat_facenormals == True):
-                  normals.append( { "x": facenormal.x, "y": facenormal.y, "z": facenormal.z } )
-                  nidx = nidx + 1
-                  #print(idx, normal.x, normal.y, normal.z)
-
-                uv_layer = None
-                if(me.uv_layers.active != None):
-                  uv_layer = me.uv_layers.active.data
-
-                if(uv_layer):
-                  uv = uv_layer[face.loops[ti]].uv
-                
-                tridata = { 
-                  "vertex": idx,
-                  "normal": nidx,
-                  "uv": { "x": uv.x, "y": uv.y }
-                }
-
-                if( len(me.uv_layers) > 1 and ((config.sync_mat_uv2 == True) or (lightmap_enable == True)) ):
-                  uvs = [uv for uv in obj.data.uv_layers if uv.active_render != True]
-                  uv1 = uvs[0].data[face.loops[ti]].uv
-                  tridata["uv2"] = { "x": uv1.x, "y": uv1.y }
-                
-                thistri.append( tridata )
-
-              triobj["tri"] = thistri
-              tris.append(triobj)
 
           thisobj["tris"] = tris
           #normals_world = [obj.matrix_world @ n_local for n_local in normals]
@@ -457,25 +411,6 @@ def sceneAnimations(context, f, temppath, config, animobjs):
                   export_animations=True,
                   use_visible=True,
                   check_existing=False)
-      else:
-        animfile = temppath + meshobj.name + ".dae"
-        bpy.ops.wm.collada_export(filepath=animfile, 
-                triangulate = True,
-                include_armatures=True,
-                include_children=False,
-                export_global_forward_selection='Z',
-                export_global_up_selection='-Y',
-                export_animation_type_selection='sample',
-                export_animation_transformation_type_selection='matrix',
-                #keep_keyframes=True,
-                apply_global_orientation=True,
-                selected=True,
-                deform_bones_only=True,
-                include_animations=True,
-                #include_all_actions=True,
-                filter_collada=True, 
-                filter_folder=True, 
-                filemode=8)
 
       animfile = os.path.normpath(animfile)
       animfile = animfile.replace("\\", "\\\\")
