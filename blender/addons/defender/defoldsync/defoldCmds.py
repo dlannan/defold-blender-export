@@ -36,6 +36,14 @@ from math import radians
 from mathutils import Euler, Matrix, Vector
 
 # ------------------------------------------------------------------------
+# Helper for making objects
+
+class Struct(object):
+    def __init__(self, d):
+        for key in d.keys():
+            self.__setattr__(key, d[key])
+
+# ------------------------------------------------------------------------
 # update progress bar 
 
 def update_progress( context, value, text ):
@@ -83,7 +91,7 @@ def has_keyframe(ob, attr):
 
 # ------------------------------------------------------------------------
 # Get all available obejcts in the scene (including transforms)
-def sceneObjects(context, f, config):
+def sceneObjects(context, f, config, handled):
 
   f.write('{ \n')
 
@@ -119,128 +127,306 @@ def sceneObjects(context, f, config):
 
       for obj in coll.collection.objects:
       
-        update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
-        objcurr += 1
+        if(handled[obj.name] == False):
+          update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
+          objcurr += 1
 
-        # Force all scaling to unity - otherwise things are difficult to manage
-        objType = getattr(obj, 'type', '')
-        if(objType not in ["LAMP", "LIGHT"]):
-          obj.select_set(True)
-          # Make objects single users and apply scale
-          bpy.ops.object.make_single_user(object=True, obdata=True)
-          bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)          
-          obj.select_set(False)
+          # Force all scaling to unity - otherwise things are difficult to manage
+          objType = getattr(obj, 'type', '')
+          if(objType not in ["LAMP", "LIGHT"]):
+            obj.select_set(True)
+            # Make objects single users and apply scale
+            bpy.ops.object.make_single_user(object=True, obdata=True)
+            bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)          
+            obj.select_set(False)
 
-        thisobj = {
-          "name": str(obj.name),
-          "type": str(obj.type)
-        }
+          thisobj = {
+            "name": str(obj.name),
+            "type": str(obj.type)
+          }
 
-        local_coord = obj.matrix_local.translation #obj.location
+          #Override Type if this is a grouped object - always a mesh
+          if(obj.defold_props.group_children == True):
+            thisobj["type"] = "MESH"
 
-        rot = obj.rotation_quaternion.to_euler('XYZ')
-        if( obj.rotation_mode != "QUATERNION"):
-          rot = obj.rotation_euler.copy()
-          rot.order = 'XYZ'
+          local_coord = obj.matrix_local.translation #obj.location
+
+          rot = obj.rotation_quaternion.to_euler('XYZ')
+          if( obj.rotation_mode != "QUATERNION"):
+            rot = obj.rotation_euler.copy()
+            rot.order = 'XYZ'
+            
+          if(obj.parent != None):
+              thisobj["parent"] = {
+                "name": str(obj.parent.name),
+                "type": str(obj.parent_type)
+              }
+
+          # This is a parent object in the collection. Adjust its location and rotation
+          else:
+            euler =  Matrix.Rotation( radians(-90), 4, 'X')
+            rot = (euler @ rot.to_matrix().to_4x4()).to_euler('XYZ')
+            local_coord = euler @ local_coord
+
+          thisobj["location"] = { 
+            "x": local_coord.x, 
+            "y": local_coord.y, 
+            "z": local_coord.z 
+          }
+
+  #        quat = obj.rotation_quaternion
+          quat = rot.to_quaternion()
           
-        if(obj.parent != None):
-            thisobj["parent"] = {
-              "name": str(obj.parent.name),
-              "type": str(obj.parent_type)
+          thisobj["rotation"] = { 
+            "quat": { 
+              "x": quat.x,
+              "y": quat.y,
+              "z": quat.z,
+              "w": quat.w
+            },
+            "euler": {
+              "x": rot.x,
+              "y": rot.y,
+              "z": rot.z
+            }
+          }
+
+          scl = obj.scale.copy()
+          thisobj["scaling"] = {
+            "x": scl.x,
+            "y": scl.y,
+            "z": scl.z
+          }
+
+          if( obj.type == "CAMERA" ):
+            cam = obj.data
+            thisobj["settings"] = {
+              "fov": cam.angle_y,
+              "near": cam.clip_start,
+              "far" : cam.clip_end,
+              "lens" : cam.lens,
+              "ortho_scale": cam.ortho_scale
             }
 
-        # This is a parent object in the collection. Adjust its location and rotation
-        else:
-          euler =  Matrix.Rotation( radians(-90), 4, 'X')
-          rot = (euler @ rot.to_matrix().to_4x4()).to_euler('XYZ')
-          local_coord = euler @ local_coord
+          # Store custom properties too 
+          if(len(obj.keys()) > 0):
+            props = {}
+            for K in obj.keys():
+                if(isinstance(obj[K], str)):
+                  props[str(K)] = str(obj[K])
+                  #print( K , "-" , obj[K] )
+            if(len(props) > 0):
+              thisobj["props"] = props
 
-        thisobj["location"] = { 
-          "x": local_coord.x, 
-          "y": local_coord.y, 
-          "z": local_coord.z 
-        }
+          if( defoldUtils.isAnimated(obj) == True ):
+            thisobj["animated"] = True
 
-#        quat = obj.rotation_quaternion
-        quat = rot.to_quaternion()
-        
-        thisobj["rotation"] = { 
-          "quat": { 
-            "x": quat.x,
-            "y": quat.y,
-            "z": quat.z,
-            "w": quat.w
-          },
-          "euler": {
-            "x": rot.x,
-            "y": rot.y,
-            "z": rot.z
-          }
-        }
-
-        scl = obj.scale.copy()
-        thisobj["scaling"] = {
-          "x": scl.x,
-          "y": scl.y,
-          "z": scl.z
-        }
-
-        if( obj.type == "CAMERA" ):
-          cam = obj.data
-          thisobj["settings"] = {
-            "fov": cam.angle_y,
-            "near": cam.clip_start,
-            "far" : cam.clip_end,
-            "lens" : cam.lens,
-            "ortho_scale": cam.ortho_scale
-          }
-
-        # Store custom properties too 
-        if(len(obj.keys()) > 0):
-          props = {}
-          for K in obj.keys():
-              if(isinstance(obj[K], str)):
-                props[str(K)] = str(obj[K])
-                #print( K , "-" , obj[K] )
-          if(len(props) > 0):
-            thisobj["props"] = props
-
-        if( defoldUtils.isAnimated(obj) == True ):
-          thisobj["animated"] = True
-
-        f.write('["' + str(obj.name) + '"] = ' + defoldUtils.dump_lua(thisobj) + ', \n')
-        #thisobj["name"] ] = thisobj 
+          f.write('["' + str(obj.name) + '"] = ' + defoldUtils.dump_lua(thisobj) + ', \n')
+          #thisobj["name"] ] = thisobj 
 
       f.write('}, \n')
 
   f.write('} \n')
 
 # ------------------------------------------------------------------------
+# Little util to taverse children and return a list
+
+def getChildren(myObject): 
+    children = [] 
+    for ob in bpy.data.objects: 
+        if ob.parent == myObject: 
+            children.append(ob) 
+    return children 
+
+# ------------------------------------------------------------------------
+# Mesh Buffer Export helper
+
+def exportMeshBuffer(context, mat, config, thisobj, obj, texture_path):
+    
+    lightmap_enable = mat.name.endswith( "_LightMap")
+    me = obj.data
+    # Build the mesh into triangles
+    # bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
+    me.calc_loop_triangles()
+
+    # Get the vert data
+    verts   = []
+    normals = []
+    
+    # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
+
+    # Gltf and Glb are stored in file. No need for this
+    verts_local = [v for v in obj.data.vertices.values()]
+    if(config.sync_mat_facenormals == True):
+      for v in verts_local:
+        verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+    else:
+      for v in verts_local:
+        verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+        normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
+
+
+    thisobj["vertices"] = verts
+    thisobj = defoldMaterials.ProcessMaterial(thisobj, mat, texture_path, context, config)
+
+    tris = []
+    nidx = 0
+
+    for i, face in enumerate(me.loop_triangles):
+      verts_indices = face.vertices[:]
+
+      triobj = {}
+      thistri = []
+      facenormal = face.normal
+
+      for ti in range(0, 3):
+        idx = verts_indices[ti]
+        nidx = idx
+        uv = None
+
+        # override normals if using facenormals
+        if(config.sync_mat_facenormals == True):
+          normals.append( { "x": facenormal.x, "y": facenormal.y, "z": facenormal.z } )
+          nidx = nidx + 1
+          #print(idx, normal.x, normal.y, normal.z)
+
+        uv_layer = None
+        if(me.uv_layers.active != None):
+          uv_layer = me.uv_layers.active.data
+
+        if(uv_layer):
+          uv = uv_layer[face.loops[ti]].uv
+        
+        if(uv is None):
+          uv = Struct({ "x": 0.0, "y": 0.0 })
+
+        tridata = { 
+          "vertex": idx,
+          "normal": nidx,
+          "uv": { "x": uv.x, "y": uv.y }
+        }
+
+        if( len(me.uv_layers) > 1 and ((config.sync_mat_uv2 == True) or (lightmap_enable == True)) ):
+          uvs = [uv for uv in obj.data.uv_layers if uv.active_render != True]
+          uv1 = uvs[0].data[face.loops[ti]].uv
+          tridata["uv2"] = { "x": uv1.x, "y": uv1.y }
+        
+        thistri.append( tridata )
+
+      triobj["tri"] = thistri
+      tris.append(triobj)
+
+    thisobj["tris"] = tris
+
+    #normals_world = [obj.matrix_world @ n_local for n_local in normals]
+    thisobj["normals"]  = normals
+
+
+
+# ------------------------------------------------------------------------
+# GLTF Export helper
+
+def exportGLTF(context, thisobj, obj, temppath, mode, children):
+    # Select just this object to export
+    for o in context.selected_objects:
+      o.select_set(False)
+
+    obj.select_set(True)
+    if(children == True):
+      for ch in obj.children:
+        ch.select_set(True)
+
+    context.view_layer.objects.active = obj           
+
+    thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".gltf")
+    gltffiletype = "GLTF_EMBEDDED"
+    if( mode == "GLB" ):
+      thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".glb")
+      gltffiletype = "GLB"
+
+    bpy.ops.export_scene.gltf(filepath=thisobj["gltf"], 
+              export_skins=True,
+              export_format=gltffiletype,
+              #export_image_format='NONE',
+              #export_yup=True,
+              export_texture_dir="textures",
+              export_texcoords=True,
+              export_normals=True,
+              export_colors=True,
+              export_cameras=False,
+              export_lights=False,
+              use_renderable=True,
+              use_selection=True,
+              export_def_bones=True,
+              export_animations=True,
+              use_visible=True,
+              check_existing=False)
+    
+    thisobj["normals"] = {}
+    thisobj["tris"] = {}
+    thisobj["vertices"] = {}
+
+# ------------------------------------------------------------------------
 # Get all available meshes in the scene (including data)
 
-def sceneMeshes(context, fhandle, temppath, texture_path, config):
+def sceneMeshes(context, fhandle, temppath, texture_path, config, handled):
 
+  scene = context.scene
+  objectsall = bpy.data.objects #scene.objects
+
+  mode = config.stream_mesh_type
   fhandle.write('{ \n')
   UVObj = type('UVObj', (object,), {})
   
-  scene = context.scene
   prog_text = "Exporting meshes..."
-  objcount = len(scene.objects)
+  objcount = 0
   objcurr = 0
 
-  mode = config.stream_mesh_type
   #Deselect any selected object
   for o in context.selected_objects:
     o.select_set(False)
 
   animActionObjs = []
+
+  for obj in objectsall:
+
+    # Collate child collapsed meshes ready for processed
+    if obj.defold_props.group_children == True:      
+      thisobj = {
+        "name": str(obj.name),
+        "type": "MESH"      # Always force to object.
+      }
+
+      if obj is not None and obj.type == 'MESH' and obj.active_material:   
+        mat = obj.active_material     
+        thisobj["matname"] = mat.name  
+
+      if(obj.parent != None):
+        thisobj["parent"] = str(obj.parent.name)
+
+      meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
+
+      if( mode == "GLTF" or mode == "GLB" ):
+        exportGLTF(context, thisobj, obj, temppath, mode, True)
+
+      with open( meshfile, 'w') as f:
+        f.write(json.dumps(thisobj))
+
+      meshfile = meshfile.replace('\\','\\\\')       
+      fhandle.write('["' + thisobj["name"] + '"] = "' + meshfile + '", \n')
+      objcount = objcount + 1
+    else:
+      if(handled[obj.name] == False):
+        objcount = objcount + 1
+
+  # iterate all the scene objects
   for obj in scene.objects:
 
       update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
       objcurr += 1
 
       # Only collect meshes in the scene
-      if(obj.type == "MESH"):
+      if(obj.type == "MESH" and handled[obj.name] == False):
 
         if(defoldUtils.isAnimated(obj) == True):
           if(not obj.name in animActionObjs): 
@@ -250,80 +436,22 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config):
           "name": str(obj.name),
           "type": str(obj.type)
         }
+
+        if obj is not None and obj.type == 'MESH' and obj.active_material:   
+          mat = obj.active_material       
+          thisobj["matname"] = mat.name  
         
         if(obj.parent != None):
           thisobj["parent"] = str(obj.parent.name)
 
-        if(obj.data):
+        if(obj.data and mode == "MESH"):
+          exportMeshBuffer(context, mat, config, thisobj, obj, texture_path)
+          
 
-          me = obj.data
-          # Build the mesh into triangles
-          # bpy.ops.mesh.quads_convert_to_tris(quad_method='BEAUTY', ngon_method='BEAUTY')
-          me.calc_loop_triangles()
-
-          # Get the vert data
-          verts   = []
-          normals = []
-          verts_local = [v for v in obj.data.vertices.values()]
-          # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
-
-          # Gltf and Glb are stored in file. No need for this
-          for v in verts_local:
-            verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
-            normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
-
-          thisobj["vertices"] = verts
-
-          if obj is not None and obj.type == 'MESH' and obj.active_material:   
-            mat = obj.active_material
-
-          thisobj = defoldMaterials.ProcessMaterial(thisobj, mat, texture_path, context, config)
-
-          tris = []
-          nidx = 0
-
-          thisobj["tris"] = tris
-          #normals_world = [obj.matrix_world @ n_local for n_local in normals]
-          thisobj["normals"]  = normals
-        
         meshfile = os.path.abspath(temppath + str(thisobj["name"]) + '.json')
 
         if( mode == "GLTF" or mode == "GLB" ):
-
-          # Select just this object to export
-          for o in context.selected_objects:
-            o.select_set(False)
-          
-          obj.select_set(True)
-          context.view_layer.objects.active = obj
-
-          thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".gltf")
-          gltffiletype = "GLTF_EMBEDDED"
-          if( mode == "GLB" ):
-            thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".glb")
-            gltffiletype = "GLB"
-
-          bpy.ops.export_scene.gltf(filepath=thisobj["gltf"], 
-                    export_skins=True,
-                    export_format=gltffiletype,
-                    #export_image_format='NONE',
-                    #export_yup=True,
-                    export_texture_dir="textures",
-                    export_texcoords=True,
-                    export_normals=True,
-                    export_colors=True,
-                    export_cameras=False,
-                    export_lights=False,
-                    use_renderable=True,
-                    use_selection=True,
-                    export_def_bones=True,
-                    export_animations=True,
-                    use_visible=True,
-                    check_existing=False)
-          
-          thisobj["normals"] = {}
-          thisobj["tris"] = {}
-          thisobj["vertices"] = {}
+          exportGLTF(context, thisobj, obj, temppath, mode, False)
 
         with open( meshfile, 'w') as f:
           f.write(json.dumps(thisobj))
@@ -390,7 +518,7 @@ def sceneAnimations(context, f, temppath, config, animobjs):
 
       if( config.stream_mesh_type == "GLTF" or config.stream_mesh_type == "GLB" ):
         animfile = temppath + meshobj.name + ".gltf"
-        animfiletype = "GLTF_SEPARATE"
+        animfiletype = "GLTF_EMBEDDED"
         if( config.stream_mesh_type == "GLB" ):
           animfile = temppath + meshobj.name + ".glb"
           animfiletype = "GLB"
@@ -486,6 +614,21 @@ def getData( context, clientcmds, dir, config):
     f.write("return {\n")
 
     animobjs = []
+    handled = {}
+
+    for obj in bpy.data.objects:
+      # Parent object can be anything. If it is set as the geom group node
+      #   then export everything under it, but also remove any from this children set
+      #   in the scene.objects set
+      if obj.defold_props.group_children == True:
+        children = getChildren(obj)
+        for ch in children:
+          handled[ch.name] = True
+
+    for obj in bpy.data.objects:
+      if(handled.get(obj.name) is None):
+        handled[obj.name] = False
+
 
     # Check to see what commands are enabled. And collect data if they changed
     # TODO: Optimise this into mapped methods
@@ -500,15 +643,15 @@ def getData( context, clientcmds, dir, config):
       # Object transforms and hierarchy
       if(cmd == 'scene'):
         f.write('OBJECTS = ')
-        sceneObjects(context, f, config) 
+        sceneObjects(context, f, config, handled) 
         f.write(', \n')
 
       # Mesh data 
       if(cmd == 'meshes'):
         f.write('MESHES = ')
-        animobjs = sceneMeshes(context, f, temppath + bpy.path.native_pathsep('/'), texture_path, config)
+        animobjs = sceneMeshes(context, f, temppath + bpy.path.native_pathsep('/'), texture_path, config, handled)
         f.write(', \n')
-    
+   
       # All bone animations in the scene
       if(cmd == 'anims'):
         f.write('ANIMS = ')

@@ -141,8 +141,8 @@ def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
     basename = os.path.basename(img)
     splitname = os.path.splitext(basename)
 
-    print("[ IMG PATH ] " + str(img))
-    print("[ IMG BASE PATH ] " + str(basename))
+    # print("[ IMG PATH ] " + str(img))
+    # print("[ IMG BASE PATH ] " + str(basename))
 
     if splitname[1] != '.png' and splitname[1] != '.PNG':
       pngimg = os.path.join(texture_path , splitname[0] + ".png")
@@ -372,7 +372,7 @@ node_convert_list = {
 def ProcessMaterial( thisobj, mat, texture_path, context, config ):
 
     if mat is not None and mat.use_nodes:
-        print("[MATNAME] "+mat.name)
+        # print("[MATNAME] "+mat.name)
             
         outnode = mat.node_tree.nodes["Material Output"]
 

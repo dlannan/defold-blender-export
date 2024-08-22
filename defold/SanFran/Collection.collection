@@ -1,0 +1,3820 @@
+name: "COLLECTION_NAME"
+scale_along_z: 0
+
+instances {
+    id: "Ocean.545"
+    prototype: "/SanFran/gameobjects/Ocean.545.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.716"
+    prototype: "/SanFran/gameobjects/Ocean.716.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.506"
+    prototype: "/SanFran/gameobjects/Ocean.506.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.026"
+    prototype: "/SanFran/gameobjects/Ocean.026.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.717"
+    prototype: "/SanFran/gameobjects/Ocean.717.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.507"
+    prototype: "/SanFran/gameobjects/Ocean.507.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.745"
+    prototype: "/SanFran/gameobjects/Ocean.745.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.674"
+    prototype: "/SanFran/gameobjects/Ocean.674.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.706"
+    prototype: "/SanFran/gameobjects/Ocean.706.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.591"
+    prototype: "/SanFran/gameobjects/Ocean.591.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.675"
+    prototype: "/SanFran/gameobjects/Ocean.675.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.707"
+    prototype: "/SanFran/gameobjects/Ocean.707.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.636"
+    prototype: "/SanFran/gameobjects/Ocean.636.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.556"
+    prototype: "/SanFran/gameobjects/Ocean.556.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.637"
+    prototype: "/SanFran/gameobjects/Ocean.637.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.791"
+    prototype: "/SanFran/gameobjects/Ocean.791.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.557"
+    prototype: "/SanFran/gameobjects/Ocean.557.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.756"
+    prototype: "/SanFran/gameobjects/Ocean.756.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.596"
+    prototype: "/SanFran/gameobjects/Ocean.596.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.626"
+    prototype: "/SanFran/gameobjects/Ocean.626.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.757"
+    prototype: "/SanFran/gameobjects/Ocean.757.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.004"
+    prototype: "/SanFran/gameobjects/urban_areas.004.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.010"
+    prototype: "/SanFran/gameobjects/Ocean.010.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.627"
+    prototype: "/SanFran/gameobjects/Ocean.627.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.598"
+    prototype: "/SanFran/gameobjects/Ocean.598.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.586"
+    prototype: "/SanFran/gameobjects/Ocean.586.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.798"
+    prototype: "/SanFran/gameobjects/Ocean.798.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.588"
+    prototype: "/SanFran/gameobjects/Ocean.588.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.599"
+    prototype: "/SanFran/gameobjects/Ocean.599.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.546"
+    prototype: "/SanFran/gameobjects/Ocean.546.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.665"
+    prototype: "/SanFran/gameobjects/Ocean.665.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.788"
+    prototype: "/SanFran/gameobjects/Ocean.788.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.547"
+    prototype: "/SanFran/gameobjects/Ocean.547.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.589"
+    prototype: "/SanFran/gameobjects/Ocean.589.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.592"
+    prototype: "/SanFran/gameobjects/Ocean.592.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.510"
+    prototype: "/SanFran/gameobjects/Ocean.510.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.746"
+    prototype: "/SanFran/gameobjects/Ocean.746.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.667"
+    prototype: "/SanFran/gameobjects/Ocean.667.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.511"
+    prototype: "/SanFran/gameobjects/Ocean.511.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.747"
+    prototype: "/SanFran/gameobjects/Ocean.747.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.676"
+    prototype: "/SanFran/gameobjects/Ocean.676.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.594"
+    prototype: "/SanFran/gameobjects/Ocean.594.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.593"
+    prototype: "/SanFran/gameobjects/Ocean.593.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.710"
+    prototype: "/SanFran/gameobjects/Ocean.710.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.677"
+    prototype: "/SanFran/gameobjects/Ocean.677.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.600"
+    prototype: "/SanFran/gameobjects/Ocean.600.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.020"
+    prototype: "/SanFran/gameobjects/Ocean.020.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.711"
+    prototype: "/SanFran/gameobjects/Ocean.711.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.520"
+    prototype: "/SanFran/gameobjects/Ocean.520.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.794"
+    prototype: "/SanFran/gameobjects/Ocean.794.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.584"
+    prototype: "/SanFran/gameobjects/Ocean.584.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.595"
+    prototype: "/SanFran/gameobjects/Ocean.595.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.008"
+    prototype: "/SanFran/gameobjects/Ocean.008.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.720"
+    prototype: "/SanFran/gameobjects/Ocean.720.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.630"
+    prototype: "/SanFran/gameobjects/Ocean.630.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.784"
+    prototype: "/SanFran/gameobjects/Ocean.784.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.795"
+    prototype: "/SanFran/gameobjects/Ocean.795.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.550"
+    prototype: "/SanFran/gameobjects/Ocean.550.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.631"
+    prototype: "/SanFran/gameobjects/Ocean.631.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.012"
+    prototype: "/SanFran/gameobjects/Ocean.012.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.750"
+    prototype: "/SanFran/gameobjects/Ocean.750.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.751"
+    prototype: "/SanFran/gameobjects/Ocean.751.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.002"
+    prototype: "/SanFran/gameobjects/urban_areas.002.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.718"
+    prototype: "/SanFran/gameobjects/Ocean.718.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.508"
+    prototype: "/SanFran/gameobjects/Ocean.508.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.028"
+    prototype: "/SanFran/gameobjects/Ocean.028.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.719"
+    prototype: "/SanFran/gameobjects/Ocean.719.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.509"
+    prototype: "/SanFran/gameobjects/Ocean.509.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.032"
+    prototype: "/SanFran/gameobjects/Ocean.032.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.708"
+    prototype: "/SanFran/gameobjects/Ocean.708.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.512"
+    prototype: "/SanFran/gameobjects/Ocean.512.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.709"
+    prototype: "/SanFran/gameobjects/Ocean.709.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.638"
+    prototype: "/SanFran/gameobjects/Ocean.638.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.006"
+    prototype: "/SanFran/gameobjects/urban_areas.006.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.513"
+    prototype: "/SanFran/gameobjects/Ocean.513.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.640"
+    prototype: "/SanFran/gameobjects/Ocean.640.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.558"
+    prototype: "/SanFran/gameobjects/Ocean.558.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.005"
+    prototype: "/SanFran/gameobjects/urban_areas.005.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.639"
+    prototype: "/SanFran/gameobjects/Ocean.639.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.003"
+    prototype: "/SanFran/gameobjects/urban_areas.003.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.712"
+    prototype: "/SanFran/gameobjects/Ocean.712.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.001"
+    prototype: "/SanFran/gameobjects/urban_areas.001.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.559"
+    prototype: "/SanFran/gameobjects/Ocean.559.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+embedded_instances {
+    id: "Urban"
+    data: ""
+    children: "urban_areas.004"
+    children: "urban_areas.002"
+    children: "urban_areas.006"
+    children: "urban_areas.005"
+    children: "urban_areas.003"
+    children: "urban_areas.001"
+    children: "urban_areas.15225"
+    children: "urban_areas.2144"
+    children: "urban_areas"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:-0.70710676908493
+	y:-0
+	z:0
+	w:0.70710676908493
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.15225"
+    prototype: "/SanFran/gameobjects/urban_areas.15225.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.022"
+    prototype: "/SanFran/gameobjects/Ocean.022.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.713"
+    prototype: "/SanFran/gameobjects/Ocean.713.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas.2144"
+    prototype: "/SanFran/gameobjects/urban_areas.2144.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.758"
+    prototype: "/SanFran/gameobjects/Ocean.758.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "urban_areas"
+    prototype: "/SanFran/gameobjects/urban_areas.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+embedded_instances {
+    id: "Ocean"
+    data: ""
+    children: "Ocean.545"
+    children: "Ocean.716"
+    children: "Ocean.506"
+    children: "Ocean.026"
+    children: "Ocean.717"
+    children: "Ocean.507"
+    children: "Ocean.745"
+    children: "Ocean.674"
+    children: "Ocean.706"
+    children: "Ocean.591"
+    children: "Ocean.675"
+    children: "Ocean.707"
+    children: "Ocean.636"
+    children: "Ocean.556"
+    children: "Ocean.637"
+    children: "Ocean.791"
+    children: "Ocean.557"
+    children: "Ocean.756"
+    children: "Ocean.596"
+    children: "Ocean.626"
+    children: "Ocean.757"
+    children: "Ocean.010"
+    children: "Ocean.627"
+    children: "Ocean.598"
+    children: "Ocean.586"
+    children: "Ocean.798"
+    children: "Ocean.588"
+    children: "Ocean.599"
+    children: "Ocean.546"
+    children: "Ocean.665"
+    children: "Ocean.788"
+    children: "Ocean.547"
+    children: "Ocean.589"
+    children: "Ocean.592"
+    children: "Ocean.510"
+    children: "Ocean.746"
+    children: "Ocean.667"
+    children: "Ocean.511"
+    children: "Ocean.747"
+    children: "Ocean.676"
+    children: "Ocean.594"
+    children: "Ocean.593"
+    children: "Ocean.710"
+    children: "Ocean.677"
+    children: "Ocean.600"
+    children: "Ocean.020"
+    children: "Ocean.711"
+    children: "Ocean.520"
+    children: "Ocean.794"
+    children: "Ocean.584"
+    children: "Ocean.595"
+    children: "Ocean.008"
+    children: "Ocean.720"
+    children: "Ocean.630"
+    children: "Ocean.784"
+    children: "Ocean.795"
+    children: "Ocean.550"
+    children: "Ocean.631"
+    children: "Ocean.012"
+    children: "Ocean.750"
+    children: "Ocean.751"
+    children: "Ocean.718"
+    children: "Ocean.508"
+    children: "Ocean.028"
+    children: "Ocean.719"
+    children: "Ocean.509"
+    children: "Ocean.032"
+    children: "Ocean.708"
+    children: "Ocean.512"
+    children: "Ocean.709"
+    children: "Ocean.638"
+    children: "Ocean.513"
+    children: "Ocean.640"
+    children: "Ocean.558"
+    children: "Ocean.639"
+    children: "Ocean.712"
+    children: "Ocean.559"
+    children: "Ocean.022"
+    children: "Ocean.713"
+    children: "Ocean.758"
+    children: "Ocean.597"
+    children: "Ocean.714"
+    children: "Ocean.628"
+    children: "Ocean.759"
+    children: "Ocean.800"
+    children: "Ocean.799"
+    children: "Ocean.024"
+    children: "Ocean.715"
+    children: "Ocean.505"
+    children: "Ocean.632"
+    children: "Ocean.793"
+    children: "Ocean.796"
+    children: "Ocean.797"
+    children: "Ocean.680"
+    children: "Ocean.704"
+    children: "Ocean.633"
+    children: "Ocean.792"
+    children: "Ocean.790"
+    children: "Ocean.789"
+    children: "Ocean.553"
+    children: "Ocean.705"
+    children: "Ocean.634"
+    children: "Ocean.787"
+    children: "Ocean.786"
+    children: "Ocean.785"
+    children: "Ocean.554"
+    children: "Ocean.518"
+    children: "Ocean.635"
+    children: "Ocean.036"
+    children: "Ocean.551"
+    children: "Ocean.548"
+    children: "Ocean.668"
+    children: "Ocean.753"
+    children: "Ocean.752"
+    children: "Ocean.590"
+    children: "Ocean.030"
+    children: "Ocean.549"
+    children: "Ocean.754"
+    children: "Ocean.744"
+    children: "Ocean.555"
+    children: "Ocean.585"
+    children: "Ocean.552"
+    children: "Ocean.748"
+    children: "Ocean.755"
+    children: "Ocean.006"
+    children: "Ocean.587"
+    children: "Ocean.673"
+    children: "Ocean.034"
+    children: "Ocean.749"
+    children: "Ocean.678"
+    children: "Ocean.517"
+    children: "Ocean.629"
+    children: "Ocean.018"
+    children: "Ocean.624"
+    children: "Ocean.679"
+    children: "Ocean.666"
+    children: "Ocean.016"
+    children: "Ocean.669"
+    children: "Ocean.672"
+    children: "Ocean.519"
+    children: "Ocean.560"
+    children: "Ocean.004"
+    children: "Ocean.671"
+    children: "Ocean.625"
+    children: "Ocean.516"
+    children: "Ocean.504"
+    children: "Ocean.670"
+    children: "Ocean.515"
+    children: "Ocean.514"
+    children: "Ocean.544"
+    children: "Ocean.664"
+    children: "Ocean.014"
+    children: "Ocean.760"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:-0.70710676908493
+	y:-0
+	z:0
+	w:0.70710676908493
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.597"
+    prototype: "/SanFran/gameobjects/Ocean.597.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.714"
+    prototype: "/SanFran/gameobjects/Ocean.714.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.628"
+    prototype: "/SanFran/gameobjects/Ocean.628.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.759"
+    prototype: "/SanFran/gameobjects/Ocean.759.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.800"
+    prototype: "/SanFran/gameobjects/Ocean.800.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.799"
+    prototype: "/SanFran/gameobjects/Ocean.799.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.024"
+    prototype: "/SanFran/gameobjects/Ocean.024.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.715"
+    prototype: "/SanFran/gameobjects/Ocean.715.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.505"
+    prototype: "/SanFran/gameobjects/Ocean.505.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.632"
+    prototype: "/SanFran/gameobjects/Ocean.632.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.793"
+    prototype: "/SanFran/gameobjects/Ocean.793.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.796"
+    prototype: "/SanFran/gameobjects/Ocean.796.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.797"
+    prototype: "/SanFran/gameobjects/Ocean.797.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.680"
+    prototype: "/SanFran/gameobjects/Ocean.680.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.704"
+    prototype: "/SanFran/gameobjects/Ocean.704.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.633"
+    prototype: "/SanFran/gameobjects/Ocean.633.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.792"
+    prototype: "/SanFran/gameobjects/Ocean.792.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.790"
+    prototype: "/SanFran/gameobjects/Ocean.790.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.789"
+    prototype: "/SanFran/gameobjects/Ocean.789.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.553"
+    prototype: "/SanFran/gameobjects/Ocean.553.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.705"
+    prototype: "/SanFran/gameobjects/Ocean.705.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.634"
+    prototype: "/SanFran/gameobjects/Ocean.634.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.787"
+    prototype: "/SanFran/gameobjects/Ocean.787.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.786"
+    prototype: "/SanFran/gameobjects/Ocean.786.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.785"
+    prototype: "/SanFran/gameobjects/Ocean.785.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.554"
+    prototype: "/SanFran/gameobjects/Ocean.554.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.518"
+    prototype: "/SanFran/gameobjects/Ocean.518.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.635"
+    prototype: "/SanFran/gameobjects/Ocean.635.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.036"
+    prototype: "/SanFran/gameobjects/Ocean.036.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.551"
+    prototype: "/SanFran/gameobjects/Ocean.551.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.548"
+    prototype: "/SanFran/gameobjects/Ocean.548.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.668"
+    prototype: "/SanFran/gameobjects/Ocean.668.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.753"
+    prototype: "/SanFran/gameobjects/Ocean.753.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.752"
+    prototype: "/SanFran/gameobjects/Ocean.752.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.590"
+    prototype: "/SanFran/gameobjects/Ocean.590.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.030"
+    prototype: "/SanFran/gameobjects/Ocean.030.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.549"
+    prototype: "/SanFran/gameobjects/Ocean.549.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.754"
+    prototype: "/SanFran/gameobjects/Ocean.754.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.744"
+    prototype: "/SanFran/gameobjects/Ocean.744.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.555"
+    prototype: "/SanFran/gameobjects/Ocean.555.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.585"
+    prototype: "/SanFran/gameobjects/Ocean.585.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.552"
+    prototype: "/SanFran/gameobjects/Ocean.552.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.748"
+    prototype: "/SanFran/gameobjects/Ocean.748.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.755"
+    prototype: "/SanFran/gameobjects/Ocean.755.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.006"
+    prototype: "/SanFran/gameobjects/Ocean.006.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.587"
+    prototype: "/SanFran/gameobjects/Ocean.587.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.673"
+    prototype: "/SanFran/gameobjects/Ocean.673.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.034"
+    prototype: "/SanFran/gameobjects/Ocean.034.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.749"
+    prototype: "/SanFran/gameobjects/Ocean.749.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.678"
+    prototype: "/SanFran/gameobjects/Ocean.678.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.517"
+    prototype: "/SanFran/gameobjects/Ocean.517.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Sector1_NorthAmerica"
+    prototype: "/SanFran/gameobjects/Sector1_NorthAmerica.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:-0.70710676908493
+	y:-0
+	z:0
+	w:0.70710676908493
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.629"
+    prototype: "/SanFran/gameobjects/Ocean.629.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.018"
+    prototype: "/SanFran/gameobjects/Ocean.018.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.624"
+    prototype: "/SanFran/gameobjects/Ocean.624.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.679"
+    prototype: "/SanFran/gameobjects/Ocean.679.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.666"
+    prototype: "/SanFran/gameobjects/Ocean.666.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.016"
+    prototype: "/SanFran/gameobjects/Ocean.016.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.669"
+    prototype: "/SanFran/gameobjects/Ocean.669.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.672"
+    prototype: "/SanFran/gameobjects/Ocean.672.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.519"
+    prototype: "/SanFran/gameobjects/Ocean.519.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.560"
+    prototype: "/SanFran/gameobjects/Ocean.560.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.004"
+    prototype: "/SanFran/gameobjects/Ocean.004.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.671"
+    prototype: "/SanFran/gameobjects/Ocean.671.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.625"
+    prototype: "/SanFran/gameobjects/Ocean.625.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.516"
+    prototype: "/SanFran/gameobjects/Ocean.516.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.504"
+    prototype: "/SanFran/gameobjects/Ocean.504.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.670"
+    prototype: "/SanFran/gameobjects/Ocean.670.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.515"
+    prototype: "/SanFran/gameobjects/Ocean.515.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.514"
+    prototype: "/SanFran/gameobjects/Ocean.514.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.544"
+    prototype: "/SanFran/gameobjects/Ocean.544.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.664"
+    prototype: "/SanFran/gameobjects/Ocean.664.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.014"
+    prototype: "/SanFran/gameobjects/Ocean.014.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+instances {
+    id: "Ocean.760"
+    prototype: "/SanFran/gameobjects/Ocean.760.go"
+
+    position {
+        x:0
+	y:0
+	z:0
+    }
+    rotation {
+        x:0
+	y:0
+	z:0
+	w:1
+    }
+    scale3 {
+        x:1
+	y:1
+	z:1
+    }
+}
+
+embedded_instances {
+    id: "__root"
+	children: "Urban"
+	children: "Ocean"
+	children: "Sector1_NorthAmerica"
+
+    data: ""
+    position {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+    }
+    rotation {
+        x: 0.0
+        y: 0.0
+        z: 0.0
+        w: 1.0
+    }
+
+    scale3 {
+        x: 1.0
+        y: 1.0
+        z: 1.0
+    }
+}

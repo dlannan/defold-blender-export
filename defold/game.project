@@ -19,5 +19,9 @@ title = empty
 max_draw_calls = 2048
 
 [mesh]
-max_count = 512
+max_count = 5000
+
+[model]
+split_meshes = 1
+max_count = 5000
 

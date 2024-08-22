@@ -20,10 +20,16 @@ class DefoldProperties(PropertyGroup):
 
     defold_errors_str = []
 
-    genmeshes_children: BoolProperty(
-        name="Generate Meshbuffer Children",
-        description="Generate mesh buffers for children instead of gameobjects",
+    group_children: BoolProperty(
+        name="Group Children into Single Model",
+        description="Group children meshes into a single model file (GLB/GLTF)",
         default = False
+        )
+    
+    apply_children: BoolProperty(
+        name="Apply Commands to Children",
+        description="Generate mesh buffers for children instead of gameobjects",
+        default = True
         )
     
     add_defold_cmd: EnumProperty(
@@ -316,7 +322,10 @@ class TOOL_PT_Defold_Properties(Panel):
         row.label(text=object.name)
 
         row = box.row()
-        row.prop(mytool, "genmeshes_children")
+        row.prop(mytool, "group_children")
+
+        row = box.row()
+        row.prop(mytool, "apply_children")
 
         row = box.row()
         row.prop(mytool, "add_defold_cmd")

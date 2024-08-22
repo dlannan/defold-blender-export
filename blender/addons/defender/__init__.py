@@ -146,6 +146,7 @@ class SyncProperties(PropertyGroup):
         name="Mesh Type",
         description="Select the type of mesh to use.",
         items=[ 
+                ('MESH', "Mesh Buffer export",""),
                 ('GLTF', "GLTF (mesh and anims)", ""),
                 ('GLB', "GLB (binary mesh and anims)", ""),
                ]
@@ -180,6 +181,7 @@ class SyncProperties(PropertyGroup):
         description="Select the type of global light to use.",
         update=update_lightglobal,
         items=[ 
+                ('Flat Shade', "No Lighting", ""),
                 ('Light Local', "Use Local Point Light", ""),
                 ('Light Global', "Use Global Directional Light", ""),
                ]
