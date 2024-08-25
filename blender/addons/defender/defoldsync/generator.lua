@@ -766,13 +766,14 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function makemeshfile(name, filepath, mesh )
+local function makemeshfile(name, filepath, mesh, material_override )
 
     if(mesh == nil) then return "" end 
     
     local meshdata = meshfiledata
     local meshfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".mesh"
     local materialfile = "/builtins/materials/model.material"
+    if(material_override) then materialfile = material_override end
 
     if(gendata.config.sync_shader == "PBR Simple") then 
         materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
@@ -895,7 +896,17 @@ local function makegofile( name, filepath, go )
                 fh:close()
                 local mesh = {}
                 mesh = json.decode( fdata )
-                local meshfile, mdata = makemeshfile(name, filepath, mesh)
+                local material_override = nil
+                if(go.defold_props and go.defold_props["Material Name"]) then 
+
+                    local mat_convert = go.defold_props["Material Name"]
+                    -- Check to make sure we are replacing the correct material
+                    if(mat_convert.material_obj == mesh.matname) then 
+                        material_override = mat_convert.material_defold
+                    end
+                end
+
+                local meshfile, mdata = makemeshfile(name, filepath, mesh, material_override)
                 if( animfile == "gltf" ) then animfile = localpathname( meshfile ) end
                 meshdata = mdata 
                 matname = mesh.matname

@@ -93,10 +93,9 @@ def has_keyframe(ob, attr):
 
 def processDefoldProperties(obj, thisobj):
     if( len(obj.demo_list) > 0 ):
-      defold_props = []
+      defold_props = {}
       for item in obj.demo_list:
           defold_item = {}
-          defold_item["command"] = str(item.command)
 
           if item.command == "Material Name":
             defold_item["material_obj"] = obj.active_material.name
@@ -111,8 +110,9 @@ def processDefoldProperties(obj, thisobj):
             defold_item["scipt_init"] = item.command_init
           if item.command == "Update Script":
             defold_item["scipt_update"] = item.command_update
-            
-          defold_props.append(defold_item)
+          
+          defold_props[str(item.command)] = defold_item
+          
       if(len(defold_props) > 0):
         thisobj["defold_props"] = defold_props
 
