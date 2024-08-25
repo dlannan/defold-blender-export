@@ -93,26 +93,40 @@ def has_keyframe(ob, attr):
 
 def processDefoldProperties(obj, thisobj):
     if( len(obj.demo_list) > 0 ):
-      defold_props = {}
+      defold_props = []
       for item in obj.demo_list:
-          defold_item = {}
+          defold_item = {
+            "command": str(item.command)
+          }
+
+          if item.command == "Collider":
+            defold_item["collider_group"] = item.collider_mask
+            defold_item["collider_mask"] = item.collider_mask
+
+          if item.command == "Add FileComponent":
+            defold_item["filecomponent_id"] = item.filecomponent_id
+            defold_item["filecomponent_path"] = item.filecomponent_path
 
           if item.command == "Material Name":
             defold_item["material_obj"] = obj.active_material.name
             defold_item["material_defold"] = item.material_defold 
+
           if item.command == "Material Texture":
             defold_item["material_obj"] = obj.active_material.name
             defold_item["material_texture"] = item.material_texture
             defold_item["material_texture_defold"] = item.material_texture_defold 
+
           if item.command == "Set Key/Value":
             defold_item["keyval"] = { "key": item.store_key, "value": item.store_value }
+
           if item.command == "Init Script":
             defold_item["scipt_init"] = item.command_init
+
           if item.command == "Update Script":
             defold_item["scipt_update"] = item.command_update
           
-          defold_props[str(item.command)] = defold_item
-          
+          defold_props.append(defold_item)
+
       if(len(defold_props) > 0):
         thisobj["defold_props"] = defold_props
 
@@ -201,6 +215,11 @@ def sceneObjects(context, f, config, handled):
             "z": local_coord.z 
           }
 
+          thisobj["dimensions"] = { 
+            "x": obj.dimensions.x, 
+            "y": obj.dimensions.y, 
+            "z": obj.dimensions.z 
+          }
   #        quat = obj.rotation_quaternion
           quat = rot.to_quaternion()
           

@@ -38,6 +38,7 @@ class DefoldProperties(PropertyGroup):
         items=[ 
                 ("None", "None", "No command is applied."),
                 ('Collider', 'Collider', "Create a box collider for this object"),
+                ('Add FileComponent', 'Add FileComponent', "Add a file based component to a game object"),
                 ('Material Name', 'Material Name', "Convert Material name to Defold material name"),
                 ('Material Texture', 'Material Texture', "Convert Texture name to Defold texture name"),
                 ('Set Key/Value', 'Set Key/Value', "Set Global Property Value"),
@@ -61,6 +62,31 @@ class ListItem(PropertyGroup):
            description="The command to be run",
            default="Untitled")
 
+
+    collider_group: StringProperty(
+           name="Collider Group",
+           description="The tag for the collision group",
+           default="default"
+    )
+
+    collider_mask: StringProperty(
+           name="Collider Mask",
+           description="The tags (comma separated) that this can collide with",
+           default="default"
+    )
+
+    filecomponent_id: StringProperty(
+           name="FileComponent id",
+           description="The id for the file component",
+           default=""
+    )
+
+    filecomponent_path: StringProperty(
+           name="FileComponent Path",
+           description="The file component path to use in Defold",
+           default=""
+    )
+
     material_obj: PointerProperty(
         name="Material",
         description="Select a Material for the Scene",
@@ -82,19 +108,19 @@ class ListItem(PropertyGroup):
     material_teexture_defold: StringProperty(
         name="Material Texture Defold",
         description="Name of the Defold Material to use inplace",
-        default="/builtin/materials/model.material"
+        default="/builtin/images/green.png"
     ) 
 
     store_key: StringProperty(
            name="Key",
            description="Name of the key to store in gop",
-           default=""
+           default="key"
     )
 
     store_value: StringProperty(
            name="Value",
            description="Name of the value to store in gop",
-           default=""
+           default="value"
     )
 
     command_init: StringProperty(
@@ -406,6 +432,18 @@ class TOOL_PT_Defold_Properties(Panel):
                 if item.command == "Collider":
                     row = box.row()
                     row.prop(item, "command")
+                    row = box.row()
+                    row.prop(item, "collider_group")
+                    row = box.row()
+                    row.prop(item, "collider_mask")
+
+                if item.command == "Add FileComponent":
+                    row = box.row()
+                    row.prop(item, "command")
+                    row = box.row()
+                    row.prop(item, "filecomponent_id")
+                    row = box.row()
+                    row.prop(item, "filecomponent_path")
 
                 if item.command == "Material Name":
                     row = box.row()

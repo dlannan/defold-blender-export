@@ -196,6 +196,7 @@ local gofiledata = [[
 components {
     id: "MESH_GO_NAME"
     component: "MESH_FILE_PATH"
+    GO_DATA_FILE_COMPONENTS
     position {
         x: 0.0
         y: 0.0
@@ -208,6 +209,7 @@ components {
         w: 1.0
     }
 }
+GO_COLLIDER_COMPONENT
 GO_FILE_SCRIPT
 ]]
 
@@ -218,6 +220,12 @@ local gomodelmaterialtexture = [[
     "    texture: \"GO_MODEL_TEXTURE\""
 ]]
 
+local gomodelcomponentdata = [[
+    "components {\n"
+    "   id: \"GO_COMPONENT_ID\"\n"
+    "   component: \"GO_COMPONENT_PATH\"\n"
+"}\n"
+]]
 
 local gomodelfiledata = {
 -- Initial version. Will provide a way to set this on the exporter if needed.
@@ -232,6 +240,7 @@ embedded_components {
     "animations: \"MODEL_ANIM_FILE\"\n"
     "default_animation: \"MODEL_ANIM_NAME\"\n"
     "name: \"unnamed\"\n"
+    GO_FILE_COMPONENTS
     ""
     position {
         x: 0.0
@@ -257,6 +266,7 @@ GO_MESH_TEXTURE_FILES
 MODEL_SKELETON_FILE
 MODEL_ANIM_FILE
 MODEL_ANIM_NAME
+GO_FILE_COMPONENTS
     "}\n"
 
     position {
@@ -269,6 +279,43 @@ MODEL_ANIM_NAME
 GO_FILE_SCRIPT
 ]]
 }
+
+------------------------------------------------------------------------------------------------------------
+
+local gomodelcollisiondata = 
+[[
+embedded_components {
+  id: "collisionobject"
+  type: "collisionobject"
+  data: "type: COLLISION_OBJECT_TYPE_STATIC\n"
+  "mass: 1.0\n"
+  "friction: 0.1\n"
+  "restitution: 0.5\n"
+  "group: \"COLLISION_GROUP\"\n"
+  "mask: \"COLLISION_MASK\"\n"
+  "embedded_collision_shape {\n"
+  "  shapes {\n"
+  "    shape_type: TYPE_BOX\n"
+  "    position {\n"
+  "       x: COLLISION_POS_X\n"
+  "       x: COLLISION_POS_Y\n"
+  "       x: COLLISION_POS_Z\n"
+  "    }\n"
+  "    rotation {\n"
+  "       x: COLLISION_ROT_X\n"
+  "       x: COLLISION_ROT_Y\n"
+  "       x: COLLISION_ROT_Z\n"
+  "    }\n"
+  "    index: 0\n"
+  "    count: 3\n"
+  "  }\n"
+  "  data: COLLISION_DIM_X\n"
+  "  data: COLLISION_DIM_Y\n"
+  "  data: COLLISION_DIM_Z\n"
+  "}\n"
+  ""
+}
+]]
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -425,7 +472,7 @@ GO_CHILDREN
 local gocollectiongeneric = [[
 embedded_instances {
     id: "GO_NAME"
-    data: ""
+    GO_DATA_FILE_COMPONENTS
 GO_CHILDREN
     position {
         GO_POSITION
@@ -847,11 +894,63 @@ local function makescriptfile( name, filepath, objs )
     scriptdata = scriptdata..'\t-- pprint(self.props) -- Debug props\n'
     scriptdata = scriptdata..'end\n'
 
+    scriptdata = scriptdata..'\nfunction update(self)\n'
+    scriptdata = scriptdata..'end\n'
+
     if(propcount == 0) then return "" end
     makefile( filepath..gendata.folders.scripts..PATH_SEPARATOR.."gop.lua", gopscript )
     makefile( scriptfilepath, scriptdata )
     return localpathname(filepath..gendata.folders.scripts..PATH_SEPARATOR..name..".script")
 end
+
+------------------------------------------------------------------------------------------------------------
+-- Some props may occur multiple times, so return array
+local function getdefoldprops(go, name)
+    local result = nil
+    if(go.defold_props ) then 
+        for k,v in ipairs(go.defold_props) do
+            if(v.command == name) then 
+                result = result or {}
+                table.insert(result, v)
+            end
+        end
+    end
+    return result
+end
+
+------------------------------------------------------------------------------------------------------------
+-- Helper to insert go components from blender into go file
+local function getcomponents( go, godata, fileobj, nodata )
+
+    local compprops = getdefoldprops(go, "Add FileComponent")
+    local compstr = "\"\""
+    local prestr = ""
+    if(fileobj) then 
+        prestr = "data: "
+    end
+
+    if compprops then 
+        local compdata = gomodelcomponentdata
+        for k,v in ipairs(compprops) do 
+            compdata = string.gsub(compdata, "GO_COMPONENT_ID", v.filecomponent_id)
+            compdata = string.gsub(compdata, "GO_COMPONENT_PATH", v.filecomponent_path)
+        end
+        compstr = compstr..compdata
+    end
+
+    if(fileobj) then
+        if(nodata) then 
+            if(compstr == "\"\"") then compstr = "" end 
+            godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  compstr)
+        else
+            godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  prestr..compstr)
+        end        
+    else
+        godata = string.gsub(godata, "GO_FILE_COMPONENTS", compstr)
+    end
+    return godata
+end
+
 ------------------------------------------------------------------------------------------------------------
 
 local function makegofile( name, filepath, go )
@@ -897,14 +996,33 @@ local function makegofile( name, filepath, go )
                 local mesh = {}
                 mesh = json.decode( fdata )
                 local material_override = nil
-                if(go.defold_props and go.defold_props["Material Name"]) then 
-
-                    local mat_convert = go.defold_props["Material Name"]
+                local dprops = getdefoldprops(go, "Material Name")
+                if(dprops) then 
                     -- Check to make sure we are replacing the correct material
-                    if(mat_convert.material_obj == mesh.matname) then 
-                        material_override = mat_convert.material_defold
-                    end
+                    material_override = dprops[1].material_defold
                 end
+                dprops = getdefoldprops(go, "Collider")
+                if(dprops) then 
+                    -- Add embedded collider component to go!
+                    local collider_group = dprops[1].collider_group
+                    local collider_mask = dprops[1].collider_mask
+                    local colldata = gomodelcollisiondata
+                    colldata = string.gsub(colldata, "COLLISION_GROUP", collider_group)
+                    colldata = string.gsub(colldata, "COLLISION_MASK", collider_mask)
+                    colldata = string.gsub(colldata, "COLLISION_POS_X", "0.0")
+                    colldata = string.gsub(colldata, "COLLISION_POS_Y", "0.0")
+                    colldata = string.gsub(colldata, "COLLISION_POS_Z", "0.0")
+                    colldata = string.gsub(colldata, "COLLISION_ROT_X", "0.0")
+                    colldata = string.gsub(colldata, "COLLISION_ROT_Y", "0.0")
+                    colldata = string.gsub(colldata, "COLLISION_ROT_Z", "0.0")
+                    colldata = string.gsub(colldata, "COLLISION_DIM_X", go.dimensions.x / 2)
+                    colldata = string.gsub(colldata, "COLLISION_DIM_Y", go.dimensions.y / 2)
+                    colldata = string.gsub(colldata, "COLLISION_DIM_Z", go.dimensions.z / 2)
+                
+                    godata = string.gsub(godata, "GO_COLLIDER_COMPONENT", colldata)
+                else 
+                    godata = string.gsub(godata, "GO_COLLIDER_COMPONENT", "")
+                end                
 
                 local meshfile, mdata = makemeshfile(name, filepath, mesh, material_override)
                 if( animfile == "gltf" ) then animfile = localpathname( meshfile ) end
@@ -920,6 +1038,7 @@ local function makegofile( name, filepath, go )
     end 
 
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")
+    godata = getcomponents( go, godata, true, true )
 
     -- Apply animation specific changes to model data
     if(animname and animfile) then 
@@ -1066,10 +1185,14 @@ local function makecollection( collectionname, objects, objlist )
                 objdata = string.gsub(objdata, "GO_CAMERA_NEAR", tostring(0.1))
                 objdata = string.gsub(objdata, "GO_CAMERA_FAR", tostring(1000.0))
             end
+
         elseif(v.type == "LIGHT") then 
             objdata = gocollectiongeneric
+            objdata = getcomponents(v, objdata, true)
+        else 
+            objdata = getcomponents(v, objdata, true)
         end 
-        
+
         objdata = string.gsub(objdata, "GO_NAME", name)
 
         -- Check if this object is a root level obj.
