@@ -90,6 +90,33 @@ def has_keyframe(ob, attr):
     return False
 
 # ------------------------------------------------------------------------
+
+def processDefoldProperties(obj, thisobj):
+    if( len(obj.demo_list) > 0 ):
+      defold_props = []
+      for item in obj.demo_list:
+          defold_item = {}
+          defold_item["command"] = str(item.command)
+
+          if item.command == "Material Name":
+            defold_item["material_obj"] = obj.active_material.name
+            defold_item["material_defold"] = item.material_defold 
+          if item.command == "Material Texture":
+            defold_item["material_obj"] = obj.active_material.name
+            defold_item["material_texture"] = item.material_texture
+            defold_item["material_texture_defold"] = item.material_texture_defold 
+          if item.command == "Set Key/Value":
+            defold_item["keyval"] = { "key": item.store_key, "value": item.store_value }
+          if item.command == "Init Script":
+            defold_item["scipt_init"] = item.command_init
+          if item.command == "Update Script":
+            defold_item["scipt_update"] = item.command_update
+            
+          defold_props.append(defold_item)
+      if(len(defold_props) > 0):
+        thisobj["defold_props"] = defold_props
+
+# ------------------------------------------------------------------------
 # Get all available obejcts in the scene (including transforms)
 def sceneObjects(context, f, config, handled):
 
@@ -217,6 +244,9 @@ def sceneObjects(context, f, config, handled):
                   #print( K , "-" , obj[K] )
             if(len(props) > 0):
               thisobj["props"] = props
+
+          # Process the new game data command (additional to custom)
+          processDefoldProperties(obj, thisobj)
 
           if( defoldUtils.isAnimated(obj) == True ):
             thisobj["animated"] = True
@@ -397,8 +427,8 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config, handled):
         "type": "MESH"      # Always force to object.
       }
 
-      if obj is not None and obj.type == 'MESH' and obj.active_material:   
-        mat = obj.active_material     
+      mat = obj.active_material  
+      if obj is not None and obj.type == 'MESH' and obj.active_material:      
         thisobj["matname"] = mat.name  
 
       if(obj.parent != None):

@@ -37,6 +37,7 @@ class DefoldProperties(PropertyGroup):
         description="Add a command to the properties list",
         items=[ 
                 ("None", "None", "No command is applied."),
+                ('Collider', 'Collider', "Create a box collider for this object"),
                 ('Material Name', 'Material Name', "Convert Material name to Defold material name"),
                 ('Material Texture', 'Material Texture', "Convert Texture name to Defold texture name"),
                 ('Set Key/Value', 'Set Key/Value', "Set Global Property Value"),
@@ -60,15 +61,53 @@ class ListItem(PropertyGroup):
            description="The command to be run",
            default="Untitled")
 
-    param1: StringProperty(
-           name="Param1",
-           description="",
-           default="")
-    
-    param2: StringProperty(
-           name="Param2",
-           description="",
-           default="")
+    material_obj: PointerProperty(
+        name="Material",
+        description="Select a Material for the Scene",
+        type=bpy.types.Object,
+    ) 
+
+    material_defold: StringProperty(
+           name="Defold Material",
+           description="Name of the Defold material to use",
+           default="/builtin/materials/model.material"
+    )
+
+    material_texture: StringProperty(
+        name="Material Texture",
+        description="Name of this Material Slot to replace",
+        default="Albedo"
+    ) 
+
+    material_teexture_defold: StringProperty(
+        name="Material Texture Defold",
+        description="Name of the Defold Material to use inplace",
+        default="/builtin/materials/model.material"
+    ) 
+
+    store_key: StringProperty(
+           name="Key",
+           description="Name of the key to store in gop",
+           default=""
+    )
+
+    store_value: StringProperty(
+           name="Value",
+           description="Name of the value to store in gop",
+           default=""
+    )
+
+    command_init: StringProperty(
+           name="Script Init",
+           description="A single lua script line to run on init",
+           default=""
+    )
+
+    command_update: StringProperty(
+           name="Script Update",
+           description="A single lua script line to run on update",
+           default=""
+    )
 
 #-----------------------------------------------------------------------------
 #
@@ -213,7 +252,9 @@ class TOOL_OT_List_Add(Operator):
     def execute(self, context):
         mytool = context.active_object.defold_props
         if(mytool.add_defold_cmd != "None"):
-            context.active_object.demo_list.add()
+            item = context.active_object.demo_list.add()
+            item.command = mytool.add_defold_cmd
+        
         return {'FINISHED'}
 
 #-----------------------------------------------------------------------------
@@ -362,12 +403,44 @@ class TOOL_PT_Defold_Properties(Panel):
             if object.list_index >= 0 and object.demo_list:
                 item = object.demo_list[object.list_index]
 
-                row = box.row()
-                row.prop(item, "command")
-                row = box.row()
-                row.prop(item, "param1")
-                row = box.row()
-                row.prop(item, "param2")
+                if item.command == "Collider":
+                    row = box.row()
+                    row.prop(item, "command")
+
+                if item.command == "Material Name":
+                    row = box.row()
+                    row.prop(item, "command")
+                    row = box.row()
+                    row.prop(item, "material_defold")
+
+                if item.command == "Material Texture":
+                    row = box.row()
+                    row.prop(item, "command")
+                    row = box.row()
+                    row.prop(item, "material_texture")
+                    row = box.row()
+                    row.prop(item, "material_texture_defold")
+
+                if item.command == "Set Key/Value":
+                    row = box.row()
+                    row.prop(item, "command")
+                    row = box.row()
+                    row.prop(item, "store_key")
+                    row = box.row()
+                    row.prop(item, "store_value")
+
+                if item.command == "Init Script":
+                    row = box.row()
+                    row.prop(item, "command")
+                    row = box.row()
+                    row.prop(item, "command_init")
+
+                if item.command == "Update Script":
+                    row = box.row()
+                    row.prop(item, "command")
+                    row = box.row()
+                    row.prop(item, "command_update")
+
 
 #-----------------------------------------------------------------------------
 #
