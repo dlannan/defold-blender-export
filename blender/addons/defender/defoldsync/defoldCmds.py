@@ -117,13 +117,14 @@ def processDefoldProperties(obj, thisobj):
             defold_item["material_texture_defold"] = item.material_texture_defold 
 
           if item.command == "Set Key/Value":
-            defold_item["keyval"] = { "key": item.store_key, "value": item.store_value }
+            val = (item.store_value).replace('"', '\\"')
+            defold_item["keyval"] = { "key": item.store_key, "value": val, "is_table": item.store_is_table }
 
           if item.command == "Init Script":
-            defold_item["scipt_init"] = item.command_init
+            defold_item["scipt_init"] = item.command_init.replace('"', '\\"')
 
           if item.command == "Update Script":
-            defold_item["scipt_update"] = item.command_update
+            defold_item["scipt_update"] = item.command_update.replace('"', '\\"')
           
           defold_props.append(defold_item)
 

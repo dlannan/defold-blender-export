@@ -196,7 +196,6 @@ local gofiledata = [[
 components {
     id: "MESH_GO_NAME"
     component: "MESH_FILE_PATH"
-    GO_DATA_FILE_COMPONENTS
     position {
         x: 0.0
         y: 0.0
@@ -209,6 +208,7 @@ components {
         w: 1.0
     }
 }
+GO_FILE_COMPONENTS
 GO_COLLIDER_COMPONENT
 GO_FILE_SCRIPT
 ]]
@@ -220,12 +220,20 @@ local gomodelmaterialtexture = [[
     "    texture: \"GO_MODEL_TEXTURE\""
 ]]
 
-local gomodelcomponentdata = [[
+local gomodelcomponentembedded = [[
     "components {\n"
     "   id: \"GO_COMPONENT_ID\"\n"
     "   component: \"GO_COMPONENT_PATH\"\n"
-"}\n"
+    "}\n"
 ]]
+
+local gomodelcomponentfile = [[
+    components {
+       id: "GO_COMPONENT_ID"
+       component: "GO_COMPONENT_PATH"
+    }
+]]
+
 
 local gomodelfiledata = {
 -- Initial version. Will provide a way to set this on the exporter if needed.
@@ -240,7 +248,7 @@ embedded_components {
     "animations: \"MODEL_ANIM_FILE\"\n"
     "default_animation: \"MODEL_ANIM_NAME\"\n"
     "name: \"unnamed\"\n"
-    GO_FILE_COMPONENTS
+    GO_DATA_FILE_COMPONENTS
     ""
     position {
         x: 0.0
@@ -266,7 +274,7 @@ GO_MESH_TEXTURE_FILES
 MODEL_SKELETON_FILE
 MODEL_ANIM_FILE
 MODEL_ANIM_NAME
-GO_FILE_COMPONENTS
+GO_DATA_FILE_COMPONENTS
     "}\n"
 
     position {
@@ -403,6 +411,8 @@ local gopscript = [[
     function M.getall()
         return gop_tables
     end
+
+    M.tables = gop_tables
 
     return M
 ]]
@@ -878,6 +888,8 @@ local function makescriptfile( name, filepath, objs )
     local propcount = 0
 
     scriptdata = scriptdata..'\nlocal gop = require("'..locallua..'")\n'
+    local initscript = ""
+    local updatescript = ""
 
     for k,v in pairs(objs) do 
         if(v.props) then 
@@ -886,15 +898,39 @@ local function makescriptfile( name, filepath, objs )
                 scriptdata = scriptdata..'gop.set("'..pkey..'", "'..pvalue..'")\n'
             end 
         end 
+        if(v.defold_props) then 
+            for k, v in ipairs(v.defold_props) do 
+                if(v.command == "Set Key/Value") then 
+                    propcount = propcount + 1
+                    if(v.keyval.is_table == true) then 
+                        scriptdata = scriptdata..'gop.set("'..tostring(v.keyval.key)..'", {} )\n'
+                    else
+                        scriptdata = scriptdata..'gop.set("'..tostring(v.keyval.key)..'", "'..tostring(v.keyval.value)..'")\n'
+                    end
+                end
+                if(v.command == "Init Script") then 
+                    propcount = propcount + 1
+                    initscript = initscript.."    "..tostring(v.scipt_init)..'\n'
+                end
+                if(v.command == "Update Script") then 
+                    propcount = propcount + 1
+                    updatescript = updatescript.."    "..tostring(v.scipt_init)..'\n'
+                end
+            end
+        end
     end 
 
     scriptdata = scriptdata..'\nfunction init(self)\n'
     scriptdata = scriptdata..'\tself.props = gop.getall()\n'
     scriptdata = scriptdata..'\t-- Run initial setup on properties here.\n'
     scriptdata = scriptdata..'\t-- pprint(self.props) -- Debug props\n'
+
+    scriptdata = scriptdata..initscript
+
     scriptdata = scriptdata..'end\n'
 
     scriptdata = scriptdata..'\nfunction update(self)\n'
+    scriptdata = scriptdata..updatescript
     scriptdata = scriptdata..'end\n'
 
     if(propcount == 0) then return "" end
@@ -920,17 +956,19 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 -- Helper to insert go components from blender into go file
-local function getcomponents( go, godata, fileobj, nodata )
+local function getcomponents( go, godata, embedded, nodata )
 
     local compprops = getdefoldprops(go, "Add FileComponent")
-    local compstr = "\"\""
+    local compstr = ""
     local prestr = ""
-    if(fileobj) then 
+    if(embedded) then 
         prestr = "data: "
+        compstr = "\"\""
     end
 
     if compprops then 
-        local compdata = gomodelcomponentdata
+        local compdata = gomodelcomponentfile
+        if(embedded) then compdata = gomodelcomponentembedded end
         for k,v in ipairs(compprops) do 
             compdata = string.gsub(compdata, "GO_COMPONENT_ID", v.filecomponent_id)
             compdata = string.gsub(compdata, "GO_COMPONENT_PATH", v.filecomponent_path)
@@ -938,7 +976,7 @@ local function getcomponents( go, godata, fileobj, nodata )
         compstr = compstr..compdata
     end
 
-    if(fileobj) then
+    if(embedded) then
         if(nodata) then 
             if(compstr == "\"\"") then compstr = "" end 
             godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  compstr)
@@ -1038,7 +1076,7 @@ local function makegofile( name, filepath, go )
     end 
 
     godata = string.gsub(godata, "GO_FILE_SCRIPT", "")
-    godata = getcomponents( go, godata, true, true )
+    godata = getcomponents( go, godata )
 
     -- Apply animation specific changes to model data
     if(animname and animfile) then 

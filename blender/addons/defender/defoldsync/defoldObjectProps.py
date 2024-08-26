@@ -123,6 +123,13 @@ class ListItem(PropertyGroup):
            default="value"
     )
 
+    store_is_table: BoolProperty(
+           name="Is Table",
+           description="Is the value a table construction",
+           default=False
+    )
+
+
     command_init: StringProperty(
            name="Script Init",
            description="A single lua script line to run on init",
@@ -466,6 +473,8 @@ class TOOL_PT_Defold_Properties(Panel):
                     row.prop(item, "store_key")
                     row = box.row()
                     row.prop(item, "store_value")
+                    row = box.row()
+                    row.prop(item, "store_is_table")
 
                 if item.command == "Init Script":
                     row = box.row()
