@@ -174,13 +174,13 @@ MESH_NORMAL_DATA
     "data": [
 MESH_UV_DATA1
     ]
-},
-MESH_UV_TEXCOORD1
+}MESH_UV_TEXCOORD1
 ]
 ]]
 
 local buffertexcoord1 = [[
-,{
+,
+{
     "name": "texcoord1",
     "type": "float32",
     "count": 2,
@@ -288,7 +288,7 @@ embedded_components {
   id: "collisionobject"
   type: "collisionobject"
   data: "type: COLLISION_OBJECT_TYPE_STATIC\n"
-  "mass: 1.0\n"
+  "mass: 0.0\n"
   "friction: 0.1\n"
   "restitution: 0.5\n"
   "group: \"COLLISION_GROUP\"\n"
