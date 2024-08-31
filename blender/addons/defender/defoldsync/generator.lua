@@ -321,6 +321,7 @@ embedded_components {
   "  data: COLLISION_DIM_Y\n"
   "  data: COLLISION_DIM_Z\n"
   "}\n"
+  "locked_rotation: true\n"
   ""
 }
 ]]
