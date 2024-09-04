@@ -46,6 +46,7 @@ local PATH_SEPARATOR        = "/"
 local CMD_COPY              = "cp"
 local CMD_MKDIR             = "mkdir -p"
 local platform              =  ffi.os
+local collision_counter     = 1
 
 -- Dummy holder for path conversion for file opens
 local convertPath           = function(str) return str end
@@ -293,7 +294,7 @@ GO_FILE_SCRIPT
 local gomodelcollisiondata = 
 [[
 embedded_components {
-  id: "collisionobject"
+  id: "collisionobject_COLLISION_ID"
   type: "collisionobject"
   data: "type: COLLISION_OBJECT_TYPE_STATIC\n"
   "mass: 0.0\n"
@@ -824,7 +825,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------
 
-local function makemeshfile(name, filepath, mesh, material_override )
+local function makemeshfile(name, filepath, mesh, material_override, mprops )
 
     if(mesh == nil) then return "" end 
     
@@ -833,7 +834,7 @@ local function makemeshfile(name, filepath, mesh, material_override )
     local materialfile = "/builtins/materials/model.material"
     if(material_override) then materialfile = material_override end
 
-    if(gendata.config.sync_shader == "PBR Simple") then 
+    if(gendata.config.sync_shader == "PBR Simple" and not material_override) then 
         materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-simple.material"
         if( mesh.matname and string.endswith(mesh.matname, "_LightMap")) then 
             materialfile = localpathname(filepath)..gendata.folders.materials.."/pbr-lightmap.material"
@@ -847,7 +848,28 @@ local function makemeshfile(name, filepath, mesh, material_override )
     local alltextures, alltexturenames = maketexturefile( filepath, mesh )
     local texture_file_list = ""
     for k,v in ipairs(alltextures) do 
-        texture_file_list = texture_file_list..'textures: "'..v..'"\n'
+
+        local name = alltexturenames[k]
+        local texture_override = nil 
+        if(mprops) then 
+        print("===================>>>")
+        print(mprops)
+        print(mprops.material_texture)
+        print(mprops.material_texture_defold)
+        end
+        if(mprops and mprops.material_texture == name) then 
+            texture_override = {
+                [mprops.material_texture] = mprops.material_texture_defold
+            }
+        end
+        
+        -- If there is a conversion, then check texture id mapping and replace.
+        if(texture_override and texture_override[name]) then 
+            local tmap = texture_override[name]
+            texture_file_list = texture_file_list..'textures: "'..tmap..'"\n'
+        else 
+            texture_file_list = texture_file_list..'textures: "'..v..'"\n'
+        end
     end
     meshdata = string.gsub(meshdata, "MESH_TEXTURE_FILES", texture_file_list)
 
@@ -1034,18 +1056,26 @@ local function makegofile( name, filepath, go )
                 fh:close()
                 local mesh = {}
                 mesh = json.decode( fdata )
+
                 local material_override = nil
                 local dprops = getdefoldprops(go, "Material Name")
                 if(dprops) then 
                     -- Check to make sure we are replacing the correct material
                     material_override = dprops[1].material_defold
                 end
+
+                local mprops = getdefoldprops(go, "Material Texture")
+
                 dprops = getdefoldprops(go, "Collider")
                 if(dprops) then 
                     -- Add embedded collider component to go!
                     local collider_group = dprops[1].collider_group
                     local collider_mask = dprops[1].collider_mask
                     local colldata = gomodelcollisiondata
+                    
+                    colldata = string.gsub(colldata, "COLLISION_ID", collision_counter)
+                    collision_counter = collision_counter + 1
+
                     colldata = string.gsub(colldata, "COLLISION_GROUP", collider_group)
                     colldata = string.gsub(colldata, "COLLISION_MASK", collider_mask)
                     colldata = string.gsub(colldata, "COLLISION_POS_X", "0.0")
@@ -1063,7 +1093,7 @@ local function makegofile( name, filepath, go )
                     godata = string.gsub(godata, "GO_COLLIDER_COMPONENT", "")
                 end                
 
-                local meshfile, mdata = makemeshfile(name, filepath, mesh, material_override)
+                local meshfile, mdata = makemeshfile(name, filepath, mesh, material_override, mprops)
                 if( animfile == "gltf" ) then animfile = localpathname( meshfile ) end
                 meshdata = mdata 
                 matname = mesh.matname
@@ -1086,11 +1116,32 @@ local function makegofile( name, filepath, go )
         if(meshdata) then 
             godata = string.gsub(godata, "MATERIAL_FILE_PATH", meshdata.matfile)
             local texfiles = ""
+            local props = getdefoldprops(go, "Material Texture")
+            local texture_override = nil 
+
             for k, texfile in ipairs(meshdata.texfiles) do
                 local name = meshdata.texnames[k]
+
                 texfiles = texfiles.."    \"textures {\\n\"\n"
                 texfiles = texfiles.."    \"    sampler: \\\""..name.."\\\"\\n\"\n"
-                texfiles = texfiles.."    \"    texture: \\\""..texfile.."\\\"\\n\"\n"
+
+                if(gendata.config.sync_shader == "PBR Simple") then 
+                    
+                    if(props and props.material_texture == name) then 
+                        texture_override = texture_override or {}
+                        texture_override[props.material_texture] = props.material_texture_defold
+                    end
+
+                    -- If there is a conversion, then check texture id mapping and replace.
+                    if(texture_override and texture_override[name]) then 
+                        local tmap = texture_override[name]
+                        texfiles = texfiles.."    \"    texture: \\\""..tmap.."\\\"\\n\"\n"
+                    else 
+                        texfiles = texfiles.."    \"    texture: \\\""..texfile.."\\\"\\n\"\n"
+                    end
+                else 
+                    texfiles = texfiles.."    \"    texture: \\\""..texfile.."\\\"\\n\"\n"
+                end
                 texfiles = texfiles.."    \"}\\n\"\n"
             end
             godata = string.gsub(godata, "GO_MESH_TEXTURE_FILES", texfiles)

@@ -96,19 +96,19 @@ class ListItem(PropertyGroup):
     material_defold: StringProperty(
            name="Defold Material",
            description="Name of the Defold material to use",
-           default="/builtin/materials/model.material"
+           default="/builtins/materials/model.material"
     )
 
     material_texture: StringProperty(
         name="Material Texture",
         description="Name of this Material Slot to replace",
-        default="Albedo"
+        default="albedoMap"
     ) 
 
-    material_teexture_defold: StringProperty(
+    material_texture_defold: StringProperty(
         name="Material Texture Defold",
         description="Name of the Defold Material to use inplace",
-        default="/builtin/images/green.png"
+        default="/builtins/assets/images/logo/logo_256.png"
     ) 
 
     store_key: StringProperty(
