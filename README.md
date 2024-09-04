@@ -1,5 +1,33 @@
 # Defender
 
+Update 04/09/2024: Release 2.0.0
+Many large updates added from last weekends game jam. Mostly fixed and a new game data panel that allows for storing game data in the game objects.
+Main improvements:
+- Fixed many bugs and issues.
+- Added new game data system which has the following commands:
+-- Collider - make a collider for the selected game object
+-- Add FileComponent - Add a file component to a game object (like a script for instance)
+-- Material Name - Replace a Blender material with a Defold material
+-- Material Texture - Replace a PBR slot texture with a Defold texture
+-- Set Key/Value - Add a stored variable to the gop table
+-- Init Script - Add a single script line to the init of the collection
+-- Update Script - Add a single script line to the update method of the collection
+- Group Children into Single Model - This converted children from go's into mesh components instead. Can improve performance.
+
+NOTE:
+The "Apply Commands To Children" isnt actually operational at the moment. There are some issues about the implementation of this.
+I will make sure this is addressed soon (weeks). 
+
+## About Commands
+Multiple Commands can be added to a single game object (mesh object). 
+For example if you want multiple update or init scripts, then just add them. 
+Adding more colliders or Material Name mappings will only choose the last one mapped (I will add a feature so only 1 is added). 
+The commands will be expanded. There are many commands I expect to include over the coming months. If you have a request for this then please add a Feature request issue.
+
+## About Blender
+Currently this is Blender 2.8 -> 3.4 compatible. Blender changed their export interface in Blender 3.6 and other changes to gltf in more recent 4.x versions.
+I will be adding version handling to allow the use of newer versions of Blender. I expect this to take a couple of days to work out.
+
 Update: 
 Sync-Tool is now called Defender - defold-blender-export. Thanks to Dziq and Klear for their ideas!
 
