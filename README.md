@@ -1,7 +1,8 @@
 # Defender
 
 Update 04/09/2024: Release 2.0.0
-Many large updates added from last weekends game jam. Mostly fixed and a new game data panel that allows for storing game data in the game objects.
+Many large updates added from last weekends game jam. 
+Mostly fixed bugs and a new game data panel that allows for storing game data in the game objects.
 Main improvements:
 - Fixed many bugs and issues.
 - Added new game data system which has the following commands:
