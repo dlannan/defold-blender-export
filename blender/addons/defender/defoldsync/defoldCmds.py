@@ -394,23 +394,42 @@ def exportGLTF(context, thisobj, obj, temppath, mode, children):
       thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".glb")
       gltffiletype = "GLB"
 
-    bpy.ops.export_scene.gltf(filepath=thisobj["gltf"], 
-              export_skins=True,
-              export_format=gltffiletype,
-              #export_image_format='NONE',
-              #export_yup=True,
-              export_texture_dir="textures",
-              export_texcoords=True,
-              export_normals=True,
-              export_colors=True,
-              export_cameras=False,
-              export_lights=False,
-              use_renderable=True,
-              use_selection=True,
-              export_def_bones=True,
-              export_animations=True,
-              use_visible=True,
-              check_existing=False)
+    if (3, 4, 0) < bpy.app.version:
+      print("New Blender version: " + bpy.app.version_string)
+      bpy.ops.export_scene.gltf(filepath=thisobj["gltf"], 
+                export_skins=True,
+                export_format=gltffiletype,
+                #export_image_format='NONE',
+                #export_yup=True,
+                export_texture_dir="textures",
+                export_texcoords=True,
+                export_normals=True,
+                export_cameras=False,
+                export_lights=False,
+                use_renderable=True,
+                use_selection=True,
+                export_def_bones=True,
+                export_animations=True,
+                use_visible=True,
+                check_existing=False)
+    else:
+      bpy.ops.export_scene.gltf(filepath=thisobj["gltf"], 
+                export_skins=True,
+                export_format=gltffiletype,
+                #export_image_format='NONE',
+                #export_yup=True,
+                export_texture_dir="textures",
+                export_texcoords=True,
+                export_normals=True,
+                export_colors=True,
+                export_cameras=False,
+                export_lights=False,
+                use_renderable=True,
+                use_selection=True,
+                export_def_bones=True,
+                export_animations=True,
+                use_visible=True,
+                check_existing=False)
     
     thisobj["normals"] = {}
     thisobj["tris"] = {}
@@ -572,23 +591,43 @@ def sceneAnimations(context, f, temppath, config, animobjs):
         if( config.stream_mesh_type == "GLB" ):
           animfile = temppath + meshobj.name + ".glb"
           animfiletype = "GLB"
-        bpy.ops.export_scene.gltf(filepath=animfile, 
-                  export_skins=True,
-                  export_format=animfiletype,
-                  #export_image_format='NONE',
-                  #export_yup=True,
-                  export_texture_dir="textures",
-                  export_texcoords=True,
-                  export_normals=True,
-                  export_colors=True,
-                  export_cameras=False,
-                  export_lights=False,
-                  use_renderable=True,
-                  use_selection=True,
-                  export_def_bones=True,
-                  export_animations=True,
-                  use_visible=True,
-                  check_existing=False)
+        
+        if (3, 4, 0) < bpy.app.version:
+          print("New Blender version: " + bpy.app.version_string)
+          bpy.ops.export_scene.gltf(filepath=animfile, 
+                    export_skins=True,
+                    export_format=animfiletype,
+                    #export_image_format='NONE',
+                    #export_yup=True,
+                    export_texture_dir="textures",
+                    export_texcoords=True,
+                    export_normals=True,
+                    export_cameras=False,
+                    export_lights=False,
+                    use_renderable=True,
+                    use_selection=True,
+                    export_def_bones=True,
+                    export_animations=True,
+                    use_visible=True,
+                    check_existing=False)
+        else:
+          bpy.ops.export_scene.gltf(filepath=animfile, 
+                    export_skins=True,
+                    export_format=animfiletype,
+                    #export_image_format='NONE',
+                    #export_yup=True,
+                    export_texture_dir="textures",
+                    export_texcoords=True,
+                    export_normals=True,
+                    export_colors=True,
+                    export_cameras=False,
+                    export_lights=False,
+                    use_renderable=True,
+                    use_selection=True,
+                    export_def_bones=True,
+                    export_animations=True,
+                    use_visible=True,
+                    check_existing=False)
 
       animfile = os.path.normpath(animfile)
       animfile = animfile.replace("\\", "\\\\")

@@ -1007,6 +1007,7 @@ local function getcomponents( go, godata, embedded, nodata )
             godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  prestr..compstr)
         end        
     else
+        godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  "")
         godata = string.gsub(godata, "GO_FILE_COMPONENTS", compstr)
     end
     return godata
