@@ -5,13 +5,13 @@ Many large updates added from last weekends game jam. Mostly fixed and a new gam
 Main improvements:
 - Fixed many bugs and issues.
 - Added new game data system which has the following commands:
--- Collider - make a collider for the selected game object
--- Add FileComponent - Add a file component to a game object (like a script for instance)
--- Material Name - Replace a Blender material with a Defold material
--- Material Texture - Replace a PBR slot texture with a Defold texture
--- Set Key/Value - Add a stored variable to the gop table
--- Init Script - Add a single script line to the init of the collection
--- Update Script - Add a single script line to the update method of the collection
+  - Collider - make a collider for the selected game object
+  - Add FileComponent - Add a file component to a game object (like a script for instance)
+  - Material Name - Replace a Blender material with a Defold material
+  - Material Texture - Replace a PBR slot texture with a Defold texture
+  - Set Key/Value - Add a stored variable to the gop table
+  - Init Script - Add a single script line to the init of the collection
+  - Update Script - Add a single script line to the update method of the collection
 - Group Children into Single Model - This converted children from go's into mesh components instead. Can improve performance.
 
 NOTE:
