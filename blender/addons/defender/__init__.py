@@ -24,17 +24,21 @@
 #    What is this?  This is a tool for the Defold game engine to export information/data from 
 #    Blender to a Defold project tool. 
 #    Allows users to create complex 3D scenes in Blender, and instantly be able to use those 3D
-#    scenes in Defold - this may even be possible live (TODO)
+#    Additional game data is now exported to the project folder. 
 #
 #   General Structure
-#     This server script that takes commands from a client and sends requested data 
-#     An intermediary tool (Make in Defold) that requests the data and creates Defold components
-#     The Defold project is assigned to the intermediary tool which allows direct export to the project
+#     The exporter collectes all the collecitons in blender, iterates the objects and exports them 
+#     to a temp folder in the sync_tool addons folder. 
+#     Then the export data (syndata.json) is processed and defold data is generated from it using
+#     a luajit executable. 
 #
-# Initial Tests:
-#  - Some simple commands - Get Object, Get Mesh, Get Texture/UVs
-#  - Display in intermediary tool
-#  - Write a collection file, go files, mesh files and texture/image files
+#   Current features
+#     Ability to export one of more Blender collections to Defold collections
+#     Generate mesh buffers or gltf/bld data for mesh information
+#     Generate Simple or PBR materials
+#     Add lighting information
+#     Export animation if needed
+#     Add game data (this is around 10 different commands for various features)
 
 # Based on:
 #  https://gist.github.com/p2or/2947b1aa89141caae182526a8fc2bc5as
