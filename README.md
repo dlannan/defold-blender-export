@@ -1,13 +1,13 @@
 # Defender
 
-Update - Dec 2024
+## Update - Dec 2024
 
 Blender exporter is no longer being worked on. I have a number of new projects not using Defold anymore and they are now taking priority. As mentioned in the comment below, people are welcome to fork and use this repo. I will leave it up.
 
 Happy to provide support here and there as well if someone wants to take over the repo.
 Thanks to all who helped make it better! It was highly appreciated and very enjoyable.
 
-Update 04/09/2024: Release 2.0.0
+## Update 04/09/2024: Release 2.0.0
 Many large updates added from last weekends game jam. 
 Mostly fixed bugs and a new game data panel that allows for storing game data in the game objects.
 Main improvements:
