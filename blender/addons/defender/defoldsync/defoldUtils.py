@@ -46,9 +46,9 @@ def toHex(r, g, b, a):
 # ------------------------------------------------------------------------
 
 def dump(obj):
-   for attr in dir(obj):
-       if hasattr( obj, attr ):
-           print( "obj.%s = %s" % (attr, getattr(obj, attr)))
+    for attr in dir(obj):
+        if hasattr( obj, attr ):
+            print( "obj.%s = %s" % (attr, getattr(obj, attr)))
 
 # ------------------------------------------------------------------------
 def dump_lua(data):
@@ -74,31 +74,31 @@ def dump_lua(data):
 # Is an object animated
 
 def isAnimated( obj ):
-  # If the mesh has a verex group, then this needs to be saved as a separate animation
-  if(len(obj.modifiers) > 0):
-    modifier = obj.modifiers[0]
-    if(obj.vertex_groups != None and modifier.type == 'ARMATURE'):
-      print("[ ANIM OBJ ] " + obj.name)
-      return True
+    # If the mesh has a verex group, then this needs to be saved as a separate animation
+    if(len(obj.modifiers) > 0):
+        modifier = obj.modifiers[0]
+        if(obj.vertex_groups != None and modifier.type == 'ARMATURE'):
+            print("[ ANIM OBJ ] " + obj.name)
+            return True
 
-  # If an object has animation data then it is likely animated.
-  if(obj.parent != None):
-    if(obj.parent.animation_data):
-      anim = obj.parent.animation_data
-      if anim is not None and anim.action is not None:
-        return True
-  return False
+    # If an object has animation data then it is likely animated.
+    if(obj.parent != None):
+        if(obj.parent.animation_data):
+            anim = obj.parent.animation_data
+            if anim is not None and anim.action is not None:
+                return True
+    return False
 
 # ------------------------------------------------------------------------
 # Add errors or warnings to the Errors Panel.
 
 def ClearErrors( mytool ):
-  mytool.sync_errors_str.clear()
+    mytool.sync_errors_str.clear()
 
 # ------------------------------------------------------------------------
 # Add errors or warnings to the Errors Panel.
 
 def ErrorLine(mytool, message = "", title="", level=""):
 
-  mytool.sync_errors_str.append( "[" + str(title) + "] " + str(message) )
-  mytool.msgcount = len(mytool.sync_errors_str)
+    mytool.sync_errors_str.append( "[" + str(title) + "] " + str(message) )
+    mytool.msgcount = len(mytool.sync_errors_str)

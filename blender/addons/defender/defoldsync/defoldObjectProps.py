@@ -1,20 +1,20 @@
 
 import bpy
 from bpy.props import (StringProperty,
-                       BoolProperty,
-                       IntProperty,
-                       FloatProperty,
-                       FloatVectorProperty,
-                       CollectionProperty,
-                       EnumProperty,
-                       PointerProperty,
-                       )
+                    BoolProperty,
+                    IntProperty,
+                    FloatProperty,
+                    FloatVectorProperty,
+                    CollectionProperty,
+                    EnumProperty,
+                    PointerProperty,
+                    )
 from bpy.types import (Panel,
-                       Menu,
-                       Operator,
-                       UIList,
-                       PropertyGroup,
-                       )
+                    Menu,
+                    Operator,
+                    UIList,
+                    PropertyGroup,
+                    )
 
 class DefoldProperties(PropertyGroup):
 
@@ -26,11 +26,11 @@ class DefoldProperties(PropertyGroup):
         default = False
         )
     
-    apply_children: BoolProperty(
-        name="Apply Commands to Children",
-        description="Generate mesh buffers for children instead of gameobjects",
-        default = True
-        )
+    # apply_children: BoolProperty(
+    #     name="Apply Commands to Children",
+    #     description="Apply commands to all children under this object",
+    #     default = True
+    #     )
     
     add_defold_cmd: EnumProperty(
         name="Add Cmd",
@@ -44,7 +44,7 @@ class DefoldProperties(PropertyGroup):
                 ('Set Key/Value', 'Set Key/Value', "Set Global Property Value"),
                 ('Init Script', 'Init Script', "Run Script on Init"),
                 ('Update Script', 'Update Script', "Run Script on Update"),
-               ]
+            ]
         )
 
 #-----------------------------------------------------------------------------
@@ -58,33 +58,33 @@ class ListItem(PropertyGroup):
     """Group of properties representing an item in the list."""
 
     command: StringProperty(
-           name="Command",
-           description="The command to be run",
-           default="Untitled")
+        name="Command",
+        description="The command to be run",
+        default="Untitled")
 
 
     collider_group: StringProperty(
-           name="Collider Group",
-           description="The tag for the collision group",
-           default="default"
+        name="Collider Group",
+        description="The tag for the collision group",
+        default="default"
     )
 
     collider_mask: StringProperty(
-           name="Collider Mask",
-           description="The tags (comma separated) that this can collide with",
-           default="default"
+        name="Collider Mask",
+        description="The tags (comma separated) that this can collide with",
+        default="default"
     )
 
     filecomponent_id: StringProperty(
-           name="FileComponent id",
-           description="The id for the file component",
-           default=""
+        name="FileComponent id",
+        description="The id for the file component",
+        default=""
     )
 
     filecomponent_path: StringProperty(
-           name="FileComponent Path",
-           description="The file component path to use in Defold",
-           default=""
+        name="FileComponent Path",
+        description="The file component path to use in Defold",
+        default=""
     )
 
     material_obj: PointerProperty(
@@ -94,9 +94,9 @@ class ListItem(PropertyGroup):
     ) 
 
     material_defold: StringProperty(
-           name="Defold Material",
-           description="Name of the Defold material to use",
-           default="/builtins/materials/model.material"
+        name="Defold Material",
+        description="Name of the Defold material to use",
+        default="/builtins/materials/model.material"
     )
 
     material_texture: StringProperty(
@@ -112,34 +112,34 @@ class ListItem(PropertyGroup):
     ) 
 
     store_key: StringProperty(
-           name="Key",
-           description="Name of the key to store in gop",
-           default="key"
+        name="Key",
+        description="Name of the key to store in gop",
+        default="key"
     )
 
     store_value: StringProperty(
-           name="Value",
-           description="Name of the value to store in gop",
-           default="value"
+        name="Value",
+        description="Name of the value to store in gop",
+        default="value"
     )
 
     store_is_table: BoolProperty(
-           name="Is Table",
-           description="Is the value a table construction",
-           default=False
+        name="Is Table",
+        description="Is the value a table construction",
+        default=False
     )
 
 
     command_init: StringProperty(
-           name="Script Init",
-           description="A single lua script line to run on init",
-           default=""
+        name="Script Init",
+        description="A single lua script line to run on init",
+        default=""
     )
 
     command_update: StringProperty(
-           name="Script Update",
-           description="A single lua script line to run on update",
-           default=""
+        name="Script Update",
+        description="A single lua script line to run on update",
+        default=""
     )
 
 #-----------------------------------------------------------------------------
@@ -331,7 +331,7 @@ class TOOL_OT_List_Reorder(Operator):
     bl_description = "add a new item to the list."
     
     direction: bpy.props.EnumProperty(items=(('UP', 'Up', ""),
-                                              ('DOWN', 'Down', ""),))
+                                            ('DOWN', 'Down', ""),))
     
     @classmethod
     def poll(cls, context):
@@ -399,7 +399,7 @@ class TOOL_PT_Defold_Properties(Panel):
         row.prop(mytool, "group_children")
 
         row = box.row()
-        row.prop(mytool, "apply_children")
+        row.prop(object, "apply_children")
 
         row = box.row()
         row.prop(mytool, "add_defold_cmd")
@@ -416,7 +416,7 @@ class TOOL_PT_Defold_Properties(Panel):
             # The left column, containing the list.
             col = row.column(align=True)
             col.template_list("TOOL_UL_List", "The_List", object,
-                              "demo_list", object, "list_index")
+                            "demo_list", object, "list_index")
 
             # The right column, containing the controls.
             col = row.column(align=True)
@@ -506,17 +506,19 @@ def register():
         bpy.utils.register_class(c)
 
     bpy.types.Object.defold_props = PointerProperty(type=DefoldProperties)
-    bpy.types.Object.demo_list = CollectionProperty(type = ListItem)
-    bpy.types.Object.list_index = IntProperty(name = "Index for demo_list",
-                                             default = 0)
-
-
+    bpy.types.Object.demo_list = CollectionProperty(type=ListItem)
+    bpy.types.Object.list_index = IntProperty(name = "Index for demo_list", default = 0)
+    bpy.types.Object.apply_children = bpy.props.BoolProperty( name="Apply Commands to Children", 
+            description="Apply commands to all children under this object",
+            default = True)
+    
 def unregister():
     for c in classes:
         bpy.utils.unregister_class(c)
     del bpy.types.Object.demo_list
     del bpy.types.Object.list_index
     del bpy.types.Object.defold_props
+    del bpy.types.Object.apply_children
 
     
     

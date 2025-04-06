@@ -54,126 +54,126 @@ def makeBlockPNG(texture_path, matname, name, col):
 
 def getImageNodeFromColor(color_node, mat, name, texture_path):
 
-  # Get the link - this should extract embedded nodes too (need to test/check)
-  if( color_node.is_linked ):
-    link = color_node.links[0]
-    link_node = link.from_node
-    print(str(link_node.type))
-
-    if link_node and link_node.type == 'TEX_IMAGE':
-      imgnode = link_node.image
-      if imgnode and imgnode.type == 'IMAGE':
-        return imgnode
-
-    elif link_node and link_node.type == 'VALTORGB':
-        
-        position  = link_node.inputs["Fac"].default_value
-        col       = link_node.color_ramp.evaluate(position)
-        return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], 1.0])       
-
-    elif link_node and link_node.type == 'BSDF_DIFFUSE':
-       return getImageNode( link_node.inputs, "Color", mat, name, texture_path)
-    
-    elif link_node and link_node.type == 'BSDF_PRINCIPLED':
-       return getImageNode( link_node.inputs, "Base Color", mat, name, texture_path)
-      
-    elif link_node and link_node.type == 'MIX_RGB':
-      if link_node.blend_type == 'MULTIPLY':
-        color1node = link_node.inputs['Color1'].links[0].from_node
-        color2node = link_node.inputs['Color2'].links[0].from_node
-
-        if index == 'Base Color' or index == 'Color':
-          baseimg = False
-          if color2node and color2node.type == 'TEX_IMAGE':
-            imgnode = color2node.image 
-            if imgnode and imgnode.type == 'IMAGE':
-              baseImg = imgnode 
-          if color1node and color1node.type == 'TEX_IMAGE':
-            lightnode = color1node.image 
-            if lightnode and lightnode.type == 'IMAGE' and lightnode.name.endswith('_baked'):
-
-              nodes = mat.node_tree.nodes
-              links = mat.node_tree.links
-              links.new(color1node.outputs[0], colors['Emission'])
-
-          if baseimg:
-            return baseimg
-
-  # Handle metallic roughness and emission if they have just values set (make a little color texture)
-  value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map", "mix_color"]
-  if(color_node.type == "VALUE") and (name in value_materials):
-    col       = color_node.default_value
-    # If alpha is default, then base color will use default settings in alpha channel
-    if(name == "alpha_map" and col == 1.0):
-      return None
-    return makeBlockPNG(texture_path, mat.name, name, [col, col, col, col])
-
-  # if the node is a color vector. Make a tiny color png in temp
-  # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
-  if((color_node.type == "RGBA" or color_node.type == "RGB") and (name == "base_color" or name == "mix_color") ):
-
-    alpha     = 1.0 
-    col       = color_node.default_value
-    
-    # check if this is linked 
+    # Get the link - this should extract embedded nodes too (need to test/check)
     if( color_node.is_linked ):
-      link = color_node.links[0]
-      link_node = link.from_node
-      col = link_node.outputs[0].default_value
+        link = color_node.links[0]
+        link_node = link.from_node
+        print(str(link_node.type))
 
-    return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], alpha])
+        if link_node and link_node.type == 'TEX_IMAGE':
+            imgnode = link_node.image
+            if imgnode and imgnode.type == 'IMAGE':
+                return imgnode
 
-  return None 
+        elif link_node and link_node.type == 'VALTORGB':
+            
+            position  = link_node.inputs["Fac"].default_value
+            col       = link_node.color_ramp.evaluate(position)
+            return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], 1.0])       
+
+        elif link_node and link_node.type == 'BSDF_DIFFUSE':
+            return getImageNode( link_node.inputs, "Color", mat, name, texture_path)
+        
+        elif link_node and link_node.type == 'BSDF_PRINCIPLED':
+            return getImageNode( link_node.inputs, "Base Color", mat, name, texture_path)
+        
+        elif link_node and link_node.type == 'MIX_RGB':
+            if link_node.blend_type == 'MULTIPLY':
+                color1node = link_node.inputs['Color1'].links[0].from_node
+                color2node = link_node.inputs['Color2'].links[0].from_node
+
+                if index == 'Base Color' or index == 'Color':
+                    baseimg = False
+                    if color2node and color2node.type == 'TEX_IMAGE':
+                        imgnode = color2node.image 
+                        if imgnode and imgnode.type == 'IMAGE':
+                            baseImg = imgnode 
+                    if color1node and color1node.type == 'TEX_IMAGE':
+                        lightnode = color1node.image 
+                        if lightnode and lightnode.type == 'IMAGE' and lightnode.name.endswith('_baked'):
+
+                            nodes = mat.node_tree.nodes
+                            links = mat.node_tree.links
+                            links.new(color1node.outputs[0], colors['Emission'])
+
+                    if baseimg:
+                        return baseimg
+
+    # Handle metallic roughness and emission if they have just values set (make a little color texture)
+    value_materials = ["metallic_color", "roughness_color", "emissive_color", "alpha_map", "mix_color"]
+    if(color_node.type == "VALUE") and (name in value_materials):
+        col       = color_node.default_value
+        # If alpha is default, then base color will use default settings in alpha channel
+        if(name == "alpha_map" and col == 1.0):
+            return None
+        return makeBlockPNG(texture_path, mat.name, name, [col, col, col, col])
+
+    # if the node is a color vector. Make a tiny color png in temp
+    # print( str(color_node.type) + "  " + str(color_node.name) + "   " + str(color_node.default_value))
+    if((color_node.type == "RGBA" or color_node.type == "RGB") and (name == "base_color" or name == "mix_color") ):
+
+        alpha     = 1.0 
+        col       = color_node.default_value
+        
+        # check if this is linked 
+        if( color_node.is_linked ):
+            link = color_node.links[0]
+            link_node = link.from_node
+            col = link_node.outputs[0].default_value
+
+        return makeBlockPNG(texture_path, mat.name, name, [col[0], col[1], col[2], alpha])
+
+    return None 
 
 def getImageNode( colors, index, mat, name, texture_path ):
 
-  if(not index in colors):
-    return None
+    if(not index in colors):
+        return None
 
-  color_node = colors[index]
-  return getImageNodeFromColor( color_node, mat, name, texture_path)
+    color_node = colors[index]
+    return getImageNodeFromColor( color_node, mat, name, texture_path)
 
 
 def addTextureImageNode( mat, textures, name, imgnode, texture_path, context ):
-  
-  if imgnode != None:
-    img = imgnode.filepath_from_user()
-    basename = os.path.basename(img)
-    splitname = os.path.splitext(basename)
 
-    # print("[ IMG PATH ] " + str(img))
-    # print("[ IMG BASE PATH ] " + str(basename))
+    if imgnode != None:
+        img = imgnode.filepath_from_user()
+        basename = os.path.basename(img)
+        splitname = os.path.splitext(basename)
 
-    if splitname[1] != '.png' and splitname[1] != '.PNG':
-      pngimg = os.path.join(texture_path , splitname[0] + ".png")
-      if(os.path.exists(pngimg) == False):
+        # print("[ IMG PATH ] " + str(img))
+        # print("[ IMG BASE PATH ] " + str(basename))
+
+        if splitname[1] != '.png' and splitname[1] != '.PNG':
+            pngimg = os.path.join(texture_path , splitname[0] + ".png")
+            if(os.path.exists(pngimg) == False):
+                
+                imgnode.file_format='PNG' 
+                image = bpy.data.images.load(img)
+
+                image_settings = bpy.context.scene.render.image_settings
+                image_settings.file_format = "PNG"
+                image.file_format='PNG'
+                image.save_render(pngimg)
+            img = pngimg
+
+        # This is done for internal blender images (embedded)
+        if os.path.exists(img) == False:
+            img = os.path.join(texture_path , basename)
+            image_settings = bpy.context.scene.render.image_settings
+            image_settings.file_format = "PNG"
+            imgnode.filepath = img
+            imgnode.save()
         
-        imgnode.file_format='PNG' 
-        image = bpy.data.images.load(img)
-
-        image_settings = bpy.context.scene.render.image_settings
-        image_settings.file_format = "PNG"
-        image.file_format='PNG'
-        image.save_render(pngimg)
-      img = pngimg
-
-    # This is done for internal blender images (embedded)
-    if os.path.exists(img) == False:
-      img = os.path.join(texture_path , basename)
-      image_settings = bpy.context.scene.render.image_settings
-      image_settings.file_format = "PNG"
-      imgnode.filepath = img
-      imgnode.save()
-    
-    # If this is an image texture, with an active image append its name to the list
-    textures[ name ] = img.replace('\\','\\\\')
+        # If this is an image texture, with an active image append its name to the list
+        textures[ name ] = img.replace('\\','\\\\')
 
 # ------------------------------------------------------------------------
 
 def addTexture( mat, textures, name, color_node, index, texture_path, context ):
 
-  imgnode = getImageNode( color_node, index, mat, name, texture_path )
-  addTextureImageNode(mat, textures, name, imgnode, texture_path, context )
+    imgnode = getImageNode( color_node, index, mat, name, texture_path )
+    addTextureImageNode(mat, textures, name, imgnode, texture_path, context )
 
 
 # ------------------------------------------------------------------------
@@ -181,19 +181,19 @@ def addTexture( mat, textures, name, color_node, index, texture_path, context ):
 
 def HasLightmap( color_node ):
 
-  if(not "Emission" in color_node):
-    return False
+    if(not "Emission" in color_node):
+        return False
 
-  node = color_node["Emission"]
-  if node and len(node.links) > 0:
-    link = node.links[0]
-    if link:
-      link_node = link.from_node
-      if link_node:
-        print("[EMISSION NAME] " + str(link_node.name))
-        if link_node.name.endswith("_Lightmap"):
-          return True 
-  return False
+    node = color_node["Emission"]
+    if node and len(node.links) > 0:
+        link = node.links[0]
+        if link:
+            link_node = link.from_node
+            if link_node:
+                print("[EMISSION NAME] " + str(link_node.name))
+                if link_node.name.endswith("_Lightmap"):
+                    return True 
+    return False
 
 
 # ------------------------------------------------------------------------
@@ -327,13 +327,13 @@ def ConvertMixShader( thisobj, mat, texture_path, context, config ):
                 print("[ Mix Shader ] Node Name: " + str(node.name))
 
                 if(node.name == "Fac"):
-                   print("[ Mix Shader ] Fac: " + str(node.default_value ))
-                   thisobj["mix_shader_factor"] = node.default_value 
+                    print("[ Mix Shader ] Fac: " + str(node.default_value ))
+                    thisobj["mix_shader_factor"] = node.default_value 
 
                 if(node.name == "Shader"):
                     pbr_name = "mix_color"
                     if(node_count == 0):
-                       pbr_name = "base_color"
+                        pbr_name = "base_color"
                     imgnode = getImageNodeFromColor( node, mat, pbr_name, texture_path )
                     addTextureImageNode( mat, textures, pbr_name, imgnode, texture_path, context )
                     node_count = node_count + 1

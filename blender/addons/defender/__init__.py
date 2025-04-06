@@ -24,21 +24,17 @@
 #    What is this?  This is a tool for the Defold game engine to export information/data from 
 #    Blender to a Defold project tool. 
 #    Allows users to create complex 3D scenes in Blender, and instantly be able to use those 3D
-#    Additional game data is now exported to the project folder. 
+#    scenes in Defold - this may even be possible live (TODO)
 #
 #   General Structure
-#     The exporter collectes all the collecitons in blender, iterates the objects and exports them 
-#     to a temp folder in the sync_tool addons folder. 
-#     Then the export data (syndata.json) is processed and defold data is generated from it using
-#     a luajit executable. 
+#     This server script that takes commands from a client and sends requested data 
+#     An intermediary tool (Make in Defold) that requests the data and creates Defold components
+#     The Defold project is assigned to the intermediary tool which allows direct export to the project
 #
-#   Current features
-#     Ability to export one of more Blender collections to Defold collections
-#     Generate mesh buffers or gltf/bld data for mesh information
-#     Generate Simple or PBR materials
-#     Add lighting information
-#     Export animation if needed
-#     Add game data (this is around 10 different commands for various features)
+# Initial Tests:
+#  - Some simple commands - Get Object, Get Mesh, Get Texture/UVs
+#  - Display in intermediary tool
+#  - Write a collection file, go files, mesh files and texture/image files
 
 # Based on:
 #  https://gist.github.com/p2or/2947b1aa89141caae182526a8fc2bc5as
@@ -47,7 +43,7 @@ bl_info = {
     "name": "Defender",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (2, 0, 0),
+    "version": (1, 4, 1),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
@@ -55,7 +51,6 @@ bl_info = {
     "tracker_url": "",
     "category": "Development"
 }
-
 
 import bpy, subprocess, os, sys, socket
 import platform
@@ -563,6 +558,6 @@ def unregister():
     del bpy.types.Scene.sync_tool
     defoldObjectProps.unregister()
 
-
 if __name__ == "__main__":
     register()
+    

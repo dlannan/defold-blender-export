@@ -88,20 +88,20 @@ gendata.folders = {
 }
 
 gendata.images = {
-	white 	    = "temp.png",
-	black 	    = "tempBlack.png",
-	norm 	    = "tempNormal.png",
+    white 	    = "temp.png",
+    black 	    = "tempBlack.png",
+    norm 	    = "tempNormal.png",
 }
 
 gendata.files = {
     version     = MODEL_VERSION,
 
-	bufferfile 	= "temp.buffer",
-	gofile 		= "temp.go",
-	meshfile 	= "temp.mesh",
-	scriptfile 	= "temp.script",
+    bufferfile 	= "temp.buffer",
+    gofile 		= "temp.go",
+    meshfile 	= "temp.mesh",
+    scriptfile 	= "temp.script",
 
-	shaderfile 	= "pbr-simple.material",
+    shaderfile 	= "pbr-simple.material",
 }
 
 ------------------------------------------------------------------------------------------------------------
@@ -230,8 +230,8 @@ local gomodelcomponentembedded = [[
 
 local gomodelcomponentfile = [[
     components {
-       id: "GO_COMPONENT_ID"
-       component: "GO_COMPONENT_PATH"
+    id: "GO_COMPONENT_ID"
+    component: "GO_COMPONENT_PATH"
     }
 ]]
 
@@ -294,36 +294,36 @@ GO_FILE_SCRIPT
 local gomodelcollisiondata = 
 [[
 embedded_components {
-  id: "collisionobject_COLLISION_ID"
-  type: "collisionobject"
-  data: "type: COLLISION_OBJECT_TYPE_STATIC\n"
-  "mass: 0.0\n"
-  "friction: 0.1\n"
-  "restitution: 0.5\n"
-  "group: \"COLLISION_GROUP\"\n"
-  "mask: \"COLLISION_MASK\"\n"
-  "embedded_collision_shape {\n"
-  "  shapes {\n"
-  "    shape_type: TYPE_BOX\n"
-  "    position {\n"
-  "       x: COLLISION_POS_X\n"
-  "       x: COLLISION_POS_Y\n"
-  "       x: COLLISION_POS_Z\n"
-  "    }\n"
-  "    rotation {\n"
-  "       x: COLLISION_ROT_X\n"
-  "       x: COLLISION_ROT_Y\n"
-  "       x: COLLISION_ROT_Z\n"
-  "    }\n"
-  "    index: 0\n"
-  "    count: 3\n"
-  "  }\n"
-  "  data: COLLISION_DIM_X\n"
-  "  data: COLLISION_DIM_Y\n"
-  "  data: COLLISION_DIM_Z\n"
-  "}\n"
-  "locked_rotation: true\n"
-  ""
+id: "collisionobject_COLLISION_ID"
+type: "collisionobject"
+data: "type: COLLISION_OBJECT_TYPE_STATIC\n"
+"mass: 0.0\n"
+"friction: 0.1\n"
+"restitution: 0.5\n"
+"group: \"COLLISION_GROUP\"\n"
+"mask: \"COLLISION_MASK\"\n"
+"embedded_collision_shape {\n"
+"  shapes {\n"
+"    shape_type: TYPE_BOX\n"
+"    position {\n"
+"       x: COLLISION_POS_X\n"
+"       x: COLLISION_POS_Y\n"
+"       x: COLLISION_POS_Z\n"
+"    }\n"
+"    rotation {\n"
+"       x: COLLISION_ROT_X\n"
+"       x: COLLISION_ROT_Y\n"
+"       x: COLLISION_ROT_Z\n"
+"    }\n"
+"    index: 0\n"
+"    count: 3\n"
+"  }\n"
+"  data: COLLISION_DIM_X\n"
+"  data: COLLISION_DIM_Y\n"
+"  data: COLLISION_DIM_Z\n"
+"}\n"
+"locked_rotation: true\n"
+""
 }
 ]]
 
@@ -553,6 +553,7 @@ local function rotatequat90( q, axis )
     return { x=x, y=y, z=z, w=w }
 end
 
+------------------------------------------------------------------------------------------------------------
 -- Compatibility: Lua-5.1
 local function split(str, pat)
     local t = {}  -- NOTE: use {n = 0} in Lua-5.0
@@ -560,18 +561,18 @@ local function split(str, pat)
     local last_end = 1
     local s, e, cap = str:find(fpat, 1)
     while s do
-       if s ~= 1 or cap ~= "" then
-          tinsert(t, cap)
-       end
-       last_end = e+1
-       s, e, cap = str:find(fpat, last_end)
+    if s ~= 1 or cap ~= "" then
+        tinsert(t, cap)
+    end
+    last_end = e+1
+    s, e, cap = str:find(fpat, last_end)
     end
     if last_end <= #str then
-       cap = str:sub(last_end)
-       tinsert(t, cap)
+    cap = str:sub(last_end)
+    tinsert(t, cap)
     end
     return t
- end
+end
 
 ------------------------------------------------------------------------------------------------------------
 
@@ -654,7 +655,7 @@ local function makebufferfile(name, filepath, mesh )
     local bufferfilepath = filepath..gendata.folders.meshes..PATH_SEPARATOR..name..".buffer"
     --print(bufferfilepath)
     --pprint(name, gendata.meshes[name] )
-    if(mesh == nil) then return "" end
+    if(mesh == nil or mesh.tris == nil) then return "" end
 
     local verts = mesh.vertices 
     local normals = mesh.normals
@@ -710,7 +711,6 @@ local function getGetGLTFBinFiles( sourcefilepath, filepath, name )
     if(ext == "gltf" or ext == "GLTF") then 
         newsourcefilepath = newsourcefilepath..".bin"
         local animfilepath = filepath..gendata.folders.animations..PATH_SEPARATOR..name..".bin"
-        print("---->", newsourcefilepath, animfilepath)
         os.execute(CMD_COPY..' "'..newsourcefilepath..'" "'..animfilepath..'"')
     end
 end
@@ -847,22 +847,34 @@ local function makemeshfile(name, filepath, mesh, material_override, mprops )
     -- If a texture file is found, copy it, then assign it
     local alltextures, alltexturenames = maketexturefile( filepath, mesh )
     local texture_file_list = ""
+
+    -- The alltextures file needs overriding itself to ensure textures are properly overridden
     for k,v in ipairs(alltextures) do 
 
         local name = alltexturenames[k]
         local texture_override = nil 
-        if(mprops) then 
-        print("===================>>>")
-        print(mprops)
-        print(mprops.material_texture)
-        print(mprops.material_texture_defold)
-        end
-        if(mprops and mprops.material_texture == name) then 
+
+        if(mprops and mprops[1] and mprops[1].material_texture) then 
+            name = mprops[1].material_texture
+            alltexturenames[k] = name
             texture_override = {
-                [mprops.material_texture] = mprops.material_texture_defold
+                [name] = mprops[1].material_texture_defold
             }
+            v = mprops[1].material_texture_defold
+            alltextures[k] = mprops[1].material_texture_defold
         end
-        
+
+        -- if(mprops) then 
+        --     print("===================>>>")
+        --     --for k,v in pairs(mprops[1]) do print(k,v) end
+        --     print(mprops[1].material_texture)
+        --     print(mprops[1].material_texture_defold)
+        --     print(name)
+        --     print(v)
+        --     print(alltextures[k])
+        --     print("===================<<<")
+        -- end        
+
         -- If there is a conversion, then check texture id mapping and replace.
         if(texture_override and texture_override[name]) then 
             local tmap = texture_override[name]
@@ -1002,12 +1014,13 @@ local function getcomponents( go, godata, embedded, nodata )
     if(embedded) then
         if(nodata) then 
             if(compstr == "\"\"") then compstr = "" end 
+            compstr = compstr or ""
             godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  compstr)
         else
             godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  prestr..compstr)
         end        
     else
-        godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS",  "")
+        compstr = compstr or ""
         godata = string.gsub(godata, "GO_FILE_COMPONENTS", compstr)
     end
     return godata
@@ -1122,7 +1135,6 @@ local function makegofile( name, filepath, go )
 
             for k, texfile in ipairs(meshdata.texfiles) do
                 local name = meshdata.texnames[k]
-
                 texfiles = texfiles.."    \"textures {\\n\"\n"
                 texfiles = texfiles.."    \"    sampler: \\\""..name.."\\\"\\n\"\n"
 
@@ -1167,6 +1179,7 @@ local function makegofile( name, filepath, go )
             godata = string.gsub(godata, "MODEL_SKELETON_FILE", "")
             godata = string.gsub(godata, "MODEL_ANIM_FILE", "")
             godata = string.gsub(godata, "MODEL_ANIM_NAME", "")
+            godata = string.gsub(godata, "GO_DATA_FILE_COMPONENTS", "")
         end
     end 
 
