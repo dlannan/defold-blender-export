@@ -61,9 +61,8 @@ def update_progress( context, value, text ):
 def sceneInfo(context, f):
     dataobjs = {}
 
-    scene = context.scene
-    for obj in scene.objects:
-    
+    scene_objects = [ obj for obj in context.scene if obj in bpy.context.visible_objects ]
+    for obj in scene_objects:
         thisobj = {
             "name": str(obj.name),
             "type": str(obj.type)
@@ -182,7 +181,8 @@ def sceneObjects(context, f, config, handled):
     #for coll in bpy.data.collections:
     for coll in bpy.context.view_layer.layer_collection.children:
         if coll.is_visible:
-            objcount += len(coll.collection.objects)
+            collection_objects = [ obj for obj in coll.collection.objects if obj in bpy.context.visible_objects ]
+            objcount += len(collection_objects)
     objcurr = 0
 
     # No collections in the list!! Need a collection!
@@ -200,7 +200,8 @@ def sceneObjects(context, f, config, handled):
 
             f.write('["COLL_' + str(coll.name) + '"] = { \n')
 
-            for obj in coll.collection.objects:
+            collection_objects = [ obj for obj in coll.collection.objects if obj in bpy.context.visible_objects ]
+            for obj in collection_objects:
             
                 if(handled[obj.name] == False):
                     update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
@@ -446,7 +447,8 @@ def exportGLTF(context, thisobj, obj, temppath, mode, children):
 def sceneMeshes(context, fhandle, temppath, texture_path, config, handled):
 
     scene = context.scene
-    objectsall = bpy.data.objects #scene.objects
+    all_objects = bpy.data.objects[:]
+    objectsall = [obj for obj in all_objects if obj in bpy.context.visible_objects]
 
     mode = config.stream_mesh_type
     fhandle.write('{ \n')
@@ -494,7 +496,8 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config, handled):
                 objcount = objcount + 1
 
     # iterate all the scene objects
-    for obj in scene.objects:
+    sceneobjectsall = [obj for obj in scene.objects if obj in bpy.context.visible_objects]
+    for obj in sceneobjectsall:
 
         update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
         objcurr += 1
@@ -690,7 +693,11 @@ def getData( context, clientcmds, dir, config):
         animobjs = []
         handled = {}
 
-        for obj in bpy.data.objects:
+        data_objects = [o for o in bpy.data.objects if o in bpy.context.visible_objects]
+        #data_objects = [obj for obj in bpy.data.objects if obj.hide_viewport == False]
+        print("Sizes: " + str(len(bpy.data.objects)) + "   " + str(len(data_objects)))
+
+        for obj in data_objects:
             # Parent object can be anything. If it is set as the geom group node
             #   then export everything under it, but also remove any from this children set
             #   in the scene.objects set
@@ -699,7 +706,7 @@ def getData( context, clientcmds, dir, config):
                 for ch in children:
                     handled[ch.name] = True
 
-        for obj in bpy.data.objects:
+        for obj in data_objects:
             if(handled.get(obj.name) is None):
                 handled[obj.name] = False
 
