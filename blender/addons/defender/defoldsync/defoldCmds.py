@@ -28,12 +28,16 @@ from defoldsync import defoldMaterials
 
 modulesNames = ['DefoldSyncUI']
 
-import bpy, time, queue, re, os, json, shutil, math, mathutils
+import bpy, bpy_extras, time, queue, re, os, json, shutil, math, mathutils
 from bpy_extras.io_utils import axis_conversion
 from io import BytesIO
 
 from math import radians
 from mathutils import Euler, Matrix, Vector
+
+# Using the space conversion helper
+convert_mat = axis_conversion(from_forward='Y', from_up='Z',
+                            to_forward='-Z', to_up='Y').to_4x4()
 
 # ------------------------------------------------------------------------
 # Helper for making objects
@@ -59,10 +63,11 @@ def update_progress( context, value, text ):
 # ------------------------------------------------------------------------
 # Get scene information - objects, names and parent names
 def sceneInfo(context, f):
-    dataobjs = {}
+    dataobjs = {}  
 
     scene_objects = [ obj for obj in context.scene if obj in bpy.context.visible_objects ]
     for obj in scene_objects:
+
         thisobj = {
             "name": str(obj.name),
             "type": str(obj.type)
@@ -168,14 +173,30 @@ def processDefoldProperties(obj, thisobj):
 def sceneObjects(context, f, config, handled):
 
     f.write('{ \n')
-
-    # m = axis_conversion(from_forward='-Y', 
-    #         from_up='Z',
-    #         to_forward='Z',
-    #         to_up='Y').to_4x4()
-
     scene = context.scene
-        
+
+    # Axis convert everything
+    convert_rot = convert_mat.to_quaternion().to_matrix().to_4x4()
+    convert_irot = convert_rot.inverted()       
+    for obj in scene.objects: 
+
+        obj.matrix_world = convert_mat @ obj.matrix_world                                         
+        if obj.type == "MESH":
+            # obj.data.transform(convert_rot)
+            obj.matrix_world = obj.matrix_world @ convert_irot
+        else:
+            obj.matrix_world = obj.matrix_world @ convert_irot
+            
+        # else:
+        # if obj.parent == None:
+        #     # Rotate the position too (to simulate rotation around scene origin)
+        #     pos = obj.location
+        #     obj.location = convert_rot @ pos
+        #     print("------->" + str(obj.name))
+        #     else:
+        #         obj.matrix_world = convert_mat @ obj.matrix_world
+
+
     prog_text = "Exporting objects..."
     objcount = 0
     #for coll in bpy.data.collections:
@@ -202,8 +223,9 @@ def sceneObjects(context, f, config, handled):
 
             collection_objects = [ obj for obj in coll.collection.objects if obj in bpy.context.visible_objects ]
             for obj in collection_objects:
-            
+                            
                 if(handled[obj.name] == False):
+
                     update_progress(context, ((objcurr + 1)/objcount) * 100, prog_text )
                     objcurr += 1
 
@@ -225,12 +247,12 @@ def sceneObjects(context, f, config, handled):
                     if(obj.defold_props.group_children == True):
                         thisobj["type"] = "MESH"
 
-                    local_coord = obj.matrix_local.translation #obj.location
+                    local_coord = obj.matrix_local.translation # obj.location
 
-                    rot = obj.rotation_quaternion.to_euler('XYZ')
+                    rot = obj.rotation_quaternion.to_euler()
                     if( obj.rotation_mode != "QUATERNION"):
                         rot = obj.rotation_euler.copy()
-                        rot.order = 'XYZ'
+                        # rot.order = 'XYZ'
                         
                     if(obj.parent != None):
                         thisobj["parent"] = {
@@ -239,10 +261,10 @@ def sceneObjects(context, f, config, handled):
                         }
 
                     # This is a parent object in the collection. Adjust its location and rotation
-                    else:
-                        euler =  Matrix.Rotation( radians(-90), 4, 'X')
-                        rot = (euler @ rot.to_matrix().to_4x4()).to_euler('XYZ')
-                        local_coord = euler @ local_coord
+                    # else:
+                    #     euler = Matrix.Rotation( radians(-90), 4, 'X')
+                    #     rot = (euler @ rot.to_matrix().to_4x4()).to_euler('XYZ')
+                    #     local_coord = euler @ local_coord
 
                     thisobj["location"] = { 
                         "x": local_coord.x, 
@@ -255,7 +277,8 @@ def sceneObjects(context, f, config, handled):
                         "y": obj.dimensions.y, 
                         "z": obj.dimensions.z 
                     }
-            #        quat = obj.rotation_quaternion
+
+                    # quat = obj.rotation_quaternion
                     quat = rot.to_quaternion()
                     
                     thisobj["rotation"] = { 
@@ -411,7 +434,12 @@ def exportGLTF(context, thisobj, obj, temppath, mode, children):
         for ch in obj.children:
             ch.select_set(True)
 
-    context.view_layer.objects.active = obj           
+    context.view_layer.objects.active = obj      
+
+    # convert_rot = convert_mat.to_quaternion().to_matrix().to_4x4()
+    # convert_irot = convert_rot.inverted()  
+    # for v in obj.data.vertices:
+    #     v.co = convert_irot @ v.co     
 
     thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".gltf")
     gltffiletype = "GLTF_EMBEDDED"
@@ -423,7 +451,7 @@ def exportGLTF(context, thisobj, obj, temppath, mode, children):
             export_skins=True,
             export_format=gltffiletype,
             #export_image_format='NONE',
-            #export_yup=True,
+            # export_yup=False,
             export_texture_dir="textures",
             export_texcoords=True,
             export_normals=True,

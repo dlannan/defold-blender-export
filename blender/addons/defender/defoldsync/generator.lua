@@ -120,30 +120,55 @@ local default_rotation = [[
     }
 ]]
 
+-- local inv_rotation = [[
+--     rotation {
+--         x: 0.70710677
+--         y: 0.0
+--         z: 0.0
+--         w: 0.70710677
+--     }
+-- ]]
 local inv_rotation = [[
     rotation {
-        x: 0.70710677
+        x: 0.0
         y: 0.0
         z: 0.0
-        w: 0.70710677
+        w: 1.0
     }
 ]]
 
+-- local grotation_mesh = [[
+--     rotation {
+--         x: -0.70710677
+--         y: 0.0
+--         z: 0.0
+--         w: 0.70710677
+--     }
+-- ]]
 local grotation_mesh = [[
     rotation {
-        x: -0.70710677
+        x: 0.0
         y: 0.0
         z: 0.0
-        w: 0.70710677
+        w: 1.0
     }
 ]]
 
+
+-- local grotation_gltf = [[
+--     rotation {
+--         x: -0.70710677
+--         y: 0.0
+--         z: 0.0
+--         w: 0.70710677
+--     }
+-- ]]
 local grotation_gltf = [[
     rotation {
-        x: -0.70710677
+        x: 0.0
         y: 0.0
         z: 0.0
-        w: 0.70710677
+        w: 1.0
     }
 ]]
 
