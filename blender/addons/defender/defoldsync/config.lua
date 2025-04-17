@@ -1,8 +1,8 @@
 -- Lua generated config - do not edit.
 return {
    sync_mode        = "Sync Build",
-   sync_proj        = "F:\\dev\\defold\\repos\\f18\\assets",
-   sync_subfolder   = "\\gameobjects",
+   sync_proj        = "F:\\dev\\defold\\repos\\f18",
+   sync_subfolder   = "\\assets\\gameobjects",
    sync_scene       = "nimitz",
    sync_shader      = "Model Material",
    sync_light_mode  = "Flat Shade",

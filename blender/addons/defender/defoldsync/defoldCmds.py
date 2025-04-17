@@ -254,6 +254,8 @@ def sceneObjects(context, f, config, handled):
                         rot = obj.rotation_euler.copy()
                         rot.order = 'XYZ'
                         
+                    dimensions = obj.dimensions
+
                     if(obj.parent != None):
                         thisobj["parent"] = {
                             "name": str(obj.parent.name),
@@ -266,6 +268,8 @@ def sceneObjects(context, f, config, handled):
                     #     rot = (euler @ rot.to_matrix().to_4x4()).to_euler('XYZ')
                     #     local_coord = euler @ local_coord
 
+                    dimensions = (convert_mat @ dimensions)
+
                     thisobj["location"] = { 
                         "x": local_coord.x, 
                         "y": local_coord.y, 
@@ -273,9 +277,9 @@ def sceneObjects(context, f, config, handled):
                     }
 
                     thisobj["dimensions"] = { 
-                        "x": obj.dimensions.x, 
-                        "y": obj.dimensions.z, 
-                        "z": obj.dimensions.y 
+                        "x": abs(dimensions.x), 
+                        "y": abs(dimensions.y), 
+                        "z": abs(dimensions.z) 
                     }
 
                     # quat = obj.rotation_quaternion

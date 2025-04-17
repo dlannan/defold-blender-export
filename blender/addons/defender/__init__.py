@@ -228,8 +228,8 @@ class SyncProperties(PropertyGroup):
         )
 
     sync_subfolder: StringProperty(
-        name = "Project SubFolder",
-        description="Type a subfolder path (no leading /)",
+        name = "SubFolder",
+        description="Type a subfolder path (leading \, no post \)",
         default="",
         maxlen=1024
         )        
