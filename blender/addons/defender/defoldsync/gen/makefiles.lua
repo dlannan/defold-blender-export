@@ -85,6 +85,8 @@ local NORMAL_PNG              = gen_utils.NORMAL_PNG
 local GREY_PNG                = gen_utils.GREY_PNG
 local BLACK_PNG               = gen_utils.BLACK_PNG
 
+local MODEL_VERSION           = gen_utils.MODEL_VERSION
+
 ------------------------------------------------------------------------------------------------------------
 
 local function setgendata( newgendata )

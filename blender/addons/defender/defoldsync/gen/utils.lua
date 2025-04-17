@@ -31,6 +31,10 @@ if platform == "Windows" then
 end
 
 ------------------------------------------------------------------------------------------------------------
+-- Change this to change model version use
+local MODEL_VERSION     = 2
+
+------------------------------------------------------------------------------------------------------------
 
 local function rotatequat90( q, axis )
 
@@ -217,6 +221,8 @@ return {
     NORMAL_PNG          = NORMAL_PNG,
     GREY_PNG            = GREY_PNG,
     BLACK_PNG           = BLACK_PNG,
+
+    MODEL_VERSION       = MODEL_VERSION,
 }
 
 
