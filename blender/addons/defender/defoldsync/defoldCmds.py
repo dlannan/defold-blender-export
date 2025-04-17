@@ -252,7 +252,7 @@ def sceneObjects(context, f, config, handled):
                     rot = obj.rotation_quaternion.to_euler()
                     if( obj.rotation_mode != "QUATERNION"):
                         rot = obj.rotation_euler.copy()
-                        # rot.order = 'XYZ'
+                        rot.order = 'XYZ'
                         
                     if(obj.parent != None):
                         thisobj["parent"] = {
@@ -274,8 +274,8 @@ def sceneObjects(context, f, config, handled):
 
                     thisobj["dimensions"] = { 
                         "x": obj.dimensions.x, 
-                        "y": obj.dimensions.y, 
-                        "z": obj.dimensions.z 
+                        "y": obj.dimensions.z, 
+                        "z": obj.dimensions.y 
                     }
 
                     # quat = obj.rotation_quaternion
@@ -351,18 +351,23 @@ def exportMeshBuffer(context, mat, config, thisobj, obj, texture_path):
     # Get the vert data
     verts   = []
     normals = []
-    
-    # verts_world = [obj.matrix_world @ v_local for v_local in verts_local]
+
+    # Apply the matrix directly to vertex coordinates
+    verts_local = [convert_mat @ v.co for v in obj.data.vertices]
+    convert_rot = convert_mat.to_3x3().inverted().transposed()
+    normals_transformed = [convert_rot @ v.normal for v in obj.data.vertices]
 
     # Gltf and Glb are stored in file. No need for this
-    verts_local = [v for v in obj.data.vertices.values()]
     if(config.sync_mat_facenormals == True):
         for v in verts_local:
-            verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
+            verts.append( { "x": v.x, "y": v.y, "z": v.z } )
     else:
+        idx = 0
         for v in verts_local:
-            verts.append( { "x": v.co.x, "y": v.co.y, "z": v.co.z } )
-            normals.append( { "x": v.normal.x, "y": v.normal.y, "z": v.normal.z } )
+            normal = normals_transformed[idx]
+            verts.append( { "x": v.x, "y": v.y, "z": v.z } )
+            normals.append( { "x": normal.x, "y": normal.y, "z": normal.z } )
+            idx = idx + 1
 
     thisobj["vertices"] = verts
     thisobj = defoldMaterials.ProcessMaterial(thisobj, mat, texture_path, context, config)
@@ -420,7 +425,6 @@ def exportMeshBuffer(context, mat, config, thisobj, obj, texture_path):
     thisobj["normals"]  = normals
 
 
-
 # ------------------------------------------------------------------------
 # GLTF Export helper
 
@@ -435,11 +439,6 @@ def exportGLTF(context, thisobj, obj, temppath, mode, children):
             ch.select_set(True)
 
     context.view_layer.objects.active = obj      
-
-    # convert_rot = convert_mat.to_quaternion().to_matrix().to_4x4()
-    # convert_irot = convert_rot.inverted()  
-    # for v in obj.data.vertices:
-    #     v.co = convert_irot @ v.co     
 
     thisobj["gltf"] = os.path.abspath(temppath + str(thisobj["name"]) + ".gltf")
     gltffiletype = "GLTF_EMBEDDED"
@@ -570,7 +569,6 @@ def sceneMeshes(context, fhandle, temppath, texture_path, config, handled):
             
             fhandle.write('["' + thisobj["name"] + '"] = "' + meshfile + '", \n')
             #dataobjs[ thisobj["name"] ] = thisobj 
-
             
 
     fhandle.write('} \n')

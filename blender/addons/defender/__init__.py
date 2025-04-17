@@ -43,7 +43,7 @@ bl_info = {
     "name": "Defender",
     "description": "Sync a Blender Scene directly to Defold resources",
     "author": "dlannan",
-    "version": (1, 4, 1),
+    "version": (2, 0, 0),
     "blender": (2, 80, 0),
     "location": "3D View > Defold",
     "warning": "", # used for warning icon and text in addons panel
@@ -148,7 +148,7 @@ class SyncProperties(PropertyGroup):
                 ('MESH', "Mesh Buffer export",""),
                 ('GLTF', "GLTF (mesh and anims)", ""),
                 ('GLB', "GLB (binary mesh and anims)", ""),
-               ]
+            ]
         )
 
     stream_object: BoolProperty(
@@ -227,6 +227,13 @@ class SyncProperties(PropertyGroup):
         subtype='DIR_PATH'
         )
 
+    sync_subfolder: StringProperty(
+        name = "Project SubFolder",
+        description="Type a subfolder path (no leading /)",
+        default="",
+        maxlen=1024
+        )        
+
     sync_shader: EnumProperty(
         name="Shader:",
         description="Defender Shader Type",
@@ -288,10 +295,13 @@ class WM_OT_SyncTool(Operator):
         mytool = scene.sync_tool
 
         dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
-       
+               
         projpath    = os.path.realpath(bpy.path.abspath(mytool.sync_proj))
-         # Convert \ in path to \\
-        projpath    = projpath.replace('\\','\\\\')
+        projsubfolder = mytool.sync_subfolder
+         
+        # Convert \ in path to \\
+        projpath        = projpath.replace('\\','\\\\')
+        projsubfolder   = projsubfolder.replace('\\','\\\\')
 
         prm = mytool.sync_mat_params  
         lv = mytool.sync_light_vector  
@@ -305,6 +315,7 @@ class WM_OT_SyncTool(Operator):
             f.write('return {\n')
             f.write('   sync_mode        = "' + str(mytool.sync_mode) + '",\n')
             f.write('   sync_proj        = "' + projpath + '",\n')
+            f.write('   sync_subfolder   = "' + projsubfolder + '",\n')
             f.write('   sync_scene       = "' + mytool.sync_scene + '",\n')
             f.write('   sync_shader      = "' + str(mytool.sync_shader) + '",\n')
             f.write('   sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')
@@ -433,6 +444,8 @@ class OBJECT_PT_CustomPanel(Panel):
         #layout.prop(mytool, "sync_host")
         row.prop(mytool, "sync_proj")
         row = box.row()
+        row.prop(mytool, "sync_subfolder")
+        row = box.row()
         row.prop(mytool, "sync_scene")
         row = box.row()
         row.prop(mytool, "root_position")
@@ -488,8 +501,11 @@ class OBJECT_PT_CustomPanel(Panel):
             dirpath     = os.path.abspath(dir + '/defoldsync/main.lua')
         
             projpath    = os.path.realpath(bpy.path.abspath(mytool.sync_proj))
+            projsubfolder = mytool.sync_subfolder
+            
             # Convert \ in path to \\
-            projpath    = projpath.replace('\\','\\\\')
+            projpath        = projpath.replace('\\','\\\\')
+            projsubfolder   = projsubfolder.replace('\\','\\\\')
 
             prm = mytool.sync_mat_params  
             lv = mytool.sync_light_vector  
@@ -518,6 +534,7 @@ class OBJECT_PT_CustomPanel(Panel):
                 f.write("--------------------------\n")
                 f.write('    sync_mode        = "' + str(mytool.sync_mode) + '",\n')
                 f.write('    sync_proj        = "' + projpath + '",\n')
+                f.write('    sync_subfolder   = "' + projsubfolder + '",\n')
                 f.write('    sync_scene       = "' + mytool.sync_scene + '",\n')
                 f.write('    sync_shader      = "' + str(mytool.sync_shader) + '",\n')
                 f.write('    sync_light_mode  = "' + str(mytool.sync_light_mode) + '",\n')

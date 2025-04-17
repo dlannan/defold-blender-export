@@ -31,7 +31,7 @@ package.path = package.path..";"..dirpath.."/?.lua"
 local config = require("defoldsync.config")
 
 -- Get the generator functions
-local gen = require("defoldsync.generator")
+local gen = require("defoldsync.gen.generator")
 
 -- Generate data based on incoming data set.
 local data = require("defoldsync.temp.syncdata")
@@ -45,8 +45,12 @@ collection_name = collection_name:gsub(" ", "_")
 local project_path = config.sync_proj or "./Sample"
 if(string.len(project_path) == 0) then project_path = "./Sample" end
 
--- Project path, escape any . charcters
+local project_subfolder = config.sync_subfolder or ""
+if(string.len(project_subfolder) == 0) then project_subfolder = "" end
+
+-- Project path, escape any . characters
 project_path = project_path:gsub("%.", "%%%.")
+project_subfolder = project_subfolder:gsub("%.", "%%%.")
 
 if(config.sync_mode == "Sync Build") then
     if( config.stream_mesh_type == "gltf" or config.stream_mesh_type == "glb") then 
@@ -54,7 +58,7 @@ if(config.sync_mode == "Sync Build") then
     end 
     if( config.stream_anim ) then gen.anim = true end
     
-    gen.makefolders( collection_name, project_path, config )
+    gen.makefolders( collection_name, project_path, project_subfolder, config )
     gen.makescene( collection_name, data["OBJECTS"], data["MESHES"], data["ANIMS"])
 end
 
@@ -68,6 +72,7 @@ end
 
 print("Sync Mode: "..config.sync_mode )
 print( "Project: "..config.sync_proj )
+print( "Project Subfolder: "..config.sync_subfolder )
 print( "Scene: "..config.sync_scene )
 print( "Stream Info: "..tostring(config.stream_info) )
 print( "Stream Object: "..tostring(config.stream_object) )
