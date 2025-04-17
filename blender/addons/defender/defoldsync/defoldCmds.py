@@ -358,8 +358,10 @@ def exportMeshBuffer(context, mat, config, thisobj, obj, texture_path):
 
     # Apply the matrix directly to vertex coordinates
     verts_local = [convert_mat @ v.co for v in obj.data.vertices]
-    convert_rot = convert_mat.to_3x3().inverted().transposed()
-    normals_transformed = [convert_rot @ v.normal for v in obj.data.vertices]
+    convert_rot = convert_mat.to_quaternion().to_matrix().to_4x4()
+    convert_irot = convert_rot.inverted()       
+
+    normals_transformed = [convert_irot @ v.normal for v in obj.data.vertices]
 
     # Gltf and Glb are stored in file. No need for this
     if(config.sync_mat_facenormals == True):
@@ -384,7 +386,7 @@ def exportMeshBuffer(context, mat, config, thisobj, obj, texture_path):
 
         triobj = {}
         thistri = []
-        facenormal = face.normal
+        facenormal = convert_irot @ face.normal
 
         for ti in range(0, 3):
             idx = verts_indices[ti]
