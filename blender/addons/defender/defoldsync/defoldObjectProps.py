@@ -75,6 +75,16 @@ class ListItem(PropertyGroup):
         default="default"
     )
 
+    collider_type: EnumProperty(
+        name="Collider Type:",
+        description="Select the type of collider to use.",
+        items=[ 
+                ('Static', "Static Collider", ""),
+                ('Kinematic', "Kinematic Collider (User controlled)", ""),
+                ('Dynamic', "Dynamic Collider (Defold controlled)", ""),
+               ]
+        )
+
     filecomponent_id: StringProperty(
         name="FileComponent id",
         description="The id for the file component",
@@ -443,6 +453,8 @@ class TOOL_PT_Defold_Properties(Panel):
                     row.prop(item, "collider_group")
                     row = box.row()
                     row.prop(item, "collider_mask")
+                    row = box.row()
+                    row.prop(item, "collider_type")
 
                 if item.command == "Add FileComponent":
                     row = box.row()

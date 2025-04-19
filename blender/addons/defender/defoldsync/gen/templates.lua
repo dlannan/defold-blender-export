@@ -211,7 +211,7 @@ local gomodelcollisiondata =
 embedded_components {
 id: "collisionobject_COLLISION_ID"
 type: "collisionobject"
-data: "type: COLLISION_OBJECT_TYPE_STATIC\n"
+data: "type: COLLISION_TYPE_ENUM\n"
 "mass: 0.0\n"
 "friction: 0.1\n"
 "restitution: 0.5\n"

@@ -480,10 +480,20 @@ local function makegofile( name, filepath, go )
                     -- Add embedded collider component to go!
                     local collider_group = dprops[1].collider_group
                     local collider_mask = dprops[1].collider_mask
+                    local collider_type = dprops[1].collider_type
                     local colldata = gomodelcollisiondata
                     
                     colldata = string.gsub(colldata, "COLLISION_ID", collision_counter)
+
                     collision_counter = collision_counter + 1
+
+                    local collider_enum = "COLLISION_OBJECT_TYPE_STATIC"
+                    if(collider_type == "Kinematic") then 
+                        collider_enum = "COLLISION_OBJECT_TYPE_KINEMATIC"
+                    elseif(collider_type == "Dynamic") then 
+                        collider_enum = "COLLISION_OBJECT_TYPE_DYNAMIC"
+                    end
+                    colldata = string.gsub(colldata, "COLLISION_TYPE_ENUM", collider_enum)
 
                     colldata = string.gsub(colldata, "COLLISION_GROUP", collider_group)
                     colldata = string.gsub(colldata, "COLLISION_MASK", collider_mask)

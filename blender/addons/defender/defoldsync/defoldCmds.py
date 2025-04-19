@@ -139,6 +139,7 @@ def processDefoldProperties(obj, thisobj):
             if item.command == "Collider":
                 defold_item["collider_group"] = item.collider_group
                 defold_item["collider_mask"] = item.collider_mask
+                defold_item["collider_type"] = item.collider_type
 
             if item.command == "Add FileComponent":
                 defold_item["filecomponent_id"] = item.filecomponent_id
