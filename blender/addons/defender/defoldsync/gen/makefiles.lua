@@ -94,6 +94,10 @@ local MODEL_VERSION           = gen_utils.MODEL_VERSION
 
 local function setgendata( newgendata )
     gendata = newgendata 
+
+    local picklein = arg[1]..PATH_SEPARATOR.."defoldsync"..PATH_SEPARATOR.."utils"..PATH_SEPARATOR.."pickle.lua"
+    local pickleout = gendata.base..gendata.subfolder..PATH_SEPARATOR.."utils"..PATH_SEPARATOR.."pickle.lua"
+    os.execute(CMD_COPY..' "'..picklein..'" "'..pickleout..'"')
 end
 
 ------------------------------------------------------------------------------------------------------------
@@ -425,7 +429,7 @@ local function makescriptfile( name, filepath, objs )
     scriptdata = scriptdata..updatescript
     scriptdata = scriptdata..'end\n'
 
-    print(">>>>>>>>>> COLLECTION: "..name.."   objs:"..(tostring(table.count(objs))))
+    -- print(">>>>>>>>>> COLLECTION: "..name.."   objs:"..(tostring(table.count(objs))))
 
     makefile( filepath..gendata.folders.scripts..PATH_SEPARATOR.."gop.lua", gopscript )
     makefile( scriptfilepath, scriptdata )

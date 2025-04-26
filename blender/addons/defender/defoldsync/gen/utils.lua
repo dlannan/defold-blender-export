@@ -167,6 +167,7 @@ local function makefolders( collectionname, base, subfolder, config, gendata )
     gendata.subfolder   = subfolder
     gendata.config      = config
     local collectionpath = base..subfolder..PATH_SEPARATOR..collectionname
+    local picklepath = base..subfolder..PATH_SEPARATOR.."utils"
 
     -- Make the base path
     os.execute(CMD_MKDIR..' "'..collectionpath..'"')
@@ -174,6 +175,9 @@ local function makefolders( collectionname, base, subfolder, config, gendata )
     for k,v in pairs(gendata.folders) do 
         os.execute(CMD_MKDIR..' "'..collectionpath..PATH_SEPARATOR..v..'"')
     end
+
+    -- Make utils path in case it doesnt exist.
+    os.execute(CMD_MKDIR..' "'..picklepath..'"')
 end
 
 ------------------------------------------------------------------------------------------------------------
