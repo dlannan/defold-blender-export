@@ -52,6 +52,34 @@ local function rotatequat90( q, axis )
     return { x=x, y=y, z=z, w=w }
 end
 
+-- ---------------------------------------------------------------------------
+-- Deep Copy
+-- This is good for instantiating tables/objects without too much effort :)
+
+function deepcopy(t)
+	if type(t) ~= 'table' then return t end
+	local mt = getmetatable(t)
+	local res = {}
+	for k,v in pairs(t) do
+		if type(v) == 'table' then
+		v = deepcopy(v)
+		end
+		res[k] = v
+	end
+	setmetatable(res,mt)
+	return res
+end
+
+------------------------------------------------------------------------------------------------------------
+-- Remove unwanted symbols etc. Only support alpha numeric. Replaces symbols with underscores (so that its obvious)
+--   If upoper is set, then all text characters are made uppercase
+local function cleanstring( str, upper )
+
+    local outstr = str:gsub( "[^%w]", "_" )
+    if(upper) then outstr = outstr:gsub( "%l", string.upper) end
+    return outstr
+end
+
 ------------------------------------------------------------------------------------------------------------
 -- Compatibility: Lua-5.1
 local function split(str, pat)
@@ -203,7 +231,9 @@ end
 ------------------------------------------------------------------------------------------------------------
 
 return {
+    deepcopy            = deepcopy,
     rotatequat90        = rotatequat90,
+    cleanstring         = cleanstring,
     split               = split,
     localpathname       = localpathname,
     getextension        = getextension,

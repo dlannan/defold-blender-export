@@ -26,6 +26,7 @@
 local ffi                   = require("ffi")
 local json                  = require("defoldsync.utils.json")
 local materialSimple        = require("defoldsync.material.textures")
+local utils                 = require("defoldsync.gen.utils")
 
 local tinsert               = table.insert
 
@@ -117,6 +118,62 @@ local setupgendata            = gen_make.setgendata
 ------------------------------------------------------------------------------------------------------------
 -- Process children (take parents and work out their children)
 
+local function processSceneChildren(objs)
+
+    tempobjs = utils.deepcopy(objs)
+    newobjs = {}
+
+    -- Process all root objects first
+    for k,v in pairs(tempobjs) do 
+
+        if(v.parent == nil and v.name) then 
+            newobjs[v.name] = v
+            newobjs[v.name].children = nil
+            tempobjs[v.name] = nil
+        end
+    end 
+
+    -- Only children should now remain. Process parents that are in newobjs only. 
+    --  Keep doing this (down each level) until the tempobjs have all been assigned 
+    local levellookup = { newobjs }
+
+    -- More than 10 levels is stupid. Seriously, reorg your structure!
+    for level = 1, 10 do 
+        local nextlevel = {}
+        local LL = levellookup[level]
+        for k,v in pairs(tempobjs) do 
+
+            if(v.parent and v.parent.name) then 
+                if(LL[v.parent.name]) then 
+                    local pobj = LL[v.parent.name]
+                    if(pobj) then 
+                        pobj.children = pobj.children or {}
+                        pobj.children[v.name] = v
+                        tempobjs[k] = nil
+                    end
+                end
+
+                if(v.children) then 
+                    nextlevel[v.name] = v 
+                    v.children = nil
+                end
+            end
+        end
+        levellookup[level+1] = nextlevel
+    end
+    return newobjs
+end
+------------------------------------------------------------------------------------------------------------
+
+local function generateScene( scenelist )
+    local allobjs = processSceneChildren(scenelist)
+    -- print(json.encode(allobjs))
+    return allobjs
+end
+
+------------------------------------------------------------------------------------------------------------
+-- Process children (take parents and work out their children)
+
 local function processChildren(objs)
 
     -- Regen children using parent information 
@@ -132,7 +189,6 @@ local function processChildren(objs)
     end
     return objs
 end
-
 ------------------------------------------------------------------------------------------------------------
 
 local function setupmaterials( project_path )
@@ -192,11 +248,12 @@ local function makescene( scenename, objects, meshes, anims )
     -- Go through the collections in the OBJECTS table 
     for k,v in pairs(collectionlist) do 
         local collobjs = processChildren(v)
-        makecollection( k, collobjs, v )
+        local sceneobjs = generateScene(v)
+        makecollection( k, collobjs, sceneobjs )
     end
 
     local rootobjs = processChildren(objectlist)
-    if(table.count(rootobjs) > 0) then makecollection( scenename, rootobjs ) end 
+    if(table.count(sceneobjs) > 0) then makecollection( scenename, rootobjs ) end 
 end
 
 ------------------------------------------------------------------------------------------------------------

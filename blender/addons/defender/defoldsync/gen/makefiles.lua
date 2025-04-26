@@ -2,8 +2,11 @@
 --Local version of the gendata - this is set before making any collections
 local gendata   = nil
 
+local pkl                   = require("defoldsync.utils.pickle")
 local json                  = require("defoldsync.utils.json")
 local materialSimple        = require("defoldsync.material.textures")
+
+local utils                = require("defoldsync.gen.utils")
 
 local tinsert               = table.insert
 
@@ -402,10 +405,17 @@ local function makescriptfile( name, filepath, objs )
         end
     end 
 
+    scriptdata = scriptdata..'local pkl = require("utils.pickle")\n'
+    scriptdata = scriptdata..'local pickled_objdata = [['..pkl.pickle(objs)..']]\n'
+    
     scriptdata = scriptdata..'\nfunction init(self)\n'
     scriptdata = scriptdata..'\tself.props = gop.getall()\n'
     scriptdata = scriptdata..'\t-- Run initial setup on properties here.\n'
     scriptdata = scriptdata..'\t-- pprint(self.props) -- Debug props\n'
+
+    scriptdata = scriptdata..'\tlocal objects = pkl.unpickle(pickled_objdata)\n'
+    local SCENE_NAME = utils.cleanstring(name, true)
+    scriptdata = scriptdata..'\tgop.set("SCENE_'..SCENE_NAME..'", objects )\n'
 
     scriptdata = scriptdata..initscript
 
@@ -415,7 +425,8 @@ local function makescriptfile( name, filepath, objs )
     scriptdata = scriptdata..updatescript
     scriptdata = scriptdata..'end\n'
 
-    if(propcount == 0) then return "" end
+    print(">>>>>>>>>> COLLECTION: "..name.."   objs:"..(tostring(table.count(objs))))
+
     makefile( filepath..gendata.folders.scripts..PATH_SEPARATOR.."gop.lua", gopscript )
     makefile( scriptfilepath, scriptdata )
     return localpathname(gendata, filepath..gendata.folders.scripts..PATH_SEPARATOR..name..".script")
