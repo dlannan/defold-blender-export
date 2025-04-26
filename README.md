@@ -1,5 +1,18 @@
 # Defender
 
+## Update - Apr 2025
+
+Due to changes needed for my f18 game. I ended up added a number of new features to defender as well as fixing many little bugs.
+- Mesh buffer generation and collections is much more stable now. This is being used in my f18 game.
+- Gltf and glb improvements.
+- Added more properties for obejcts. You can now control script setting better as well as collisions volumes are much better - not perfect yet, but pretty good.
+- Scene graph is now output to script in a collection. This is a BIG update.
+  - The entire tree for a collection is exported into a lua table in script.
+  - You can access any collection using the gop tables. If your collection is called MyScene then the command to fetch the graph is: gop.get("SCENE_MYSCENE")
+  - The table is seen in the declaration in the scripts/MyScene.script file. This can be modified after export if needed. It is auto loaded with the collection.
+  - The scene tree (graph) includes many features like: dimensions, location, rotation, scaling, children and much more. See script file to see what is in there.
+Im not really doing much more on this tool once the f18 game is release. However should I end up doing more theatres and missions for the f18 game, then defender will likely get more updates.
+
 ## Update - Dec 2024
 
 Blender exporter is no longer being worked on. I have a number of new projects not using Defold anymore and they are now taking priority. As mentioned in the comment below, people are welcome to fork and use this repo. I will leave it up.
