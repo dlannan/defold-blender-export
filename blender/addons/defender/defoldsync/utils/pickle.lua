@@ -38,6 +38,7 @@ end
 function Pickle:value_(v)
     local vtype = type(v)
     if     vtype == "string" then return string.format("%q", v)
+    elseif vtype == "boolean" then return tostring(v)
     elseif vtype == "number" then return v
     elseif vtype == "table" then return "{"..self:ref_(v).."}"
     else --error("pickle a "..type(v).." is not supported")
